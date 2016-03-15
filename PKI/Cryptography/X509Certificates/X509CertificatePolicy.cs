@@ -1,0 +1,104 @@
+﻿using System.Collections.Generic;
+using System.IO;
+using PKI.Exceptions;
+using SysadminsLV.Asn1Parser;
+
+namespace System.Security.Cryptography.X509Certificates {
+	/// <summary>
+	/// Represents a single certificate policy which consists of an object identifier (OID) and optional qualifiers.
+	/// </summary>
+	public class X509CertificatePolicy {
+		readonly List<Byte> rawData = new List<Byte>();
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="X509CertificatePolicy"/> class from a string that represents a
+		/// policy OID value.
+		/// </summary>
+		/// <param name="policyOid">A string that represents certificate policy OID value.</param>
+		/// <exception cref="ArgumentNullException"><strong>policyOid</strong> parameter is null or empty string.</exception>
+		public X509CertificatePolicy(String policyOid) {
+			if (String.IsNullOrEmpty(policyOid)) { throw new ArgumentNullException("policyOid"); }
+			m_initialize(policyOid);
+		}
+		/// <summary>
+		/// Initializes a new instance of the <see cref="X509CertificatePolicy"/> class from a string that represents a
+		/// policy OID value and an array of policy qualifiers that are associated with the specified policy OID.
+		/// </summary>
+		/// <param name="policyOid">A string that represents certificate policy OID value.</param>
+		/// <param name="qualifiers">A collection of policy qualifiers.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <strong>policyOid</strong> and/or <strong>qualifiers</strong> parameter is null or empty string.
+		/// </exception>
+		public X509CertificatePolicy(String policyOid, X509PolicyQualifierCollection qualifiers) {
+			if (String.IsNullOrEmpty(policyOid)) { throw new ArgumentNullException("policyOid"); }
+			if (qualifiers == null) { throw new ArgumentNullException("qualifiers"); }
+			m_initialize(policyOid, qualifiers);
+		}
+		/// <summary>
+		/// Initializes a new instance of the <see cref="X509CertificatePolicy"/> class from a ASN.1-encoded byte array.
+		/// </summary>
+		/// <param name="rawData">ASN.1-encoded byte array that represent encoded certificate policy.</param>
+		/// <exception cref="ArgumentNullException"><strong>rawData</strong> parameter is null.</exception>
+		/// <exception cref="InvalidDataException">The data in the <strong>rawData</strong> parameter is not valid
+		/// certificate policy.</exception>
+		public X509CertificatePolicy(Byte[] rawData) {
+			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			m_decode(rawData);
+		}
+
+		/// <summary>
+		/// Gets certificate policy object identifier (OID).
+		/// </summary>
+		public Oid PolicyOid { get; private set; }
+		/// <summary>
+		/// Gets an array of optional certificate policy qualifiers.
+		/// </summary>
+		public X509PolicyQualifierCollection PolicyQualifiers { get; private set; }
+		
+		void m_initialize(String policyOid, X509PolicyQualifierCollection qualifiers = null) {
+			rawData.AddRange(Asn1Utils.EncodeObjectIdentifier(new Oid(policyOid)));
+			PolicyOid = new Oid(policyOid);
+			PolicyQualifiers = qualifiers ?? new X509PolicyQualifierCollection();
+		}
+		void m_decode(Byte[] raw) {
+			PolicyQualifiers = new X509PolicyQualifierCollection();
+			Asn1Reader asn = new Asn1Reader(raw);
+			if (asn.Tag != 48) { throw new InvalidDataException("The data is invalid."); }
+			asn.MoveNext();
+			PolicyOid = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
+			if (asn.MoveNext()) { PolicyQualifiers.Decode(asn.GetTagRawData()); }
+		}
+
+		/// <summary>
+		/// Adds policy qualifier to a <see cref="PolicyQualifiers"/> collection.
+		/// </summary>
+		/// <param name="policy">A policy qualifier to add.</param>
+		/// <returns><strong>True</strong> if the policy qualifier is added, otherwise <strong>False</strong>.</returns>
+		public Boolean Add(X509PolicyQualifier policy) {
+			return PolicyQualifiers.Add(policy) > -1;
+		}
+		/// <summary>
+		/// Removes policy qualifier from a <see cref="PolicyQualifiers"/> collection by using a item index in the collection.
+		/// </summary>
+		/// <param name="index">A zero-based item index in the collection.</param>
+		/// <returns><strong>True</strong> if the policy qualifier is removed, otherwise <strong>False</strong>.</returns>
+		public Boolean Remove(Int32 index) {
+			try { PolicyQualifiers.Remove(index); } catch { return false; }
+			return true;
+		}
+		/// <summary>
+		/// Encodes certificate policy to a ASN.1-encoded byte array.
+		/// </summary>
+		/// <exception cref="UninitializedObjectException">
+		/// An <see cref="X509CertificatePolicy"/> object is not initialized through any public constructor.
+		/// </exception>
+		/// <returns>ASN.1-encoded byte array.</returns>
+		public Byte[] Encode() {
+			if (PolicyOid == null) { throw new UninitializedObjectException(); }
+			if (PolicyQualifiers.Count > 0) {
+				rawData.AddRange(PolicyQualifiers.Encode());
+			}
+			return Asn1Utils.Encode(rawData.ToArray(), 48);
+		}
+	}
+}
