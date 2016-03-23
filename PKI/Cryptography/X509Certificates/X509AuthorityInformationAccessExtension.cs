@@ -10,18 +10,18 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// Online Certificate Status Protocol (OCSP).
 	/// </summary>
 	public sealed class X509AuthorityInformationAccessExtension : X509Extension {
-		readonly Oid oid = new Oid("1.3.6.1.5.5.7.1.1");
+		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.1.1");
 		
-		internal X509AuthorityInformationAccessExtension(Byte[] rawData, Boolean critical) {
+		internal X509AuthorityInformationAccessExtension(Byte[] rawData, Boolean critical)
+            : base("1.3.6.1.5.5.7.1.1", rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException("rawData"); }
-			Critical = critical;
 			m_decode(rawData);
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509AuthorityInformationAccessExtension</strong> class.
 		/// </summary>
-		public X509AuthorityInformationAccessExtension() { Oid = oid; }
+		public X509AuthorityInformationAccessExtension() { Oid = _oid; }
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509AuthorityInformationAccessExtension</strong> class using an
 		/// <see cref="AsnEncodedData"/> object and a value that identifies whether the extension is critical.
@@ -57,7 +57,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		public String[] OnlineCertificateStatusProtocol { get; private set; }
 
 		void m_initialize(IEnumerable<String> authorityIssuer, IEnumerable<String> ocsp, Boolean ocspFirst) {
-			Oid = oid;
+			Oid = _oid;
 			Critical = false;
 			List<String> aiaUrlStrings = new List<String>();
 			List<String> ocspUrlStrings = new List<String>();
@@ -112,10 +112,8 @@ namespace System.Security.Cryptography.X509Certificates {
 				}
 
 			} while (asn.MoveNextCurrentLevel());
-			Oid = oid;
 			CertificationAuthorityIssuer = aiaUrls.ToArray();
 			OnlineCertificateStatusProtocol = ocspUrls.ToArray();
-			RawData = rawData;
 		}
 	}
 }

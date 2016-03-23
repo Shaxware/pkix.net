@@ -7,9 +7,9 @@
 	public sealed class X509CertificatePoliciesExtension : X509Extension {
 		readonly Oid oid = new Oid("2.5.29.32");
 
-		internal X509CertificatePoliciesExtension(Byte[] rawData, Boolean critical) {
+		internal X509CertificatePoliciesExtension(Byte[] rawData, Boolean critical)
+            : base("2.5.29.32", rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException("rawData"); }
-			Critical = critical;
 			m_decode(rawData);
 		}
 		
@@ -53,10 +53,8 @@
 			RawData = Policies.Encode();
 		}
 		void m_decode(Byte[] rawData) {
-			Oid = oid;
 			Policies = new X509CertificatePolicyCollection();
 			Policies.Decode(rawData);
-			RawData = rawData;
 		}
 	}
 }

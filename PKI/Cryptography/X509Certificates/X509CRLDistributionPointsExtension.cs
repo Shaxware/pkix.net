@@ -11,9 +11,9 @@ namespace System.Security.Cryptography.X509Certificates {
 	public sealed class X509CRLDistributionPointsExtension : X509Extension {
 		readonly Oid _oid = new Oid("2.5.29.31");
 
-		internal X509CRLDistributionPointsExtension(Byte[] rawData, Boolean critical) {
+		internal X509CRLDistributionPointsExtension(Byte[] rawData, Boolean critical)
+            : base("2.5.29.31", rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException("rawData"); }
-			Critical = critical;
 			m_decode(rawData);
 		}
 
@@ -72,8 +72,6 @@ namespace System.Security.Cryptography.X509Certificates {
 				urls.Add(new X509DistributionPoint(asn.GetTagRawData()));
 			} while (asn.MoveNextCurrentLevel());
 			CRLDistributionPoints = urls.ToArray();
-			RawData = rawData;
-			Oid = _oid;
 		}
 
 		/// <summary>

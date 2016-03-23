@@ -33,9 +33,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <exception cref="ArgumentException">
 		/// The data in the <strong>value</strong> parameter is not valid extension value.
 		/// </exception>
-		public X509ArchiveCutoffExtension(AsnEncodedData value, Boolean critical) {
-			Oid = oid;
-			Critical = critical;
+		public X509ArchiveCutoffExtension(AsnEncodedData value, Boolean critical)
+            : base(new Oid("1.3.6.1.5.5.7.48.1.6", "Archive Cutoff"), value.RawData, critical) {
 			m_decode(value.RawData);
 		}
 		/// <summary>
@@ -57,7 +56,6 @@ namespace System.Security.Cryptography.X509Certificates {
 			RawData = Asn1Utils.EncodeGeneralizedTime(cutoff);
 		}
 		void m_decode(Byte[] rawData) {
-			RawData = rawData;
 			CutoffDate = Asn1Utils.DecodeGeneralizedTime(rawData);
 		}
 

@@ -28,9 +28,8 @@ namespace System.Security.Cryptography.X509Certificates {
 
 		/// <param name="value">The encoded data to use to create the extension.</param>
 		/// <param name="critical"><strong>True</strong> if the extension is critical; otherwise, <strong>False</strong>.</param>
-		public X509ServiceLocatorExtension(AsnEncodedData value, Boolean critical) {
-			Oid = oid;
-			Critical = critical;
+		public X509ServiceLocatorExtension(AsnEncodedData value, Boolean critical)
+            : base(new Oid("1.3.6.1.5.5.7.48.1.7", "OCSP Service Locator"), value.RawData, critical) {
 			m_decode(value.RawData);
 		}
 

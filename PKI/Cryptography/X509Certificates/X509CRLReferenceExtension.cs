@@ -9,18 +9,18 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </summary>
 	/// <remarks>The class do not expose public constructors.</remarks>
 	public sealed class X509CRLReferenceExtension : X509Extension {
-		readonly Oid oid = new Oid("1.3.6.1.5.5.7.48.1.3", "OCSP CRL Reference");
+		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.48.1.3", "OCSP CRL Reference");
 
-		internal X509CRLReferenceExtension(Byte[] rawData, Boolean critical) {
+		internal X509CRLReferenceExtension(Byte[] rawData, Boolean critical)
+            : base(new Oid("1.3.6.1.5.5.7.48.1.3", "OCSP CRL Reference"), rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException("rawData"); }
-			Critical = critical;
 			m_decode(rawData);
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509CRLReferenceExtension</strong> class.
 		/// </summary>
-		public X509CRLReferenceExtension() { Oid = oid; }
+		public X509CRLReferenceExtension() { Oid = _oid; }
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509CRLReferenceExtension</strong> class using an
 		/// <see cref="AsnEncodedData"/> object and a value that identifies whether the extension is critical.
@@ -67,7 +67,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		public DateTime ThisUpdate { get; private set; }
 
 		void m_initialize(String url, String crlNumber, DateTime thisUpdate) {
-			Oid = oid;
+			Oid = _oid;
 			URL = new Uri(url);
 			CRLNumber = crlNumber;
 			ThisUpdate = thisUpdate;
@@ -95,8 +95,6 @@ namespace System.Security.Cryptography.X509Certificates {
 								break;
 						}
 					} while (asn.MoveNext());
-					Oid = oid;
-					RawData = rawData;
 				}
 			} catch { throw new ArgumentException("The data is invalid."); }
 		}

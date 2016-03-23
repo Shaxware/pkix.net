@@ -11,9 +11,9 @@ namespace System.Security.Cryptography.X509Certificates {
 		readonly Oid oid = new Oid("1.3.6.1.4.1.311.21.10");
 		readonly List<Oid> oids = new List<Oid>();
 
-		internal X509ApplicationPoliciesExtension(Byte[] rawData, Boolean critical) {
+		internal X509ApplicationPoliciesExtension(Byte[] rawData, Boolean critical)
+            : base("1.3.6.1.4.1.311.21.10", rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException("rawData"); }
-			Critical = critical;
 			m_decode(rawData);
 		}
 		
@@ -65,15 +65,12 @@ namespace System.Security.Cryptography.X509Certificates {
 			RawData = Asn1Utils.Encode(rawData.ToArray(), 48);
 		}
 		void m_decode(Byte[] rawData) {
-			Oid = oid;
-			Critical = false;
 			Asn1Reader asn = new Asn1Reader(rawData);
 			if (asn.Tag != 48) { throw new ArgumentException("The data is invalid."); }
 			asn.MoveNext();
 			do {
 				oids.Add(Asn1Utils.DecodeObjectIdentifier(asn.GetPayload()));
 			} while (asn.MoveNextCurrentLevel());
-			RawData = rawData;
 		}
 	}
 }

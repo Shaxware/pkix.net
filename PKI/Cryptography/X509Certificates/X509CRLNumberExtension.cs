@@ -42,8 +42,6 @@ namespace System.Security.Cryptography.X509Certificates {
 		void m_decode(Byte[] rawData) {
 			if (rawData[0] != (Int32)Asn1Type.INTEGER) { throw new InvalidDataException("The data is invalid"); }
 			CRLNumber = new Asn1Integer(rawData).Value;
-
-			RawData = rawData;
 		}
 		void m_encode(BigInteger crlNumber) {
 			CRLNumber = CRLNumber;

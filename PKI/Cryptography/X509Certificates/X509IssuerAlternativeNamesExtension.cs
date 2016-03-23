@@ -9,10 +9,10 @@
 		readonly Oid oid = new Oid("2.5.29.18");
 		X509AlternativeNameCollection alternativeNames = new X509AlternativeNameCollection();
 
-		internal X509IssuerAlternativeNamesExtension(Byte[] rawData, Boolean critical) {
+		internal X509IssuerAlternativeNamesExtension(Byte[] rawData, Boolean critical)
+            : base("2.5.29.18", rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException("rawData"); }
-			Critical = critical;
-			m_decode(rawData, critical);
+			m_decode(rawData);
 		}
 
 		/// <summary>
@@ -56,11 +56,8 @@
 			RawData = altNames.Encode();
 			alternativeNames = altNames;
 		}
-		void m_decode(Byte[] rawData, Boolean critical) {
-			Critical = critical;
-			Oid = oid;
-			alternativeNames.Decode(rawData);
-			RawData = rawData;
-		}
+		void m_decode(Byte[] rawData) {
+            alternativeNames.Decode(rawData);
+        }
 	}
 }

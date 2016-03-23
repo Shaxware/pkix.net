@@ -13,9 +13,9 @@ namespace System.Security.Cryptography.X509Certificates {
 	public sealed class X509CertificateTemplateExtension : X509Extension {
 		readonly Oid eoid = new Oid("1.3.6.1.4.1.311.21.7");
 
-		internal X509CertificateTemplateExtension(Byte[] rawData, Boolean critical) {
+		internal X509CertificateTemplateExtension(Byte[] rawData, Boolean critical)
+            : base("1.3.6.1.4.1.311.21.7", rawData, critical){
 			if (rawData == null) { throw new ArgumentNullException("rawData"); }
-			Critical = critical;
 			m_decode(rawData);
 		}
 		
@@ -86,8 +86,6 @@ namespace System.Security.Cryptography.X509Certificates {
 				Crypt32.CryptDecodeObject(1, "1.3.6.1.4.1.311.21.7", rawData, (UInt32)rawData.Length, 0, pbStructInfo, ref pcbStructInfo);
 				Wincrypt.CERT_TEMPLATE_EXT structure = (Wincrypt.CERT_TEMPLATE_EXT)Marshal.PtrToStructure(pbStructInfo, typeof(Wincrypt.CERT_TEMPLATE_EXT));
 				Marshal.FreeHGlobal(pbStructInfo);
-				Oid = eoid;
-				RawData = rawData;
 				TemplateOid = new Oid(structure.pszObjId);
 				MajorVersion = (Int32)structure.dwMajorVersion;
 				MinorVersion = (Int32)structure.dwMinorVersion;

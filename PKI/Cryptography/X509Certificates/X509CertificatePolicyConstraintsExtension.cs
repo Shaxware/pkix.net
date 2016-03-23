@@ -19,7 +19,8 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </summary>
         /// <param name="constraints"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public X509CertificatePolicyConstraintsExtension(AsnEncodedData constraints) {
+        public X509CertificatePolicyConstraintsExtension(AsnEncodedData constraints)
+            : base("2.5.29.36", constraints.RawData, true){
             if (constraints == null) { throw new ArgumentNullException("constraints"); }
             m_decode(constraints.RawData);
         }
@@ -79,8 +80,6 @@ namespace System.Security.Cryptography.X509Certificates {
             RawData = Asn1Utils.Encode(rawData.ToArray(), 48);
         }
         void m_decode(Byte[] rawData) {
-            Oid = _oid;
-            Critical = true;
             Asn1Reader asn = new Asn1Reader(rawData);
             asn.MoveNext();
             do {
@@ -91,7 +90,6 @@ namespace System.Security.Cryptography.X509Certificates {
                     default: throw new InvalidDataException("The data is invalid");
                 }
             } while (asn.MoveNextCurrentLevel());
-            RawData = rawData;
         }
     }
 }

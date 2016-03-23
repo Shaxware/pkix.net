@@ -19,10 +19,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 		/// <param name="nonceValue">The encoded data to use to create the extension.</param>
 		/// <param name="critical"><strong>True</strong> if the extension is critical; otherwise, <strong>False</strong>.</param>
-		public X509NonceExtension(AsnEncodedData nonceValue, Boolean critical) {
-			Oid = oid;
-			RawData = nonceValue.RawData;
-			Critical = critical;
+		public X509NonceExtension(AsnEncodedData nonceValue, Boolean critical)
+            : base(new Oid("1.3.6.1.5.5.7.48.1.2", "OCSP Nonce") , nonceValue.RawData, critical) {
 			Asn1Reader asn = new Asn1Reader(nonceValue.RawData);
 			Value = AsnFormatter.BinaryToString(asn.GetPayload(), EncodingType.Hex);
 		}

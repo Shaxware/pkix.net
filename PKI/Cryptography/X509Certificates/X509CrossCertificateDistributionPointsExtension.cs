@@ -34,9 +34,10 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="ArgumentException">
         ///		The data in the <strong>distributionPoints</strong> parameter is not valid extension value.
         /// </exception>
-        public X509CrossCertificateDistributionPointsExtension(AsnEncodedData crossCertPoints, Boolean critical) {
+        public X509CrossCertificateDistributionPointsExtension(AsnEncodedData crossCertPoints, Boolean critical)
+            : base("1.3.6.1.4.1.311.10.9.1", crossCertPoints.RawData, critical) {
             if (crossCertPoints == null) { throw new ArgumentNullException("crossCertPoints"); }
-            m_decode(crossCertPoints.RawData, critical);
+            m_decode(crossCertPoints.RawData);
         }
 
         /// <summary>
@@ -83,9 +84,7 @@ namespace System.Security.Cryptography.X509Certificates {
             rawData.AddRange(Asn1Utils.Encode(CrossCertDistributionPoints.Encode(), 48));
             RawData = rawData.ToArray();
         }
-        void m_decode(Byte[] rawData, Boolean critical) {
-            Oid = _oid;
-            Critical = critical;
+        void m_decode(Byte[] rawData) {
             CrossCertDistributionPoints = new X509AlternativeNameCollection();
 
             Asn1Reader asn = new Asn1Reader(rawData);
@@ -102,7 +101,6 @@ namespace System.Security.Cryptography.X509Certificates {
                 CrossCertDistributionPoints.AddRange(altNames);
             } while (asn.MoveNextCurrentLevel());
             CrossCertDistributionPoints.Close();
-            RawData = rawData;
         }
 
         /// <summary>

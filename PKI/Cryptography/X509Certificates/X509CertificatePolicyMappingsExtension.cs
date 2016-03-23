@@ -19,7 +19,8 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="ArgumentNullException">
         /// <strong>mappings</strong> parameter is null.
         /// </exception>
-        public X509CertificatePolicyMappingsExtension(AsnEncodedData mappings) {
+        public X509CertificatePolicyMappingsExtension(AsnEncodedData mappings)
+            : base("2.5.29.33", mappings.RawData, true) {
             if (mappings == null) { throw new ArgumentNullException("mappings"); }
             m_decode(mappings.RawData);
         }
@@ -58,8 +59,6 @@ namespace System.Security.Cryptography.X509Certificates {
             RawData = Asn1Utils.Encode(rawData.ToArray(), 48);
         }
         void m_decode(Byte[] rawData) {
-            Oid = _oid;
-            Critical = true;
             Asn1Reader asn = new Asn1Reader(rawData);
             asn.MoveNext();
             List<OidMapping> mappings = new List<OidMapping>();
@@ -67,7 +66,6 @@ namespace System.Security.Cryptography.X509Certificates {
                 mappings.Add(new OidMapping(asn.GetTagRawData()));
             } while (asn.MoveNextCurrentLevel());
             OidMappings = mappings.ToArray();
-            RawData = rawData;
         }
     }
 }

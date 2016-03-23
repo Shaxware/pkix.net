@@ -21,9 +21,10 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="ArgumentNullException">
         /// <strong>aki</strong> parameter is null;
         /// </exception>
-        public X509AuthorityKeyIdentifierExtension(AsnEncodedData aki, Boolean critical) {
+        public X509AuthorityKeyIdentifierExtension(AsnEncodedData aki, Boolean critical)
+            : base("2.5.29.35", aki.RawData, critical) {
             if (aki == null) { throw new ArgumentNullException("aki"); }
-            m_decode(aki.RawData, critical);
+            m_decode(aki.RawData);
         }
         /// <summary>
         /// Intitializes a new instance of <strong>X509AuthorityKeyIdentifierExtension</strong> class from
@@ -110,10 +111,7 @@ namespace System.Security.Cryptography.X509Certificates {
             RawData = Asn1Utils.Encode(AsnFormatter.StringToBinary(keyId, EncodingType.Hex), 0x80);
             RawData = Asn1Utils.Encode(RawData, 48);
         }
-        void m_decode(Byte[] rawData, Boolean critical) {
-            Oid = _oid;
-            Critical = critical;
-
+        void m_decode(Byte[] rawData) {
             Asn1Reader asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) { throw new ArgumentException("The data is invalid."); }
             asn.MoveNext();
@@ -137,7 +135,6 @@ namespace System.Security.Cryptography.X509Certificates {
                         break;
                 }
             } while (asn.MoveNextCurrentLevel());
-            RawData = rawData;
         }
 
         public AuthorityKeyIdentifierFlags IncludedComponents { get; private set; }
