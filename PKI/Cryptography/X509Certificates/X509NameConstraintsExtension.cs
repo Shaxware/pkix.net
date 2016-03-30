@@ -54,12 +54,13 @@ namespace System.Security.Cryptography.X509Certificates {
 
         static X509AlternativeNameCollection encodeAltNames(X509AlternativeNameCollection permittedSubtree, List<Byte> rawData, Byte tag) {
             X509AlternativeNameCollection altNames = new X509AlternativeNameCollection();
-            foreach (X509AlternativeName name in permittedSubtree.Cast<X509AlternativeName>()
+            List<Byte> tempRawData = new List<Byte>();
+            foreach (X509AlternativeName name in permittedSubtree
                 .Where(x => x.Type != X509AlternativeNamesEnum.RegisteredId)) {
                 altNames.Add(name);
-                rawData.AddRange(Asn1Utils.Encode(name.RawData, 48));
+                tempRawData.AddRange(Asn1Utils.Encode(name.RawData, 48));
             }
-            rawData.AddRange(Asn1Utils.Encode(rawData.ToArray(), tag));
+            rawData.AddRange(Asn1Utils.Encode(tempRawData.ToArray(), tag));
             altNames.Close();
             return altNames;
         }
