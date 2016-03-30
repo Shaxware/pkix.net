@@ -6,7 +6,7 @@ using System.Text;
 using SysadminsLV.Asn1Parser;
 
 namespace PKI.Cryptography.Pkcs {
-    public sealed class Pkcs8Key : Pkcs1Key {
+    sealed class Pkcs8Key : Pkcs1Key {
         public Pkcs8Key(Byte[] rawData) : base(rawData, true) {
             
         }

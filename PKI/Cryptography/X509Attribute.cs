@@ -16,9 +16,7 @@ namespace System.Security.Cryptography {
 		/// </summary>
 		/// <param name="oid">An Oid object that identifies attribute.</param>
 		/// <param name="rawData">A byte array that contains Abstract Syntax Notation One (ASN.1)-encoded data.</param>
-		public X509Attribute(Oid oid, Byte[] rawData) {
-			m_initialize(oid, rawData);
-		}
+		public X509Attribute(Oid oid, Byte[] rawData) : base(oid, rawData) { }
 		/// <summary>
 		///		Initializes a new instance of the <strong>X509Attribute</strong> class using an Oid object, an integer that
 		///		identifies the tagged attribute and a byte array. This constructor is used only for tagged attributes.
@@ -26,9 +24,8 @@ namespace System.Security.Cryptography {
 		/// <param name="oid">An Oid object that identifies attribute.</param>
 		/// <param name="partId">An integer that identifies attribute.</param>
 		/// <param name="rawData">A byte array that contains Abstract Syntax Notation One (ASN.1)-encoded data.</param>
-		public X509Attribute(Oid oid, Int32 partId, Byte[] rawData) {
+		public X509Attribute(Oid oid, Int32 partId, Byte[] rawData) : base(oid, rawData) {
 			BodyPartId = partId;
-			m_initialize(oid, rawData);
 		}
 		internal X509Attribute(Wincrypt.CRYPT_ATTRIBUTE blob) {
 			m_initialize2(blob);
@@ -39,11 +36,7 @@ namespace System.Security.Cryptography {
 		/// <remarks>This property is used only for tagged attributes.</remarks>
 		public Int32 BodyPartId { get; private set; }
 
-		void m_initialize(Oid poid, Byte[] raw) {
-			Oid = poid;
-			RawData = raw;
-		}
-		void m_initialize2(Wincrypt.CRYPT_ATTRIBUTE blob) {
+	    void m_initialize2(Wincrypt.CRYPT_ATTRIBUTE blob) {
 			Oid = new Oid(blob.pszObjId);
 			Wincrypt.CRYPTOAPI_BLOB attrStruct = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(blob.rgValue, typeof(Wincrypt.CRYPTOAPI_BLOB));
 			RawData = new Byte[attrStruct.cbData];

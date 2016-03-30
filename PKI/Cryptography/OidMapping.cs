@@ -1,10 +1,8 @@
 ﻿using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
-using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 
-namespace PKI.Cryptography {
+namespace System.Security.Cryptography {
     /// <summary>
     /// Represents an object identifier (OID) mapping. OID mapping is used to map external OID from foreign
     /// domain to its equivalent in the subject domain.

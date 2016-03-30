@@ -9,7 +9,7 @@ using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 
 namespace PKI.Cryptography.Pkcs {
-    public class Pkcs1Key {
+    class Pkcs1Key {
         Int32 version;
         BigInteger modulus, pubExponent, privateExponent, prime1, prime2, exp1, exp2, coefficient;
         Byte[] privateKeyMagic = { 0x07,0x02,0x00,0x00,0x00,0x24,0x00,0x00,0x52,0x53,0x41,0x32,0x00 };

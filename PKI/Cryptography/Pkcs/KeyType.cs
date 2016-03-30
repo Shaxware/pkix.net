@@ -2,7 +2,7 @@
     /// <summary>
     /// Contains asymmetric key types.
     /// </summary>
-    public enum KeyType {
+    enum KeyType {
         /// <summary>
         /// The key is private key.
         /// </summary>
