@@ -162,7 +162,9 @@ namespace PKI.CertificateServices {
 			if (!computerName.Contains(".")) { computerName = computerName + "." + Domain.GetCurrentDomain().Name; }
 			_certConfig.Reset(0); //TODO
 			while (_certConfig.Next() >= 0) {
-				if (String.Equals(_certConfig.GetField("Server"), computerName, StringComparison.CurrentCultureIgnoreCase)) {
+                Int32 flags = Convert.ToInt32(_certConfig.GetField("Flags"));
+                Boolean serverNameMatch = String.Equals(_certConfig.GetField("Server"), computerName, StringComparison.InvariantCultureIgnoreCase);
+                if (serverNameMatch && (flags & 1) > 0) {
 					foundInDs = true;
 					return;
 				}
