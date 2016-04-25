@@ -1,14 +1,13 @@
-﻿using System;
+﻿using PKI.Structs;
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI.Structs;
 
 namespace PKI.Utils {
-	static class CryptographyUtils {
+    static class CryptographyUtils {
 		public static X509Extension ConvertExtension(X509Extension extension) {
 			AsnEncodedData asndata = new AsnEncodedData(extension.Oid, extension.RawData);
 			switch (extension.Oid.Value) {
@@ -79,32 +78,19 @@ namespace PKI.Utils {
                 throw new ArgumentNullException("str");
             }
             return Encoding.Unicode.GetBytes(str);
-			//Int32 index = 0;
-			//Char[] chars = str.ToCharArray();
-			//Byte[] returnbytes = new byte[chars.Length * 2];
-
-			//foreach (char ch in chars) {
-			//	String hex = Convert.ToInt32(ch).ToString("x4");
-			//	returnbytes[index] = Byte.Parse(hex.Substring(2, 2), NumberStyles.HexNumber);
-			//	returnbytes[index + 1] = Byte.Parse(hex.Substring(0, 2), NumberStyles.HexNumber);
-			//	index = index + 2;
-			//}
 		}
 		public static String EncodeDerString(Byte[] rawData) {
 			if (rawData == null) { throw new ArgumentNullException(); }
             if (rawData.Length == 0) { throw new ArgumentException("The vlue is empty"); }
-            return Encoding.Unicode.GetString(rawData);
-			//Int32 index;
-			//StringBuilder SB = new StringBuilder();
-			//string[] rawData1 = new string[rawData.Length];
-			//for (index = 0; index < rawData.Length; index++) {
-			//	rawData1[index] = rawData[index].ToString("x2");
-			//}
-			//for (index = 0; index < rawData.Length; index = index + 2) {
-			//	Int32 charint = Int32.Parse(rawData1[index + 1] + rawData1[index], NumberStyles.HexNumber);
-			//	SB.Append(Convert.ToChar(charint));
-			//}
-			//return SB.ToString();
+            List<Byte> rawBytes;
+            if (rawData.Length % 2 > 0) {
+                rawBytes = new List<Byte>(rawData.Length + 1);
+                rawBytes.AddRange(rawData);
+                rawBytes.Add(0);
+            } else {
+                rawBytes = new List<Byte>(rawData);
+            }
+            return Encoding.Unicode.GetString(rawBytes.ToArray());
 		}
 		public static IEnumerable<X509Extension> DecodeX509ExtensionCollection2(Wincrypt.CERT_EXTENSIONS extstruct) {
 			return decode_extstruct(extstruct).ToArray();
