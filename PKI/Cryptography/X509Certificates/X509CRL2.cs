@@ -558,7 +558,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		public DateTime? GetNextPublish() {
 			if (RawData == null) { throw new UninitializedObjectException(); }
 			if (Extensions == null) { return NextUpdate; }
-			X509Extension e = Extensions["2.5.29.20"];
+			X509Extension e = Extensions["1.3.6.1.4.1.311.21.4"];
 			return e == null ? NextUpdate : Asn1Utils.DecodeDateTime(e.RawData);
 		}
 		/// <summary>
