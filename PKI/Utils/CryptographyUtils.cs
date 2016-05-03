@@ -49,6 +49,8 @@ namespace PKI.Utils {
 					return new X509CertificatePoliciesExtension(asndata, extension.Critical);
                 case "2.5.29.33":
                     return new X509CertificatePolicyMappingsExtension(asndata);
+                case "2.5.29.35":
+                    return new X509AuthorityKeyIdentifierExtension(asndata, extension.Critical);
                 case "2.5.29.36":
                     return new X509CertificatePolicyConstraintsExtension(asndata);
                 case "2.5.29.37":
