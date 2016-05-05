@@ -684,31 +684,46 @@ namespace PKI.CertificateServices {
 			return new CertificateAuthority(computerName);
 		}
 		/// <summary>
-		/// Enumerates and gets Enterprise Certification Authority object collection from current Active Directory forest.
+		/// <para>This method is obsolete.</para>
+		/// Enumerates registered Enterprise Certification Authorities from the current Active Directory forest.
 		/// </summary>
 		/// <param name="findType">Specifies CA object search type. The search type can be either: <strong>Name</strong>
 		/// or <strong>Server</strong>.</param>
 		/// <param name="findValue">Specifies search pattern for a type specifed in <strong>findType</strong> argument.
 		/// Wildcard characters: * and ? are accepted.</param>
 		/// <returns>Enterprise Certification Authority collection.</returns>
+		[Obsolete("This method is obsolete. Use 'EnumEnterpriseCAs' method instead.", true)]
 		public static CertificateAuthority[] GetCA(String findType, String findValue) {
-			if (!ActiveDirectory.Ping()) { throw new Exception("Non-domain environments are not supported."); }
-			List<CertificateAuthority> CAs = new List<CertificateAuthority>();
-			CCertConfig certConfig = new CCertConfig();
-
-			while (certConfig.Next() >= 0) {
-				Wildcard wildcard = new Wildcard(findValue, RegexOptions.IgnoreCase);
-				switch (findType.ToLower()) {
-					case "name":
-						if (!wildcard.IsMatch(certConfig.GetField("CommonName"))) { continue; } break;
-					case "server":
-						if (!wildcard.IsMatch(certConfig.GetField("Server"))) { continue; } break;
-					default:
-						throw new ArgumentException("The value for 'findType' must be either 'Name' or 'Server'.");
-				}
-				CAs.Add(new CertificateAuthority(certConfig.GetField("Server"), certConfig.GetField("SanitizedName")));
-			}
-			return CAs.ToArray();
+            return EnumEnterpriseCAs(findType, findValue);
 		}
+        /// <summary>
+		/// Enumerates registered Enterprise Certification Authorities from the current Active Directory forest.
+		/// </summary>
+		/// <param name="findType">Specifies CA object search type. The search type can be either: <strong>Name</strong>
+		/// or <strong>Server</strong>.</param>
+		/// <param name="findValue">Specifies search pattern for a type specifed in <strong>findType</strong> argument.
+		/// Wildcard characters: * and ? are accepted.</param>
+		/// <returns>Enterprise Certification Authority collection.</returns>
+        public static CertificateAuthority[] EnumEnterpriseCAs(String findType, String findValue) {
+            if (!ActiveDirectory.Ping()) { throw new Exception("Non-domain environments are not supported."); }
+            List<CertificateAuthority> CAs = new List<CertificateAuthority>();
+            CCertConfig certConfig = new CCertConfig();
+
+            while (certConfig.Next() >= 0) {
+                Wildcard wildcard = new Wildcard(findValue, RegexOptions.IgnoreCase);
+                switch (findType.ToLower()) {
+                    case "name":
+                        if (!wildcard.IsMatch(certConfig.GetField("CommonName"))) { continue; }
+                        break;
+                    case "server":
+                        if (!wildcard.IsMatch(certConfig.GetField("Server"))) { continue; }
+                        break;
+                    default:
+                        throw new ArgumentException("The value for 'findType' must be either 'Name' or 'Server'.");
+                }
+                CAs.Add(new CertificateAuthority(certConfig.GetField("Server"), certConfig.GetField("SanitizedName")));
+            }
+            return CAs.ToArray();
+        }
 	}
 }
