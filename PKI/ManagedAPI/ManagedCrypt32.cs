@@ -53,7 +53,7 @@ namespace PKI.ManagedAPI {
 				return AsnFormatter.StringToBinary(anyString, EncodingType.HexAny);
 			} catch {
 				try {
-					return AsnFormatter.StringToBinary(anyString);
+					return AsnFormatter.StringToBinary(anyString, EncodingType.Base64Any);
 				} catch {
 					return AsnFormatter.StringToBinary(anyString, EncodingType.Binary);
 				}
@@ -194,7 +194,7 @@ namespace PKI.ManagedAPI {
 		/// <param name="rawData">ASN.1-encoded byte array that represents requested object.</param>
 		/// <returns>Decoded <see cref="X509Extension"/> object.</returns>
 		/// <exception cref="ArgumentNullException"><strong>rawData</strong> parameter is null reference.</exception>
-		/// <exception cref="Exceptions.Asn1InvalidTagException">Byte array do not represent requested object.</exception>
+		/// <exception cref="Asn1InvalidTagException">Byte array do not represent requested object.</exception>
 		public static X509Extension DecodeX509Extension(Byte[] rawData) {
 			if (rawData == null) { throw new ArgumentNullException("rawData"); }
 			Asn1Reader asn = new Asn1Reader(rawData);
