@@ -12,7 +12,6 @@ using System.DirectoryServices;
 using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using System.Management;
-using System.Security.AccessControl;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
@@ -710,7 +709,9 @@ namespace PKI.CertificateServices {
             CCertConfig certConfig = new CCertConfig();
 
             while (certConfig.Next() >= 0) {
-                Wildcard wildcard = new Wildcard(findValue, RegexOptions.IgnoreCase);
+				Int32 flags = Convert.ToInt32(certConfig.GetField("Flags"));
+				if ((flags & 1) == 0) { continue; }
+				Wildcard wildcard = new Wildcard(findValue, RegexOptions.IgnoreCase);
                 switch (findType.ToLower()) {
                     case "name":
                         if (!wildcard.IsMatch(certConfig.GetField("CommonName"))) { continue; }
@@ -723,6 +724,7 @@ namespace PKI.CertificateServices {
                 }
                 CAs.Add(new CertificateAuthority(certConfig.GetField("Server"), certConfig.GetField("SanitizedName")));
             }
+			CryptographyUtils.ReleaseCom(certConfig);
             return CAs.ToArray();
         }
 	}

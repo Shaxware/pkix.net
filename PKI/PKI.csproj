@@ -94,6 +94,7 @@
     <Compile Include="ManagedAPI\StructClasses\AlgorithmIdentifier.cs" />
     <Compile Include="ManagedAPI\StructClasses\SignedContentBlob.cs" />
     <Compile Include="Utils\CLRExtensions\OidExtensions.cs" />
+    <Compile Include="Utils\CLRExtensions\X509Certificate2Extensions.cs" />
     <Compile Include="Utils\ErrorSeverity.cs" />
     <Compile Include="Utils\CLRExtensions\BigIntegerExtensions.cs" />
     <Compile Include="Utils\CLRExtensions\X500DistinguishedName2.cs" />
