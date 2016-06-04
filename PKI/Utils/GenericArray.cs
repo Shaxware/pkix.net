@@ -49,14 +49,5 @@ namespace PKI.Utils {
 				array[index + 1] = temp;
 			}
 		}
-		[Obsolete]
-		public static Byte[] HexStringToArray(String str) {
-			if (str.Length % 2 == 1) { str = "0" + str; }
-			return Enumerable.Range(0, str.Length)
-					 .Where(x => x % 2 == 0)
-					 .Select(x => Convert.ToByte(str.Substring(x, 2), 16))
-					 .ToArray();
-
-		}
 	}
 }

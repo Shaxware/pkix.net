@@ -160,11 +160,11 @@ namespace PKI.OCSP {
 				rawData.AddRange(Asn1Utils.EncodeNull());
 				rawData = new List<Byte>(Asn1Utils.Encode(rawData.ToArray(), 48));
 				// IssuerNameId
-				rawData.AddRange(Asn1Utils.Encode(GenericArray.HexStringToArray(IssuerNameId), 4));
+				rawData.AddRange(Asn1Utils.Encode(AsnFormatter.StringToBinary(IssuerNameId, EncodingType.HexRaw), 4));
 				// IssuerKeyId
-				rawData.AddRange(Asn1Utils.Encode(GenericArray.HexStringToArray(IssuerKeyId), 4));
+				rawData.AddRange(Asn1Utils.Encode(AsnFormatter.StringToBinary(IssuerKeyId, EncodingType.HexRaw), 4));
 				// SerialNumber
-				rawData.AddRange(Asn1Utils.Encode(GenericArray.HexStringToArray(SerialNumber), 2));
+				rawData.AddRange(Asn1Utils.Encode(AsnFormatter.StringToBinary(SerialNumber, EncodingType.HexRaw), 2));
 				IsReadOnly = true;
 				return Asn1Utils.Encode(rawData.ToArray(), 48);
 			}
