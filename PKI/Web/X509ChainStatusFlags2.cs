@@ -1,8 +1,11 @@
 ﻿using System;
 
 namespace PKI.Web {
+	/// <summary>
+	/// 
+	/// </summary>
 	[Flags]
-	public enum X509ChainStatus2 {
+	internal enum X509ChainStatusFlags2 {
 		NoError							= 0x00000000, // 0
 		NotTimeValid					= 0x00000001, // 1
 		NotTimeNested					= 0x00000002, // 2
