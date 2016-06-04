@@ -12,6 +12,7 @@ using System.DirectoryServices;
 using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using System.Management;
+using System.Security.AccessControl;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
@@ -37,7 +38,7 @@ namespace PKI.CertificateServices {
 			IsAccessible = Ping(computerName);
 			lookInDs(computerName);
 			if (foundInDs) {
-				certconfig_only();
+				buildFromCertConfigOnly();
 				initializeFromConfigString(ComputerName, Name);
 			} else {
 				if (RegistryOnline) {
@@ -170,35 +171,35 @@ namespace PKI.CertificateServices {
 			}
 		}
 		void initializeFromServerName(String computerName) {
-			get_config(computerName);
+			getConfig(computerName);
 			initialize();
 		}
 		void initializeFromConfigString(String computerName, String name) {
 			String tempConfig = computerName + "\\" + name;
 			if (!RegistryOnline && !IsAccessible) {
 				if (foundInDs) {
-					certconfig_only();
+					buildFromCertConfigOnly();
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(computerName);
 					e.Data.Add("Source", (OfflineSource)3);
 					throw e;
 				}
 			} else {
-				get_config(computerName, tempConfig);
+				getConfig(computerName, tempConfig);
 				initialize();
 			}
 		}
 		void initialize() {
-			get_type();
-			get_version();
-			get_wmidata();
-			get_caproperty();
+			getType();
+			getVersion();
+			getWmiData();
+			getCaProperty();
 			buildKeyMap();
-			get_service();
-			get_ds();
-			release_com();
+			getCertSvcServiceStatus();
+			getInfoFromDs();
+			releaseCom();
 		}
-		void get_config(String computerName, String configString = "") {
+		void getConfig(String computerName, String configString = "") {
 			if (RegistryOnline) {
 				Active = (String)CryptoRegistry.GetRReg("Active", "", computerName);
 				ComputerName = (String)CryptoRegistry.GetRReg("CAServerName", Active, computerName);
@@ -215,7 +216,7 @@ namespace PKI.CertificateServices {
 			}
 			ConfigString = ComputerName + "\\" + Name;
 		}
-		void get_type() {
+		void getType() {
 			Int32 type;
 			if (RegistryOnline) {
 				type = (Int32)CryptoRegistry.GetRReg("CAType", Active, ComputerName);
@@ -230,7 +231,7 @@ namespace PKI.CertificateServices {
 				default: Type = "Undefined"; break;
 			}
 		}
-		void get_version() {
+		void getVersion() {
 			if (RegistryOnline) {
 				switch ((Int32)CryptoRegistry.GetRReg("Version", String.Empty, ComputerName)) {
 					case 0x00010001: Version = "2000"; break;
@@ -255,7 +256,7 @@ namespace PKI.CertificateServices {
 				SetupStatus = SetupStatusEnum.Unknown;
 			}
 		}
-		void get_wmidata() {
+		void getWmiData() {
 			try {
 				foreach (ManagementObject obj in WMI.GetWmi("Select Caption, OSProductSuite from Win32_OperatingSystem", ComputerName)) {
 					OperatingSystem = (String)obj["Caption"];
@@ -265,7 +266,7 @@ namespace PKI.CertificateServices {
 				}
 			} catch { }
 		}
-		void get_caproperty() {
+		void getCaProperty() {
 			if (!IsAccessible) { return; }
 			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_CASIGCERTCOUNT, 0, 1, 0);
 			Certificate = new X509Certificate2(
@@ -288,7 +289,7 @@ namespace PKI.CertificateServices {
 				} catch { }
 			}
 		}
-		void get_service() {
+		void getCertSvcServiceStatus() {
 			if (RegistryOnline || IsAccessible) {
 				try {
 					ServiceController sc = new ServiceController("CertSvc", ComputerName);
@@ -298,7 +299,7 @@ namespace PKI.CertificateServices {
 				ServiceStatus = "Unknown";
 			}
 		}
-		void get_ds() {
+		void getInfoFromDs() {
 			if (IsEnterprise && ActiveDirectory.Ping()) {
 				if (_certConfig.GetField("CommonName") == Name) {
 					String cn = "CN=" + _certConfig.GetField("SanitizedShortName") +
@@ -310,28 +311,28 @@ namespace PKI.CertificateServices {
 					try {
 						String wes = _certConfig.GetField("WebEnrollmentServers");
 						if (!String.IsNullOrEmpty(wes)) {
-							get_cesuri(wes);
+							getCesUri(wes);
 						}
 					} catch { }
 				}
 			}
 			if (String.IsNullOrEmpty(DisplayName)) { DisplayName = Name; }
 		}
-		void get_cesuri(String ldapuri) {
+		void getCesUri(String ldapuri) {
 			EnrollmentServiceURI = ldapuri
 				.Split(new[] {"\n\n"}, StringSplitOptions.None)
 				.Select(str => new CESUri(str, DisplayName))
 				.ToArray();
 		}
-		void certconfig_only() {
+		void buildFromCertConfigOnly() {
 			IsEnterprise = true;
 			Name = _certConfig.GetField("SanitizedName");
 			DisplayName = _certConfig.GetField("CommonName");
 			ComputerName = _certConfig.GetField("Server");
 			ConfigString = _certConfig.GetField("Config");
-			get_ds();
+			getInfoFromDs();
 		}
-		void release_com() {
+		void releaseCom() {
 			CryptographyUtils.ReleaseCom(CertAdmin);
 			CryptographyUtils.ReleaseCom(_certConfig);
 		}
