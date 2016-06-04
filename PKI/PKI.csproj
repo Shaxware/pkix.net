@@ -246,7 +246,7 @@
     <Compile Include="Utils\GenericArray.cs" />
     <Compile Include="Web\CertProcessor.cs" />
     <Compile Include="Web\ServerCertificateValidationObject.cs" />
-    <Compile Include="Web\X509ChainStatus2.cs" />
+    <Compile Include="Web\X509ChainStatusFlags2.cs" />
     <Compile Include="Web\SslTransaction.cs" />
     <Compile Include="Web\WebSSL.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CNGKeyUsages.cs" />

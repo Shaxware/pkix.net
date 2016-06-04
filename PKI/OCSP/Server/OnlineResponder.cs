@@ -36,10 +36,6 @@ namespace PKI.OCSP.Server {
 			get { return OcspAdmin.OCSPCAConfigurationCollection.Count; }
 		}
 		/// <summary>
-		/// Gets 
-		/// </summary>
-		//public object[] ProvConfig { get; private set; }
-		/// <summary>
 		/// Gets an array of revocation configurations.
 		/// </summary>
 		public OcspConfigurationCollection ActiveConfigurations { get; set; }
@@ -156,8 +152,11 @@ namespace PKI.OCSP.Server {
 				return false;
 			}
 		}
+		/// <summary>
+		/// Not implemented.
+		/// </summary>
 		public void AddConfiguration() {
-			
+			throw new NotImplementedException();
 		}
 		/// <summary>
 		/// Removes specified revocation configuration and all related data.

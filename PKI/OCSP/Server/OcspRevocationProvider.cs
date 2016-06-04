@@ -9,6 +9,9 @@ namespace PKI.OCSP.Server {
 	/// Represents revocation provider and its settings for OCSP configuration.
 	/// </summary>
 	public class OcspRevocationProvider {
+		/// <summary>
+		/// Intitializes a new instance of <strong>OcspRevocationProvider</strong> class.
+		/// </summary>
 		public OcspRevocationProvider() { }
 		internal OcspRevocationProvider(IOCSPCAConfiguration ocspconfig) {
 			m_initialize(ocspconfig);

@@ -17,18 +17,44 @@ namespace PKI.OCSP {
 	public class OCSPSingleRequest {
 		readonly List<X509Extension> _listExtensions = new List<X509Extension>();
 
+		/// <summary>
+		/// Intitializes a new instance of <strong>OCSPSingleRequest</strong> class from a certificate to include
+		/// in the request and value that indicates whether to include <see cref="X509ServiceLocatorExtension"/>
+		/// extension.
+		/// </summary>
 		/// <param name="cert">An <see cref="X509Certificate2"/> object that represents a certificate to verify.</param>
 		/// <param name="serviceLocator">Specifies whether to include <strong>Service Locator</strong> extension in request.</param>
 		/// <remarks>
-		/// <strong>Service Locator</strong> extension is used only when target OCSP responder is configured as a OCSP-Proxy and
-		/// is capable to forward original request to a authoritative responder. Normally this extension SHOULD NOT be used.
+		/// <strong>Service Locator</strong> extension is used only when target OCSP responder is configured as
+		/// a OCSP-Proxy and is capable to forward original request to a authoritative responder. Normally this
+		/// extension SHOULD NOT be used.
 		/// </remarks>
-		/// <exception cref="ArgumentNullException">If the <strong>cert</strong> parameter is null.</exception>
+		/// <exception cref="ArgumentNullException">The <strong>cert</strong> parameter is null.</exception>
 		public OCSPSingleRequest(X509Certificate2 cert, Boolean serviceLocator) {
 			if (cert == null) { throw new ArgumentNullException("cert"); }
 			if (cert.Handle.Equals(IntPtr.Zero)) { throw new UninitializedObjectException(); }
 			m_initialize(null, cert, serviceLocator);
 		}
+		/// <summary>
+		/// Intitializes a new instance of <strong>OCSPSingleRequest</strong> class from a certificate to include
+		/// in the request, certificate issuer and a value that indicates whether to include
+		/// <see cref="X509ServiceLocatorExtension"/> extension.
+		/// </summary>
+		/// <param name="issuer">
+		///	An <see cref="X509Certificate2"/> object that represents a certificate which is an issuer of the
+		/// certificate in the <strong>leafCert</strong> parameter.
+		/// </param>
+		/// <param name="leafCert">
+		/// An <see cref="X509Certificate2"/> object that represents a certificate to include in the request.
+		/// </param>
+		/// <param name="serviceLocator">
+		///	Indicates whether to include <see cref="X509ServiceLocatorExtension"/> extension.
+		/// </param>
+		/// <remarks>
+		/// <strong>Service Locator</strong> extension is used only when target OCSP responder is configured as
+		/// a OCSP-Proxy and is capable to forward original request to a authoritative responder. Normally this
+		/// extension SHOULD NOT be used.
+		/// </remarks>
 		public OCSPSingleRequest(X509Certificate2 issuer, X509Certificate2 leafCert, Boolean serviceLocator) {
 			if (issuer == null) { throw new ArgumentNullException("issuer"); }
 			if (leafCert == null) { throw new ArgumentNullException("leafCert"); }

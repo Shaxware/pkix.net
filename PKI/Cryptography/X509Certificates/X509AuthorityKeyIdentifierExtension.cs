@@ -136,6 +136,9 @@ namespace System.Security.Cryptography.X509Certificates {
             } while (asn.MoveNextCurrentLevel());
         }
 
+		/// <summary>
+		/// Indicates which components are included in the Authority Key Identifier extension.
+		/// </summary>
         public AuthorityKeyIdentifierFlags IncludedComponents { get; private set; }
         /// <summary>
         /// Gets an octet string of the KeyIdientifier component. May be null.
