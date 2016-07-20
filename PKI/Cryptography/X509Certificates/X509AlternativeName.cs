@@ -261,8 +261,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 		void encodeEmailName(String value) {
 			try {
-				MailAddress address = new MailAddress(value);
-				Value = address.Address;
+				//MailAddress address = new MailAddress(value);
+				Value = value;
 				RawData = Asn1Utils.Encode(Encoding.UTF8.GetBytes(Value), 129);
 			} catch { throw new ArgumentException("The string is not valid Rfc822 name."); }
 		}
@@ -370,8 +370,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 		void encodeUPN(String value) {
 			try {
-				MailAddress address = new MailAddress(value);
-				Value = address.Address;
+				//MailAddress address = new MailAddress(value);
+				Value = value;
 				encodeOtherName(Encoding.UTF8.GetBytes(value), new Oid("1.3.6.1.4.1.311.20.2.3"));
 			} catch { throw new ArgumentException("The string is not valid user principal name."); }
 		}
