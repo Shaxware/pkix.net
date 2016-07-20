@@ -273,10 +273,10 @@
     <Compile Include="Web\WebSSL2.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="_External\Crypt.Asn1Parser.dll" />
-    <Content Include="_External\Interop.CERTADMINLib.dll" />
-    <Content Include="_External\Interop.CERTCLILib.dll" />
-    <Content Include="_External\Interop.CERTENROLLLib.dll" />
+    <Content Include="_ExternalReferences\Interop.CERTADMINLib.dll" />
+    <Content Include="_ExternalReferences\Interop.CERTCLILib.dll" />
+    <Content Include="_ExternalReferences\Interop.CERTENROLLLib.dll" />
+    <Content Include="_ExternalReferences\SysadminsLV.Asn1Parser.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
