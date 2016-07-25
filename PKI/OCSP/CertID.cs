@@ -91,7 +91,7 @@ namespace PKI.OCSP {
 		/// </summary>
 		public String SerialNumber {
 			get {
-				return AsnFormatter.BinaryToString(serialNumber).Trim();
+				return AsnFormatter.BinaryToString(serialNumber, EncodingType.HexRaw, EncodingFormat.NOCRLF).Trim();
 			}
 		}
 		/// <summary>
@@ -164,7 +164,7 @@ namespace PKI.OCSP {
 				// IssuerKeyId
 				rawData.AddRange(Asn1Utils.Encode(AsnFormatter.StringToBinary(IssuerKeyId, EncodingType.HexRaw), 4));
 				// SerialNumber
-				rawData.AddRange(Asn1Utils.Encode(AsnFormatter.StringToBinary(SerialNumber, EncodingType.HexRaw), 2));
+				rawData.AddRange(Asn1Utils.Encode(serialNumber, 2));
 				IsReadOnly = true;
 				return Asn1Utils.Encode(rawData.ToArray(), 48);
 			}
