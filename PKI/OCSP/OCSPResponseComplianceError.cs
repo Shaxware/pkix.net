@@ -7,6 +7,10 @@ namespace PKI.OCSP {
 	[Flags]
 	public enum OCSPResponseComplianceError {
 		/// <summary>
+		/// No compliance errors were found in the OCSP response.
+		/// </summary>
+		None					= 0,
+		/// <summary>
 		/// OCSP response do not contains explicit (delegated) certificate in the response and CA certificate is not installed
 		/// in the local certificate stores.
 		/// </summary>
