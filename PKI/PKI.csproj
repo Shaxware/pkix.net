@@ -91,6 +91,7 @@
     <Compile Include="Cryptography\X509Certificates\X509CRLDistributionPoint.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CrossCertificateDistributionPointsExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509NameConstraintsExtension.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509NextCRLPublishExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509RevocationReasons.cs" />
     <Compile Include="ManagedAPI\StructClasses\AlgorithmIdentifier.cs" />
     <Compile Include="ManagedAPI\StructClasses\SignedContentBlob.cs" />

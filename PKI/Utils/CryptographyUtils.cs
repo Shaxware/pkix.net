@@ -11,7 +11,9 @@ namespace PKI.Utils {
 		public static X509Extension ConvertExtension(X509Extension extension) {
 			AsnEncodedData asndata = new AsnEncodedData(extension.Oid, extension.RawData);
 			switch (extension.Oid.Value) {
-				case "1.3.6.1.4.1.311.21.7":
+				case "1.3.6.1.4.1.311.21.4":
+					return new X509NextCRLPublishExtension(asndata, extension.Critical);
+                case "1.3.6.1.4.1.311.21.7":
 					return new X509CertificateTemplateExtension(asndata, extension.Critical);
 				case "1.3.6.1.4.1.311.21.10":
 					return new X509ApplicationPoliciesExtension(asndata, extension.Critical);
