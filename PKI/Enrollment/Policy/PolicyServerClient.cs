@@ -20,7 +20,7 @@ namespace PKI.Enrollment.Policy {
 		SecureString uPassword;
 		Int32 priority;
 		private PolicyAuthenticationEnum authentication;
-		private PolicyServerFlagsEnum flags;
+		private PolicyServerUrlFlagsEnum flags;
 
 		internal PolicyServerClient(IX509PolicyServerUrl serverManager, Boolean userContext) {
 			if (((Int32)serverManager.Flags & (Int32)PolicyServerUrlFlags.PsfLocationGroupPolicy) != 0) {
@@ -28,7 +28,7 @@ namespace PKI.Enrollment.Policy {
 			}
 			priority = (Int32)serverManager.Cost;
 			Name = serverManager.GetStringProperty(PolicyServerUrlPropertyID.PsFriendlyName);
-			Flags = (PolicyServerFlagsEnum)serverManager.Flags;
+			Flags = (PolicyServerUrlFlagsEnum)serverManager.Flags;
 			m_initialize2(serverManager.Url, userContext, (PolicyAuthenticationEnum)serverManager.AuthFlags, true);
 		}
 
@@ -99,7 +99,7 @@ namespace PKI.Enrollment.Policy {
 		/// <summary>
 		/// Gets or sets enrollment policy settings.
 		/// </summary>
-		public PolicyServerFlagsEnum Flags {
+		public PolicyServerUrlFlagsEnum Flags {
 			get { return flags; }
 			set {
 				set_property("Flags", value);

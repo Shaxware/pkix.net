@@ -5,7 +5,7 @@ namespace PKI.Enrollment.Policy {
 	/// The <strong>PolicyServerFlagsEnum</strong> enumeration contains certificate enrollment policy (CEP) server flags
 	/// </summary>
 	[Flags]
-	public enum PolicyServerFlagsEnum {
+	public enum PolicyServerUrlFlagsEnum {
 		/// <summary>
 		/// No flags are specified.
 		/// </summary>
