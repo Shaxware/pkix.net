@@ -258,6 +258,12 @@ namespace PKI.Structs {
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
 			public String szLongName;
 		}
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+		public struct CERT_KEY_CONTEXT {
+			public UInt32 cbSize;
+			public IntPtr hCryptProv;
+			public UInt32 dwKeySpec;
+		}
 		#endregion
 
 		#region CMC

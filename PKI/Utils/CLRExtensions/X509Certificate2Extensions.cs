@@ -1,4 +1,8 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+using PKI.Exceptions;
 
 namespace PKI.Utils.CLRExtensions {
 	/// <summary>
@@ -10,6 +14,9 @@ namespace PKI.Utils.CLRExtensions {
 		/// inherited from <see cref="X509Extension"/> class that provide extension-specific information.
 		/// </summary>
 		/// <param name="cert">Certificate.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <strong>cert</strong> parameter is null reference.
+		/// </exception>
 		/// <returns>A collection of certificate extensions</returns>
 		/// <remarks>
 		/// This method can transform the following X.509 certificate extensions:
@@ -41,12 +48,101 @@ namespace PKI.Utils.CLRExtensions {
 		/// Non-supported extensions will be returned as an <see cref="X509Extension"/> object.
 		/// </remarks>
 		public static X509ExtensionCollection ResolveExtensions (this X509Certificate2 cert) {
+			if (cert == null) { throw new ArgumentNullException(nameof(cert)); }
 			if (cert.Extensions.Count == 0) { return cert.Extensions; }
 			X509ExtensionCollection extensions = new X509ExtensionCollection();
 			foreach (var ext in cert.Extensions) {
 				extensions.Add(CryptographyUtils.ConvertExtension(ext));
 			}
 			return extensions;
+		}
+
+		/// <summary>
+		/// Gets the list of certificate properties associated with the current certificate object.
+		/// </summary>
+		/// <param name="cert">Certificate.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <strong>cert</strong> parameter is null reference.
+		/// </exception>
+		/// <exception cref="UninitializedObjectException">
+		/// Certificate object is not initialized and is empty.
+		/// </exception>
+		/// <returns>An array of certificate context property types associated with the current certificate.</returns>
+		public static X509CertificatePropertyType[] GetCertificateContextPropertyList(this X509Certificate2 cert) {
+			if (cert == null) { throw new ArgumentNullException(nameof(cert)); }
+			if (IntPtr.Zero.Equals(cert.Handle)) { throw new UninitializedObjectException(); }
+			List<X509CertificatePropertyType> props = new List<X509CertificatePropertyType>();
+			UInt32 propID = 0;
+			while ((propID = Crypt32.CertEnumCertificateContextProperties(cert.Handle, propID)) > 0) {
+				props.Add((X509CertificatePropertyType)propID);
+			}
+			return props.ToArray();
+		}
+		/// <summary>
+		/// Gets a specified certificate context property.
+		/// </summary>
+		/// <param name="cert">Certificate.</param>
+		/// <param name="propID">Property ID to retrieve.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <strong>cert</strong> parameter is null reference.
+		/// </exception>
+		/// <exception cref="UninitializedObjectException">
+		/// Certificate object is not initialized and is empty.
+		/// </exception>
+		/// <exception cref="Exception">
+		/// Requested context property is not found for the current certificate object.
+		/// </exception>
+		/// <returns>Specified certificate context property.</returns>
+		public static X509CertificateContextProperty GetCertificateContextProperty(this X509Certificate2 cert, X509CertificatePropertyType propID) {
+			if (cert == null) { throw new ArgumentNullException(nameof(cert)); }
+			if (IntPtr.Zero.Equals(cert.Handle)) { throw new UninitializedObjectException(); }
+			UInt32 pcbData = 0;
+			switch (propID) {
+				case X509CertificatePropertyType.Handle:
+				case X509CertificatePropertyType.KeyContext:
+				case X509CertificatePropertyType.ProviderInfo:
+					if (!Crypt32.CertGetCertificateContextProperty(cert.Handle, (UInt32)propID, IntPtr.Zero, ref pcbData)) {
+						throw new Exception("No such property.");
+					}
+					IntPtr ptr = Marshal.AllocHGlobal((Int32)pcbData);
+					Crypt32.CertGetCertificateContextProperty(cert.Handle, (UInt32)propID, ptr, ref pcbData);
+					try {
+						return new X509CertificateContextProperty(cert, propID, ptr);
+					} finally {
+						Marshal.FreeHGlobal(ptr);
+					}
+				// byte[]
+				default:
+					if (!Crypt32.CertGetCertificateContextProperty(cert.Handle, (UInt32)propID, null, ref pcbData)) {
+						throw new Exception("No such property.");
+					}
+					Byte[] bytes = new byte[pcbData];
+					Crypt32.CertGetCertificateContextProperty(cert.Handle, (UInt32)propID, bytes, ref pcbData);
+					return new X509CertificateContextProperty(cert, propID, bytes);
+			}
+		}
+		/// <summary>
+		/// Gets a collection of certificate context properties associated with the current certificate. If no
+		/// property is associated, an empty collection will be returned.
+		/// </summary>
+		/// <param name="cert">Certificate.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <strong>cert</strong> parameter is null reference.
+		/// </exception>
+		/// <exception cref="UninitializedObjectException">
+		/// Certificate object is not initialized and is empty.
+		/// </exception>
+		/// <returns>A collection of certificate context properties.</returns>
+		public static X509CertificateContextPropertyCollection GetCertificateContextProperties(this X509Certificate2 cert) {
+			if (cert == null) { throw new ArgumentNullException(nameof(cert)); }
+			if (IntPtr.Zero.Equals(cert.Handle)) { throw new UninitializedObjectException(); }
+			X509CertificatePropertyType[] props = GetCertificateContextPropertyList(cert);
+			X509CertificateContextPropertyCollection properties = new X509CertificateContextPropertyCollection();
+			foreach (X509CertificatePropertyType propID in props) {
+				properties.Add(GetCertificateContextProperty(cert, propID));
+			}
+			properties.Close();
+			return properties;
 		}
 	}
 }
