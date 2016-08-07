@@ -26,15 +26,19 @@ namespace PKI.OCSP {
 	/// Represents an OCSP response received from OCSP responder against previously submitted OCSP Request.
 	/// </summary>
 	public class OCSPResponse {
-		readonly WebClient wc;
+		readonly WebClient _wc;
+		readonly List<X509Extension> _listExtensions = new List<X509Extension>();
 		Asn1Reader asn1;
-		List<X509Extension> listExtensions = new List<X509Extension>();
 
 		internal OCSPResponse(Byte[] rawData, OCSPRequest req, WebClient web) {
 			RawData = rawData;
 			Request = req;
-			wc = web;
-			decoderesponse();
+			_wc = web;
+			decodeResponse();
+		}
+		internal OCSPResponse(Byte[] rawData) {
+			RawData = rawData;
+			decodeResponse();
 		}
 
 		/// <summary>
@@ -89,9 +93,9 @@ namespace PKI.OCSP {
 		/// </summary>
 		public X509ExtensionCollection ResponseExtensions {
 			get {
-				if (listExtensions.Count == 0) { return null; }
+				if (_listExtensions.Count == 0) { return null; }
 				X509ExtensionCollection retValue = new X509ExtensionCollection();
-				foreach (X509Extension item in listExtensions) { retValue.Add(item); }
+				foreach (X509Extension item in _listExtensions) { retValue.Add(item); }
 				return retValue;
 			}
 		}
@@ -99,7 +103,9 @@ namespace PKI.OCSP {
 		/// Gets response HTTP headers.
 		/// </summary>
 		public WebHeaderCollection HttpHeaders {
-			get { return wc.ResponseHeaders; }
+			get {
+				return _wc?.ResponseHeaders;
+			}
 		}
 		/// <summary>
 		/// Indicates whether the signig certificate is valid for requested usage.
@@ -141,7 +147,7 @@ namespace PKI.OCSP {
 		/// </summary>
 		public byte[] RawData { get; private set; }
 
-		void decoderesponse() {
+		void decodeResponse() {
 			asn1 = new Asn1Reader(RawData);
 			if (asn1.Tag != 48) {
 				throw new Exception("Response data is not valid ASN.1 encoded data.");
@@ -164,7 +170,7 @@ namespace PKI.OCSP {
 				throw new Exception("Response type is invalid.");
 			}
 			Byte[] oidbytes = Asn1Utils.Encode(asn1.GetPayload(), (Byte) Asn1Type.OBJECT_IDENTIFIER);
-			decoderesponsetype(oidbytes);
+			decodeResponseType(oidbytes);
 			asn1.MoveNext();
 			if (asn1.Tag != 4) {
 				throw new Exception("Response is missing.");
@@ -193,18 +199,18 @@ namespace PKI.OCSP {
 				do {
 					SignerCertificates.Add(new X509Certificate2(Asn1Utils.Encode(cert.GetPayload(), 48)));
 				} while (cert.MoveNextCurrentLevel());
-				verifysigner(SignerCertificates[0], true);
+				verifySigner(SignerCertificates[0], true);
 			} // optional. Find cert in store.
-			verifyall(tbsResponseData, signature, SignatureAlgorithm);
+			verifyAll(tbsResponseData, signature, SignatureAlgorithm);
 		}
-		void decoderesponsetype(Byte[] raw) {
+		void decodeResponseType(Byte[] raw) {
 			Oid oid = Asn1Utils.DecodeObjectIdentifier(raw);
 			switch (oid.Value) {
 				case "1.3.6.1.5.5.7.48.1.1": ResponseType = OCSPResponseType.id_pkix_ocsp_basic; break;
 				case "1.3.6.1.5.5.7.48.1.4": ResponseType = OCSPResponseType.id_pkix_ocsp_response; break;
 			}
 		}
-		void decodetbsResponse(Asn1Reader tbsResponseData) {
+		void decodeTbsResponse(Asn1Reader tbsResponseData) {
 			tbsResponseData.MoveNext();
 			if (tbsResponseData.Tag == 160) {
 				//Asn1Reader aversion = new Asn1Reader(tbsResponseData.RawData, tbsResponseData.PayloadStartOffset);
@@ -247,13 +253,15 @@ namespace PKI.OCSP {
 				Asn1Reader response = new Asn1Reader(responses);
 				Offset = response.NextCurrentLevelOffset;
 				Responses.Add(new OCSPSingleResponse(response));
-				foreach (OCSPSingleResponse item in Responses) {
-					Boolean certidmatch = false;
-					foreach (OCSPSingleRequest reqitem in Request.RequestList.Cast<OCSPSingleRequest>().Where(reqitem => reqitem.CertId.Equals(item.CertId))) {
-						certidmatch = true;
-					}
-					if (!certidmatch) {
-						ResponseErrorInformation += (Int32)OCSPResponseComplianceError.CertIdMismatch;
+				if (Request != null) {
+					foreach (OCSPSingleResponse item in Responses) {
+						Boolean certidmatch = false;
+						foreach (OCSPSingleRequest reqitem in Request.RequestList.Cast<OCSPSingleRequest>().Where(reqitem => reqitem.CertId.Equals(item.CertId))) {
+							certidmatch = true;
+						}
+						if (!certidmatch) {
+							ResponseErrorInformation += (Int32)OCSPResponseComplianceError.CertIdMismatch;
+						}
 					}
 				}
 			} while (Offset != 0);
@@ -262,16 +270,16 @@ namespace PKI.OCSP {
 				if (tbsResponseData.Tag == 161) {
 					X509ExtensionCollection exts = Crypt32Managed.DecodeX509Extensions(tbsResponseData.GetPayload());
 					foreach (X509Extension item in exts) {
-						listExtensions.Add(CryptographyUtils.ConvertExtension(item));
-						if (listExtensions[listExtensions.Count - 1].Oid.Value == "1.3.6.1.5.5.7.48.1.2") { 
+						_listExtensions.Add(CryptographyUtils.ConvertExtension(item));
+						if (_listExtensions[_listExtensions.Count - 1].Oid.Value == "1.3.6.1.5.5.7.48.1.2") { 
 							NonceReceived = true;
-							NonceValue = listExtensions[listExtensions.Count - 1].Format(false);
+							NonceValue = _listExtensions[_listExtensions.Count - 1].Format(false);
 						}
 					}
 				} else { throw new Exception("Unexpected tag at responseExtensions. Expected 161."); }
 			}
 		}
-		void findcertinstore() {
+		void findCertInStore() {
 			String[] storenames = { "Root", "CA" };
 			foreach (X509Store store in storenames.Select(storename => new X509Store(storename, StoreLocation.CurrentUser))) {
 				store.Open(OpenFlags.ReadOnly);
@@ -281,21 +289,21 @@ namespace PKI.OCSP {
 					findcert = findcerts.Find(X509FindType.FindBySubjectDistinguishedName, ResponderNameId.Name, true);
 					if (findcert.Count > 0) {
 						SignerCertificates.Add(findcert[0]);
-						verifysigner(findcert[0], false);
+						verifySigner(findcert[0], false);
 					}
 				} else {
 					findcert = findcerts.Find(X509FindType.FindBySubjectKeyIdentifier, ResponderKeyId, true);
 					if (findcert.Count > 0) {
 						SignerCertificates.Add(findcert[0]);
-						verifysigner(findcert[0], false);
+						verifySigner(findcert[0], false);
 					}
 				}
 				store.Close();
 			}
 		}
-		void verifyall(Asn1Reader tbsResponseData, Byte[] signature, Oid signatureAlgorithm) {
-			verifyheaders();
-			decodetbsResponse(tbsResponseData);
+		void verifyAll(Asn1Reader tbsResponseData, Byte[] signature, Oid signatureAlgorithm) {
+			verifyHeaders();
+			decodeTbsResponse(tbsResponseData);
 			if (NonceReceived) {
 				if (Request.NonceValue != NonceValue) {
 					ResponseErrorInformation += (Int32)OCSPResponseComplianceError.NonceMismatch;
@@ -309,7 +317,7 @@ namespace PKI.OCSP {
 					signatureAlgorithm
 				);
 			} else {
-				findcertinstore();
+				findCertInStore();
 				if (SignerCertificates.Count > 0) {
 					SignatureIsValid = MessageSignature.VerifySignature(
 						SignerCertificates[0],
@@ -321,20 +329,21 @@ namespace PKI.OCSP {
 					ResponseErrorInformation += (Int32)OCSPResponseComplianceError.MissingCert;
 				}
 			}
-			verifyresponses();
+			verifyResponses();
 		}
-		void verifyheaders() {
-			if (wc.ResponseHeaders.Get("Content-type") != "application/ocsp-response") {
+		void verifyHeaders() {
+			if (_wc == null) { return; }
+			if (_wc.ResponseHeaders.Get("Content-type") != "application/ocsp-response") {
 				ResponseErrorInformation += (Int32)OCSPResponseComplianceError.InvalidHTTPHeader;
 			}
 		}
-		void verifyresponses() {
+		void verifyResponses() {
 			if (Responses.Cast<OCSPSingleResponse>()
 				.Any(item => item.ThisUpdate > DateTime.Now || (item.NextUpdate != null && item.NextUpdate < DateTime.Now))) {
 				ResponseErrorInformation += (Int32)OCSPResponseComplianceError.UpdateNotTimeValid;
 			}
 		}
-		void verifysigner(X509Certificate2 cert, Boolean excplicitcert) {
+		void verifySigner(X509Certificate2 cert, Boolean excplicitcert) {
 			SignerCertificateIsValid = true;
 			X509Chain chain = new X509Chain {ChainPolicy = {RevocationMode = X509RevocationMode.NoCheck}};
 			SignerCertificateIsValid = chain.Build(cert);
