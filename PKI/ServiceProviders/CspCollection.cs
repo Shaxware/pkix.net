@@ -6,19 +6,17 @@ namespace PKI.ServiceProviders {
 	/// Represents a collection of <see cref="CspLegacy"/> objects.
 	/// </summary>
 	public class CspCollection : ICollection {
-		private ArrayList m_list;
+		readonly ArrayList _list;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CspCollection"/> class without any <see cref="CspLegacy"/> information.
 		/// </summary>
-		public CspCollection() { m_list = new ArrayList(); }
+		public CspCollection() { _list = new ArrayList(); }
 
 		/// <summary>
 		/// Gets the number of <see cref="CspLegacy"/> objects in a collection.
 		/// </summary>
-		public Int32 Count {
-			get { return m_list.Count; }
-		}
+		public Int32 Count => _list.Count;
 
 		/// <internalonly/>
 		IEnumerator IEnumerable.GetEnumerator() {
@@ -26,11 +24,11 @@ namespace PKI.ServiceProviders {
 		}
 		/// <internalonly/> 
 		void ICollection.CopyTo(Array array, Int32 index) {
-			if (array == null) { throw new ArgumentNullException("array"); }
+			if (array == null) { throw new ArgumentNullException(nameof(array)); }
 			if (array.Rank != 1) { throw new ArgumentException("Multidimensional arrays are not supported."); }
 			if (index < 0 || index >= array.Length) { throw new ArgumentOutOfRangeException("Index is out of range."); }
-			if (index + this.Count > array.Length) { throw new ArgumentException("Index is out of range."); }
-			for (Int32 i = 0; i < this.Count; i++) {
+			if (index + Count > array.Length) { throw new ArgumentException("Index is out of range."); }
+			for (Int32 i = 0; i < Count; i++) {
 				array.SetValue(this[i], index);
 				index++;
 			}
@@ -42,15 +40,14 @@ namespace PKI.ServiceProviders {
 		/// <remarks>Use this method to add an <see cref="CspLegacy"/> object to an existing collection at the current location.</remarks>
 		/// <param name="entry">The <see cref="CspLegacy"/> object to add to the collection.</param>
 		/// <returns>The index of the added <see cref="CspLegacy"/> object.</returns>
-		public Int32 Add(CspLegacy entry) { return m_list.Add(entry); }
+		public Int32 Add(CspLegacy entry) { return _list.Add(entry); }
 		/// <summary>
 		/// Gets an <see cref="CspLegacy"/> object from the <see cref="CspCollection"/> object.
 		/// </summary>
 		/// <param name="index">The location of the <see cref="CspLegacy"/> object in the collection.</param>
 		/// <returns></returns>
-		public CspLegacy this[Int32 index] {
-			get { return m_list[index] as CspLegacy; }
-		}
+		public CspLegacy this[Int32 index] => _list[index] as CspLegacy;
+
 		/// <summary>
 		/// Gets an <see cref="CspLegacy"/> object from the <see cref="CspCollection"/> object by CSP name.
 		/// </summary>
@@ -63,7 +60,7 @@ namespace PKI.ServiceProviders {
 		/// <returns>An <see cref="CspLegacy"/> object.</returns>
 		public CspLegacy this[String name] {
 			get {
-				foreach (CspLegacy entry in m_list) {
+				foreach (CspLegacy entry in _list) {
 					if (entry.Name.ToLower() == name.ToLower()) { return entry; }
 				}
 				return null;
@@ -88,9 +85,8 @@ namespace PKI.ServiceProviders {
 		/// Gets a value that indicates whether access to the <see cref="CspCollection"/> object is thread safe.
 		/// </summary>
 		/// <remarks>Returns <strong>False</strong> in all cases.</remarks>
-		public bool IsSynchronized {
-			get { return false; }
-		}
+		public bool IsSynchronized => false;
+
 		/// <summary>
 		/// Gets an object that can be used to synchronize access to the <see cref="CspCollection"/> object.
 		/// </summary>
@@ -100,9 +96,7 @@ namespace PKI.ServiceProviders {
 		/// object, not directly on the object itself. This ensures proper operation of collections that are derived from
 		/// other objects. Specifically, it maintains proper synchronization with other threads that might simultaneously
 		/// be modifying the <see cref="CspCollection"/> object.</remarks>
-		public Object SyncRoot {
-			get { return this; }
-		}
+		public Object SyncRoot => this;
 	}
 	/// <summary>
 	/// Provides the ability to navigate through an <see cref="CspCollection"/> object.
@@ -126,14 +120,11 @@ namespace PKI.ServiceProviders {
 		/// call to <see cref="MoveNext"/> returns false, which indicates that the end of the collection has been reached.</p>
 		/// <p><strong>Current</strong> does not move the position of the enumerator, and consecutive calls to <strong>Current</strong>
 		/// return the same object, until <see cref="MoveNext"/> is called.</p></remarks>
-		public CspLegacy Current {
-			get { return m_entries[m_current]; }
-		}
+		public CspLegacy Current => m_entries[m_current];
 
 		/// <internalonly/>
-		Object IEnumerator.Current {
-			get { return (Object)m_entries[m_current]; }
-		}
+		Object IEnumerator.Current => (Object)m_entries[m_current];
+
 		/// <summary>
 		/// Advances to the next <see cref="CspLegacy"/> object in an <see cref="CspCollection"/> object
 		/// </summary>
@@ -148,7 +139,7 @@ namespace PKI.ServiceProviders {
 		/// <returns><strong>True</strong>, if the enumerator was successfully advanced to the next element; <strong>False</strong>,
 		/// if the enumerator has passed the end of the collection.</returns>
 		public bool MoveNext() {
-			if (m_current == ((int)m_entries.Count - 1)) { return false; }
+			if (m_current == (int)m_entries.Count - 1) { return false; }
 			m_current++;
 			return true;
 		}

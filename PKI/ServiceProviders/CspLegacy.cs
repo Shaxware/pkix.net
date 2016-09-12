@@ -6,20 +6,20 @@ namespace PKI.ServiceProviders {
 	/// Represents single CSP information.
 	/// </summary>
 	public class CspLegacy {
-		readonly ALG_ID[] algs;
+		readonly ALG_ID[] _algs;
 		internal CspLegacy(String name, String type, ALG_IDCollection supportedAlgorithms) {
 			Name = name;
 			Type = type;
 			if (supportedAlgorithms.Count > 0) {
-				algs = new ALG_ID[supportedAlgorithms.Count];
-				supportedAlgorithms.CopyTo(algs, 0);
+				_algs = new ALG_ID[supportedAlgorithms.Count];
+				supportedAlgorithms.CopyTo(_algs, 0);
 			}
 		}
 
 		/// <summary>
 		/// Gets provider name.
 		/// </summary>
-		public String Name { get; private set; }
+		public String Name { get; }
 		/// <summary>
 		/// Gets provider type.
 		/// </summary>
@@ -30,7 +30,7 @@ namespace PKI.ServiceProviders {
 		public ALG_IDCollection SupportedAlgorithms {
 			get {
 				ALG_IDCollection output = new ALG_IDCollection();
-				foreach (ALG_ID alg in algs) { output.Add(alg); }
+				foreach (ALG_ID alg in _algs) { output.Add(alg); }
 				return output;
 			}
 		}
@@ -43,8 +43,8 @@ namespace PKI.ServiceProviders {
 			StringBuilder SB = new StringBuilder();
 			SB.Append("Provider: " + Name + Environment.NewLine);
 			SB.Append("Algorithms: " + Environment.NewLine);
-			if (algs != null) {
-				foreach (ALG_ID alg in algs) {
+			if (_algs != null) {
+				foreach (ALG_ID alg in _algs) {
 					SB.Append("  Name:" + alg.Name + "; ");
 					SB.Append("Default:" + alg.DefaultKeyLength + "; ");
 					SB.Append("Min:" + alg.MinKeyLength + "; ");

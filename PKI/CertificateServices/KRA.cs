@@ -57,7 +57,7 @@ namespace PKI.CertificateServices {
 			if (!certificateAuthority.IsEnterprise) { throw new PlatformNotSupportedException(); }
 			if (!certificateAuthority.Ping()) {
 				ServerUnavailableException e = new ServerUnavailableException(certificateAuthority.DisplayName);
-				e.Data.Add("Source", OfflineSource.DCOM);
+				e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
 				throw e;
 			}
 			Name = certificateAuthority.Name;
@@ -66,10 +66,10 @@ namespace PKI.CertificateServices {
 			ConfigString = certificateAuthority.ConfigString;
 
 			CCertAdmin CertAdmin = new CCertAdmin();
-			Int32 KRACount = (Int32)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConst.CR_PROP_KRACERTCOUNT, 0, CertAdmConst.PROPTYPE_LONG, 0);
+			Int32 KRACount = (Int32)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConst.CrPropKracertcount, 0, CertAdmConst.ProptypeLong, 0);
 			if (KRACount > 0) {
 				for (Int32 index = 0; index < KRACount; index++) {
-					String Base64 = (String)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConst.CR_PROP_KRACERT, index, CertAdmConst.PROPTYPE_BINARY, 1);
+					String Base64 = (String)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConst.CrPropKracert, index, CertAdmConst.ProptypeBinary, 1);
 					_certs.Add(new X509Certificate2(Convert.FromBase64String(Base64)));
 				}
 			}
@@ -85,7 +85,7 @@ namespace PKI.CertificateServices {
 		/// the method skips the certificate.
 		/// </remarks>
 		public void Add(X509Certificate2[] certs ) {
-			if (certs == null || certs.Length == 0) {throw new ArgumentNullException("certs");}
+			if (certs == null || certs.Length == 0) {throw new ArgumentNullException(nameof(certs));}
 
 			Int32 before = _certs.Count;
 			X509Chain chain = new X509Chain();
@@ -161,22 +161,22 @@ namespace PKI.CertificateServices {
 			if (IsModified) {
 				if (!CertificateAuthority.Ping(ComputerName)) {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", OfflineSource.DCOM);
+					e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
 					throw e;
 				}
 				CCertAdmin CertAdmin = new CCertAdmin();
 				try {
 					if (_certs.Count > 0) {
-						Int32 kracount = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_KRACERTCOUNT, 0, CertAdmConst.PROPTYPE_LONG, 0);
-						if (kracount > 0) { CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CR_PROP_KRACERTCOUNT, 0, CertAdmConst.PROPTYPE_LONG, 0); }
+						Int32 kracount = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropKracertcount, 0, CertAdmConst.ProptypeLong, 0);
+						if (kracount > 0) { CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracertcount, 0, CertAdmConst.ProptypeLong, 0); }
 						for (Int32 index = 0; index < _certs.Count; index++) {
 							String der = CryptographyUtils.EncodeDerString(_certs[index].RawData);
-							CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CR_PROP_KRACERT, index, CertAdmConst.PROPTYPE_BINARY, der);
+							CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracert, index, CertAdmConst.ProptypeBinary, der);
 						}
-						CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CR_PROP_KRACERTUSEDCOUNT, 0, CertAdmConst.PROPTYPE_LONG, _certs.Count);
+						CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracertusedcount, 0, CertAdmConst.ProptypeLong, _certs.Count);
 					} else {
-						CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CR_PROP_KRACERTCOUNT, 0, CertAdmConst.PROPTYPE_LONG, 0);
-						CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CR_PROP_KRACERTUSEDCOUNT, 0, CertAdmConst.PROPTYPE_LONG, 0);
+						CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracertcount, 0, CertAdmConst.ProptypeLong, 0);
+						CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracertusedcount, 0, CertAdmConst.ProptypeLong, 0);
 					}
 				} catch (Exception e) {
 					throw Error.ComExceptionHandler(e);

@@ -18,7 +18,7 @@ namespace PKI.CertificateServices {
 		/// <param name="certificateAuthority">Specifies an existing <see cref="CertificateAuthority"/> object.</param>
 		/// <exception cref="UninitializedObjectException">An object in the <strong>certificateAuthority</strong> parameter is not initialized.</exception>
 		public CACryptography(CertificateAuthority certificateAuthority) {
-			if (certificateAuthority == null) { throw new ArgumentNullException("certificateAuthority");}
+			if (certificateAuthority == null) { throw new ArgumentNullException(nameof(certificateAuthority));}
 			if (String.IsNullOrEmpty(certificateAuthority.Name)) { throw new UninitializedObjectException(); }
 			m_initialize(certificateAuthority);
 		}
@@ -70,7 +70,7 @@ namespace PKI.CertificateServices {
 		public Boolean AlternateSignatureAlgorithm {
 			get { return alternateSignatureAlgorithm; }
 			set {
-				if (value == alternateSignatureAlgorithm && !ProviderIsCNG) {return;}
+				if (value == alternateSignatureAlgorithm && !ProviderIsCNG) { return; }
 				alternateSignatureAlgorithm = value;
 				IsModified = true;
 			}
@@ -90,23 +90,23 @@ namespace PKI.CertificateServices {
 			ComputerName = certificateAuthority.ComputerName;
 			ConfigString = certificateAuthority.ConfigString;
 			if (CryptoRegistry.Ping(ComputerName)) {
-				ProviderIsCNG = (Int32)CryptoRegistry.GetRReg("ProviderType", Name + "\\CSP", ComputerName) == 0;
-				ProviderName = (String)CryptoRegistry.GetRReg("Provider", Name + "\\CSP", ComputerName);
+				ProviderIsCNG = (Int32)CryptoRegistry.GetRReg("ProviderType", $@"{Name}\CSP", ComputerName) == 0;
+				ProviderName = (String)CryptoRegistry.GetRReg("Provider", $@"{Name}\CSP", ComputerName);
 				publicKeyAlgorithm = ProviderIsCNG
-					? new Oid((String)CryptoRegistry.GetRReg("CNGPublicKeyAlgorithm", Name + "\\CSP", ComputerName))
+					? new Oid((String)CryptoRegistry.GetRReg("CNGPublicKeyAlgorithm", $@"{Name}\CSP", ComputerName))
 					: new Oid("1.2.840.113549.1.1.1"); // rsa
 				if (ProviderIsCNG) {
 					// CNG
-					hashingAlgorithm = new Oid((String)CryptoRegistry.GetRReg("CNGHashAlgorithm", Name + "\\CSP", ComputerName));
+					hashingAlgorithm = new Oid((String)CryptoRegistry.GetRReg("CNGHashAlgorithm", $@"{Name}\CSP", ComputerName));
 					try {
-						Int32 altName = (Int32)CryptoRegistry.GetRReg("AlternateSignatureAlgorithm", Name + "\\CSP", ComputerName);
+						Int32 altName = (Int32)CryptoRegistry.GetRReg("AlternateSignatureAlgorithm", $@"{Name}\CSP", ComputerName);
 						alternateSignatureAlgorithm = altName != 0;
 					} catch {
 						alternateSignatureAlgorithm = false;
 					}
 				} else {
 					// legacy
-					Int32 algId = (Int32)CryptoRegistry.GetRReg("HashAlgorithm", Name + "\\CSP", ComputerName);
+					Int32 algId = (Int32)CryptoRegistry.GetRReg("HashAlgorithm", $@"{Name}\CSP", ComputerName);
 					hashingAlgorithm = getOidFromValue(algId);
 				}
 				return;
@@ -153,14 +153,14 @@ namespace PKI.CertificateServices {
 			}
 		}
 		static Boolean validateHashAlgorithm(String value) {
-			return (new List<String> {
-				"1.2.840.113549.2.2",
-				"1.2.840.113549.2.5",
-				"1.3.14.3.2.26",
-				"2.16.840.1.101.3.4.2.1",
-				"2.16.840.1.101.3.4.2.2",
-				"2.16.840.1.101.3.4.2.3"
-			}).Contains(value);
+			return new List<String> {
+				                        "1.2.840.113549.2.2",
+				                        "1.2.840.113549.2.5",
+				                        "1.3.14.3.2.26",
+				                        "2.16.840.1.101.3.4.2.1",
+				                        "2.16.840.1.101.3.4.2.2",
+				                        "2.16.840.1.101.3.4.2.3"
+			                        }.Contains(value);
 		}
 
 		/// <summary>
@@ -187,12 +187,12 @@ namespace PKI.CertificateServices {
 					CryptoRegistry.SetRReg(publicKeyAlgorithm.FriendlyName, "CNGPublicKeyAlgorithm", RegistryValueKind.String, Name + "\\CSP", ComputerName);
 					CryptoRegistry.SetRReg(hashingAlgorithm.FriendlyName, "CNGHashAlgorithm", RegistryValueKind.String, Name + "\\CSP", ComputerName);
 					if (alternateSignatureAlgorithm) {
-						CryptoRegistry.SetRReg(1, "AlternateSignatureAlgorithm", RegistryValueKind.String, Name + "\\CSP", ComputerName);
+						CryptoRegistry.SetRReg(1, "AlternateSignatureAlgorithm", RegistryValueKind.String, $@"{Name}\CSP", ComputerName);
 					} else {
-						CryptoRegistry.SetRReg(0, "AlternateSignatureAlgorithm", RegistryValueKind.DWord, Name + "\\CSP", ComputerName);
+						CryptoRegistry.SetRReg(0, "AlternateSignatureAlgorithm", RegistryValueKind.DWord, $@"{Name}\CSP", ComputerName);
 					}
 				} else {
-					CryptoRegistry.SetRReg(getValueFromOid(hashingAlgorithm), "HashAlgorithm", RegistryValueKind.DWord, Name + "\\CSP", ComputerName);
+					CryptoRegistry.SetRReg(getValueFromOid(hashingAlgorithm), "HashAlgorithm", RegistryValueKind.DWord, $@"{Name}\CSP", ComputerName);
 				}
 			} else {
 				if (CertificateAuthority.Ping(ComputerName)) {
@@ -205,7 +205,7 @@ namespace PKI.CertificateServices {
 					}
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}

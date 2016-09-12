@@ -19,9 +19,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <summary>
 		/// Gets the number of <see cref="X509PolicyQualifier"/> objects in a collection.
 		/// </summary>
-		public Int32 Count {
-			get { return _list.Count; }
-		}
+		public Int32 Count => _list.Count;
+
 		/// <summary>
 		/// Indicates whether the collection is read-only.
 		/// </summary>
@@ -30,9 +29,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// Gets a value that indicates whether access to the <see cref="X509PolicyQualifierCollection"/> object is thread safe.
 		/// </summary>
 		/// <remarks>Returns <strong>False</strong> in all cases.</remarks>
-		public Boolean IsSynchronized {
-			get { return false; }
-		}
+		public Boolean IsSynchronized => false;
+
 		/// <summary>
 		/// Gets an object that can be used to synchronize access to the <see cref="X509PolicyQualifierCollection"/> object.
 		/// </summary>
@@ -42,17 +40,15 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// object, not directly on the object itself. This ensures proper operation of collections that are derived from
 		/// other objects. Specifically, it maintains proper synchronization with other threads that might simultaneously
 		/// be modifying the <see cref="X509PolicyQualifierCollection"/> object.</remarks>
-		public Object SyncRoot {
-			get { return this; }
-		}
+		public Object SyncRoot => this;
 
 		IEnumerator IEnumerable.GetEnumerator() {
 			return new X509PolicyQualifierCollectionEnumerator(this);
 		}
 		void ICollection.CopyTo(Array array, Int32 index) {
-			if (array == null) { throw new ArgumentNullException("array"); }
+			if (array == null) { throw new ArgumentNullException(nameof(array)); }
 			if (array.Rank != 1) { throw new ArgumentException("Multidimensional arrays are not supported."); }
-			if (index < 0 || index >= array.Length) { throw new ArgumentOutOfRangeException("index"); }
+			if (index < 0 || index >= array.Length) { throw new ArgumentOutOfRangeException(nameof(index)); }
 			if (index + Count > array.Length) { throw new ArgumentException("Index is out of range."); }
 			for (Int32 i = 0; i < Count; i++) {
 				array.SetValue(this[i], index);
@@ -130,9 +126,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </summary>
 		/// <param name="index">The location of the <see cref="X509PolicyQualifier"/> object in the collection.</param>
 		/// <returns></returns>
-		public X509PolicyQualifier this[Int32 index] {
-			get { return _list[index]; }
-		}
+		public X509PolicyQualifier this[Int32 index] => _list[index];
+
 		/// <summary>
 		/// Returns an <see cref="X509PolicyQualifierCollectionEnumerator"/> object that can be used to navigate
 		/// the <see cref="X509PolicyQualifierCollection"/> object
@@ -171,14 +166,11 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// call to <see cref="MoveNext"/> returns false, which indicates that the end of the collection has been reached.</p>
 		/// <p><strong>Current</strong> does not move the position of the enumerator, and consecutive calls to <strong>Current</strong>
 		/// return the same object, until <see cref="MoveNext"/> is called.</p></remarks>
-		public X509PolicyQualifier Current {
-			get { return _entries[m_current]; }
-		}
-		
+		public X509PolicyQualifier Current => _entries[m_current];
+
 		/// <internalonly/>
-		Object IEnumerator.Current {
-			get { return _entries[m_current]; }
-		}
+		Object IEnumerator.Current => _entries[m_current];
+
 		/// <summary>
 		/// Advances to the next <see cref="X509PolicyQualifier"/> object in an <see cref="X509PolicyQualifierCollection"/> object
 		/// </summary>
@@ -193,7 +185,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <returns><strong>True</strong>, if the enumerator was successfully advanced to the next element; <strong>False</strong>,
 		/// if the enumerator has passed the end of the collection.</returns>
 		public bool MoveNext() {
-			if (m_current == (_entries.Count - 1)) { return false; }
+			if (m_current == _entries.Count - 1) { return false; }
 			m_current++;
 			return true;
 		}

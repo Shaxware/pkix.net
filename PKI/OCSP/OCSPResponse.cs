@@ -79,7 +79,7 @@ namespace PKI.OCSP {
 		/// <summary>
 		/// Gets original OCSP request object.
 		/// </summary>
-		public OCSPRequest Request { get; private set; }
+		public OCSPRequest Request { get; }
 		/// <summary>
 		/// Gets OCSP Signing certificate that was used to sign the response.
 		/// </summary>
@@ -102,11 +102,8 @@ namespace PKI.OCSP {
 		/// <summary>
 		/// Gets response HTTP headers.
 		/// </summary>
-		public WebHeaderCollection HttpHeaders {
-			get {
-				return _wc?.ResponseHeaders;
-			}
-		}
+		public WebHeaderCollection HttpHeaders => _wc?.ResponseHeaders;
+
 		/// <summary>
 		/// Indicates whether the signig certificate is valid for requested usage.
 		/// </summary>
@@ -145,7 +142,7 @@ namespace PKI.OCSP {
 		/// <summary>
 		/// Gets encoded response's raw data.
 		/// </summary>
-		public byte[] RawData { get; private set; }
+		public byte[] RawData { get; }
 
 		void decodeResponse() {
 			asn1 = new Asn1Reader(RawData);
@@ -182,12 +179,11 @@ namespace PKI.OCSP {
 			}
 			asn1.MoveNext();
 			//tbsResponseData
-			var a = asn1.GetPayload();
 			Asn1Reader tbsResponseData = new Asn1Reader(asn1.GetTagRawData());
 			//decodetbsResponse(tbsResponseData);
 			//signatureAlgorithm
 			asn1.MoveNextCurrentLevel();
-			SignatureAlgorithm = (new AlgorithmIdentifier(Asn1Utils.Encode(asn1.GetPayload(), 48))).AlgorithmId;
+			SignatureAlgorithm = new AlgorithmIdentifier(Asn1Utils.Encode(asn1.GetPayload(), 48)).AlgorithmId;
 			//signature
 			asn1.MoveNextCurrentLevel();
 			Byte[] signature = asn1.GetPayload().Skip(1).ToArray();
@@ -255,10 +251,7 @@ namespace PKI.OCSP {
 				Responses.Add(new OCSPSingleResponse(response));
 				if (Request != null) {
 					foreach (OCSPSingleResponse item in Responses) {
-						Boolean certidmatch = false;
-						foreach (OCSPSingleRequest reqitem in Request.RequestList.Cast<OCSPSingleRequest>().Where(reqitem => reqitem.CertId.Equals(item.CertId))) {
-							certidmatch = true;
-						}
+						Boolean certidmatch = Request.RequestList.Any(x => x.CertId.Equals(item.CertId));
 						if (!certidmatch) {
 							ResponseErrorInformation += (Int32)OCSPResponseComplianceError.CertIdMismatch;
 						}

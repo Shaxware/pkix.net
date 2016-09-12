@@ -4,7 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using SysadminsLV.Asn1Parser;
 
 namespace PKI.Utils.CLRExtensions {
-	static class X509Extension2 {
+	static class X509ExtensionExtensions {
 		public static Byte[] ExportBinaryData(this X509Extension extension) {
 			if (String.IsNullOrEmpty(extension.Oid.Value)) { return null; }
 			List<Byte> rawData = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(extension.Oid));

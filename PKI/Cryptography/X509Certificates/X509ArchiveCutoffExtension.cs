@@ -17,12 +17,12 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </para>
 	/// </remarks>
 	public class X509ArchiveCutoffExtension : X509Extension {
-		readonly Oid oid = new Oid("1.3.6.1.5.5.7.48.1.6", "Archive Cutoff");
+		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.48.1.6", "Archive Cutoff");
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509ArchiveCutoffExtension</strong> class.
 		/// </summary>
 		public X509ArchiveCutoffExtension() {
-			Oid = oid;
+			Oid = _oid;
 		}
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509ArchiveCutoffExtension</strong> class using an
@@ -42,7 +42,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </summary>
 		/// <param name="cutoffDate"></param>
 		public X509ArchiveCutoffExtension(DateTime cutoffDate) {
-			Oid = oid;
+			Oid = _oid;
 			CutoffDate = cutoffDate;
 			m_initialize(cutoffDate);
 		}

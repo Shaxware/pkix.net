@@ -19,8 +19,8 @@ namespace PKI.Enrollment.Policy {
 		String uName, name;
 		SecureString uPassword;
 		Int32 priority;
-		private PolicyAuthenticationEnum authentication;
-		private PolicyServerUrlFlagsEnum flags;
+		PolicyAuthenticationEnum authentication;
+		PolicyServerUrlFlagsEnum flags;
 
 		internal PolicyServerClient(IX509PolicyServerUrl serverManager, Boolean userContext) {
 			if (((Int32)serverManager.Flags & (Int32)PolicyServerUrlFlags.PsfLocationGroupPolicy) != 0) {
@@ -50,7 +50,7 @@ namespace PKI.Enrollment.Policy {
 		/// <exception cref="NotSupportedException">The operating system do not support certificate enrollment policy servers.</exception>
 		public PolicyServerClient(String url, Boolean userContext, PolicyAuthenticationEnum authentication, String userName, SecureString password) {
 			if (!CryptographyUtils.TestCepCompat()) { throw new NotSupportedException(); }
-			if (String.IsNullOrEmpty(url)) { throw new ArgumentNullException("url"); }
+			if (String.IsNullOrEmpty(url)) { throw new ArgumentNullException(nameof(url)); }
 			registered = false;
 			uName = userName;
 			uPassword = password;
@@ -118,7 +118,7 @@ namespace PKI.Enrollment.Policy {
 		/// <summary>
 		/// Specifies whether the current policy object is registered via group policy or via local registry.
 		/// </summary>
-		public Boolean FromPolicy { get; private set; }
+		public Boolean FromPolicy { get; }
 		/// <summary>
 		/// Indicates whether the policy is loaded.
 		/// </summary>
@@ -325,11 +325,9 @@ namespace PKI.Enrollment.Policy {
 				urlClass.Url = URL.AbsoluteUri;
 				if (!String.IsNullOrEmpty(Name)) { urlClass.SetStringProperty(PolicyServerUrlPropertyID.PsFriendlyName, Name); }
 				urlClass.SetStringProperty(PolicyServerUrlPropertyID.PsPolicyID, PolicyId);
-				if (UserContext) {
-					urlClass.RemoveFromRegistry(X509CertificateEnrollmentContext.ContextUser);
-				} else {
-					urlClass.RemoveFromRegistry(X509CertificateEnrollmentContext.ContextMachine);
-				}
+				urlClass.RemoveFromRegistry(UserContext
+					? X509CertificateEnrollmentContext.ContextUser
+					: X509CertificateEnrollmentContext.ContextMachine);
 			} catch (Exception e) {
 				throw Error.ComExceptionHandler(e);
 			} finally {
@@ -373,7 +371,7 @@ namespace PKI.Enrollment.Policy {
 		///		class constructor combining with <see cref="Register"/> method provides this functionality.
 		/// </remarks>
 		public void SetCredential(String userName, SecureString password) {
-			if (String.IsNullOrEmpty(userName)) { throw new ArgumentNullException("userName"); }
+			if (String.IsNullOrEmpty(userName)) { throw new ArgumentNullException(nameof(userName)); }
 			if (URL == null) { throw new UninitializedObjectException(); }
 			uName = userName;
 			uPassword = password;

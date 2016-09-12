@@ -35,29 +35,29 @@ namespace PKI.CertificateServices {
 		/// Gets or sets Base CRL validity period.
 		/// </summary>
 		public String BaseCRL {
-			get { return BaseUnits + " " + BasePeriod; }
-			set { validate(BaseUnits + " " + BasePeriod, value, "Base"); }
+			get { return $"{BaseUnits} {BasePeriod}"; }
+			set { validate($"{BaseUnits} {BasePeriod}", value, "Base"); }
 		}
 		/// <summary>
 		/// Gets or sets Base CRL validity extension after new Base CRL is issued.
 		/// </summary>
 		public String BaseCRLOverlap {
-			get { return BaseOverlapUnits + " " + BaseOverlap; }
-			set { validate(BaseOverlapUnits + " " + BaseOverlap, value, "BaseOverlap"); }
+			get { return $"{BaseOverlapUnits} {BaseOverlap}"; }
+			set { validate($"{BaseOverlapUnits} {BaseOverlap}", value, "BaseOverlap"); }
 		}
 		/// <summary>
 		/// Gets or sets Delta CRL validity period.
 		/// </summary>
 		public String DeltaCRL {
-			get { return DeltaUnits + " " + DeltaPeriod; }
-			set { validate(DeltaUnits + " " + DeltaPeriod, value, "Delta"); }
+			get { return $"{DeltaUnits} {DeltaPeriod}"; }
+			set { validate($"{DeltaUnits} {DeltaPeriod}", value, "Delta"); }
 		}
 		/// <summary>
 		/// Gets or sets Base CRL validity extension after new Delta CRL is issued.
 		/// </summary>
 		public String DeltaCRLOverlap {
-			get { return DeltaOverlapUnits + " " + DeltaOverlap; }
-			set { validate(DeltaOverlapUnits + " " + DeltaOverlap, value, "DeltaOverlap"); }
+			get { return $"{DeltaOverlapUnits} {DeltaOverlap}"; }
+			set { validate($"{DeltaOverlapUnits} {DeltaOverlap}", value, "DeltaOverlap"); }
 		}
 		/// <summary>
 		/// Returns <strong>True</strong> if the current object is modified after it is created.
@@ -98,7 +98,7 @@ namespace PKI.CertificateServices {
 					DeltaOverlap = (String)CryptoRegistry.GetRegFallback(ConfigString, String.Empty, "CRLDeltaOverlapPeriod");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}
@@ -186,7 +186,7 @@ namespace PKI.CertificateServices {
 				return true;
 			}
 			ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-			e.Data.Add("Source", (OfflineSource)3);
+			e.Data.Add(nameof(e.Source), (OfflineSource)3);
 			throw e;
 		}
 	}

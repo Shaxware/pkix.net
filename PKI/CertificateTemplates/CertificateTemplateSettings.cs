@@ -16,10 +16,10 @@ namespace PKI.CertificateTemplates {
 	/// This class represents certificate template extended settings.
 	/// </summary>
 	public class CertificateTemplateSettings {
-		readonly DirectoryEntry entry;
+		readonly DirectoryEntry _entry;
+		readonly List<X509Extension> _exts = new List<X509Extension>();
+		readonly OidCollection _ekus = new OidCollection();
 		Int32 pathLength, pkf, schemaVersion, subjectFlags;
-		readonly List<X509Extension> exts = new List<X509Extension>();
-		readonly OidCollection ekus = new OidCollection();
 
 		internal CertificateTemplateSettings(IX509CertificateTemplate template) {
 			InitializeCom(template);
@@ -29,11 +29,11 @@ namespace PKI.CertificateTemplates {
 			KeyArchivalSettings = new KeyArchivalOptions(template);
 		}
 		internal CertificateTemplateSettings(DirectoryEntry Entry) {
-			entry = Entry;
-			Cryptography = new CryptographyTemplateSettings(entry);
-			RegistrationAuthority = new IssuanceRequirements(entry);
+			_entry = Entry;
+			Cryptography = new CryptographyTemplateSettings(_entry);
+			RegistrationAuthority = new IssuanceRequirements(_entry);
 			CriticalExtensions = new OidCollection();
-			KeyArchivalSettings = new KeyArchivalOptions(entry);
+			KeyArchivalSettings = new KeyArchivalOptions(_entry);
 			m_initialize();
 		}
 
@@ -59,16 +59,15 @@ namespace PKI.CertificateTemplates {
 		/// <summary>
 		/// Gets or sets the way how the certificate's subject should be constructed.
 		/// </summary>
-		public CertificateTemplateNameFlags SubjectName { get { return (CertificateTemplateNameFlags)subjectFlags; } }
+		public CertificateTemplateNameFlags SubjectName => (CertificateTemplateNameFlags)subjectFlags;
+
 		/// <summary>
 		/// Gets or sets a list of OIDs that represent extended key usages (sertificate purposes).
 		/// </summary>
-		public OidCollection EnhancedKeyUsage {
-			get {
-				if (Extensions == null) { return null; }
-				return (from X509Extension item in Extensions where item.Oid.Value == "2.5.29.37" select ((X509EnhancedKeyUsageExtension) item).EnhancedKeyUsages).FirstOrDefault();
-			}
-		}
+		public OidCollection EnhancedKeyUsage => Extensions == null
+			? null
+			: (from X509Extension item in Extensions where item.Oid.Value == "2.5.29.37" select ((X509EnhancedKeyUsageExtension) item).EnhancedKeyUsages).FirstOrDefault();
+
 		/// <summary>
 		/// Gets issuance policies designated to the template.
 		/// </summary>
@@ -111,14 +110,14 @@ namespace PKI.CertificateTemplates {
 		/// <summary>
 		/// Gets cryptogrpahy settings defined in the certificate template.
 		/// </summary>
-		public CryptographyTemplateSettings Cryptography { get; private set; }
+		public CryptographyTemplateSettings Cryptography { get; }
 		/// <summary>
 		/// Gets certificate extensions defined within current certificate template.
 		/// </summary>
 		public X509ExtensionCollection Extensions {
 			get {
 				X509ExtensionCollection extensions = new X509ExtensionCollection();
-				foreach (X509Extension ext in exts) { extensions.Add(ext); }
+				foreach (X509Extension ext in _exts) { extensions.Add(ext); }
 				return extensions;
 			}
 		}
@@ -138,7 +137,7 @@ namespace PKI.CertificateTemplates {
 		/// <summary>
 		/// Gets a collection of critical extensions.
 		/// </summary>
-		public OidCollection CriticalExtensions { get; private set; }
+		public OidCollection CriticalExtensions { get; }
 		/// <summary>
 		/// Gets certificate template key archival encryption settings.
 		/// </summary>
@@ -155,13 +154,13 @@ namespace PKI.CertificateTemplates {
 		public Int32 GeneralFlags { get; private set; }
 
 		void m_initialize() {
-			GeneralFlags = (Int32)entry.Properties["flags"].Value;
-			subjectFlags = (Int32)entry.Properties["msPKI-Certificate-Name-Flag"].Value;
-			EnrollmentOptions = (Int32)entry.Properties["msPKI-Enrollment-Flag"].Value;
-			pkf = (Int32)entry.Properties["msPKI-Private-Key-Flag"].Value;
-			ValidityPeriod = get_validity((Byte[])entry.Properties["pKIExpirationPeriod"].Value);
-			RenewalPeriod = get_validity((Byte[])entry.Properties["pKIOverlapPeriod"].Value);
-			pathLength = (Int32)entry.Properties["pKIMaxIssuingDepth"].Value;
+			GeneralFlags = (Int32)_entry.Properties["flags"].Value;
+			subjectFlags = (Int32)_entry.Properties["msPKI-Certificate-Name-Flag"].Value;
+			EnrollmentOptions = (Int32)_entry.Properties["msPKI-Enrollment-Flag"].Value;
+			pkf = (Int32)_entry.Properties["msPKI-Private-Key-Flag"].Value;
+			ValidityPeriod = get_validity((Byte[])_entry.Properties["pKIExpirationPeriod"].Value);
+			RenewalPeriod = get_validity((Byte[])_entry.Properties["pKIOverlapPeriod"].Value);
+			pathLength = (Int32)_entry.Properties["pKIMaxIssuingDepth"].Value;
 			if ((EnrollmentOptions & 2) > 0) { CAManagerApproval = true; }
 			get_eku();
 			get_certpolicies();
@@ -170,7 +169,7 @@ namespace PKI.CertificateTemplates {
 			get_extensions();
 		}
 		void InitializeCom(IX509CertificateTemplate template) {
-			if (Utils.CryptographyUtils.TestOleCompat()) {
+			if (CryptographyUtils.TestOleCompat()) {
 				GeneralFlags = (Int32)template.Property[EnrollmentTemplateProperty.TemplatePropGeneralFlags];
 				EnrollmentOptions = (Int32)template.Property[EnrollmentTemplateProperty.TemplatePropEnrollmentFlags];
 				subjectFlags = (Int32)template.Property[EnrollmentTemplateProperty.TemplatePropSubjectNameFlags];
@@ -187,7 +186,7 @@ namespace PKI.CertificateTemplates {
 				SupersededTemplates = (String[])template.Property[EnrollmentTemplateProperty.TemplatePropSupersede];
 			} catch { }
 			List<X509Extension> exts2 = (from IX509Extension ext in (IX509Extensions) template.Property[EnrollmentTemplateProperty.TemplatePropExtensions] select new X509Extension(ext.ObjectId.Value, Convert.FromBase64String(ext.RawData[EncodingType.XCN_CRYPT_STRING_BASE64]), ext.Critical)).Select(CryptographyUtils.ConvertExtension).ToList();
-			foreach (X509Extension ext in exts2) { exts.Add(ext); }
+			foreach (X509Extension ext in exts2) { _exts.Add(ext); }
 		}
 
 		static String get_validity(Byte[] rawData, Int64 fileTime = 0) {
@@ -196,78 +195,78 @@ namespace PKI.CertificateTemplates {
 			if (rawData != null) {
 				Array.Reverse(rawData);
 				StringBuilder SB = new StringBuilder();
-				foreach (Byte item in rawData) { SB.Append(String.Format("{0:X2}", item)); }
+				foreach (Byte item in rawData) { SB.Append($"{item:X2}"); }
 				Value = (Int64)(Convert.ToInt64(SB.ToString(), 16) * -.0000001 / 3600);
 			} else {
 				Value = fileTime / 3600;
 			}
-			if (Value % 8760 == 0 && (Value / 8760) >= 1) { output = Convert.ToString(Value / 8760) + " years"; }
-			else if (Value % 720 == 0 && (Value / 720) >= 1) { output = Convert.ToString(Value / 720) + " months"; }
-			else if (Value % 168 == 0 && (Value / 168) >= 1) { output = Convert.ToString(Value / 168) + " weeks"; }
-			else if (Value % 24 == 0 && (Value / 24) >= 1) { output = Convert.ToString(Value / 24) + " days"; }
-			else if (Value % 1 == 0 && (Value / 1) >= 1) { output = Convert.ToString(Value) + " hours"; }
+			if (Value % 8760 == 0 && Value / 8760 >= 1) { output = Convert.ToString(Value / 8760) + " years"; }
+			else if (Value % 720 == 0 && Value / 720 >= 1) { output = Convert.ToString(Value / 720) + " months"; }
+			else if (Value % 168 == 0 && Value / 168 >= 1) { output = Convert.ToString(Value / 168) + " weeks"; }
+			else if (Value % 24 == 0 && Value / 24 >= 1) { output = Convert.ToString(Value / 24) + " days"; }
+			else if (Value % 1 == 0 && Value / 1 >= 1) { output = Convert.ToString(Value) + " hours"; }
 			else { output = "0 hours"; }
 			return output;
 		}
 		void get_eku() {
 			try {
-				Object[] EkuObject = (Object[])entry.Properties["pKIExtendedKeyUsage"].Value;
+				Object[] EkuObject = (Object[])_entry.Properties["pKIExtendedKeyUsage"].Value;
 				if (EkuObject != null) {
 					foreach (Object item in EkuObject) {
-						ekus.Add(new Oid(item.ToString()));
+						_ekus.Add(new Oid(item.ToString()));
 					}
 				}
 			} catch {
-				String EkuString = (String)entry.Properties["pKIExtendedKeyUsage"].Value;
-				ekus.Add(new Oid(EkuString));
+				String EkuString = (String)_entry.Properties["pKIExtendedKeyUsage"].Value;
+				_ekus.Add(new Oid(EkuString));
 			}
 		}
 		void get_certpolicies() {
 			CertificatePolicies = new OidCollection();
 			try {
-				Object[] oids = (Object[])entry.Properties["msPKI-Certificate-Policy"].Value;
+				Object[] oids = (Object[])_entry.Properties["msPKI-Certificate-Policy"].Value;
 				if (oids == null) { return; }
 				foreach (Object oid in oids) {
 					CertificatePolicies.Add(new Oid((String)oid));
 				}
 			} catch {
-				CertificatePolicies.Add(new Oid((String)entry.Properties["msPKI-Certificate-Policy"].Value));
+				CertificatePolicies.Add(new Oid((String)_entry.Properties["msPKI-Certificate-Policy"].Value));
 			}
 		}
 		void get_criticals() {
 			try {
-				Object[] oids = (Object[])entry.Properties["pKICriticalExtensions"].Value;
+				Object[] oids = (Object[])_entry.Properties["pKICriticalExtensions"].Value;
 				if (oids == null) { return; }
 				foreach (Object oid in oids) {
 					CriticalExtensions.Add(new Oid((String)oid));
 				}
 			} catch {
-				CriticalExtensions.Add(new Oid((String)entry.Properties["pKICriticalExtensions"].Value));
+				CriticalExtensions.Add(new Oid((String)_entry.Properties["pKICriticalExtensions"].Value));
 			}
 		}
 		void get_superseded() {
 			List<String> temps = new List<String>();
 			try {
-				Object[] templates = (Object[])entry.Properties["msPKI-Supersede-Templates"].Value;
+				Object[] templates = (Object[])_entry.Properties["msPKI-Supersede-Templates"].Value;
 				if (templates != null) {
 					foreach (Object temp in templates) { temps.Add((String)temp); }
 				}
 			} catch {
-				temps.Add((String)entry.Properties["msPKI-Supersede-Templates"].Value);
+				temps.Add((String)_entry.Properties["msPKI-Supersede-Templates"].Value);
 			}
 			SupersededTemplates = temps.ToArray();
 		}
 		void get_extensions() {
-			schemaVersion = (Int32)entry.Properties["msPKI-Template-Schema-Version"].Value;
+			schemaVersion = (Int32)_entry.Properties["msPKI-Template-Schema-Version"].Value;
 			foreach (String oid in new []{"2.5.29.15","2.5.29.37","2.5.29.32","1.3.6.1.4.1.311.20.2","2.5.29.19","1.3.6.1.5.5.7.48.1.5"}) {
 				switch (oid) {
 					case "2.5.29.15":
-						exts.Add(new X509KeyUsageExtension(Cryptography.KeyUsage, test_critical("2.5.29.15")));
+						_exts.Add(new X509KeyUsageExtension(Cryptography.KeyUsage, test_critical("2.5.29.15")));
 						break;
 					case "2.5.29.37":
-						if (ekus.Count == 0) { break; }
-						exts.Add(new X509EnhancedKeyUsageExtension(ekus, test_critical("2.5.29.37")));
-						exts.Add(new X509ApplicationPoliciesExtension(ekus, test_critical("1.3.6.1.4.1.311.21.10")));
+						if (_ekus.Count == 0) { break; }
+						_exts.Add(new X509EnhancedKeyUsageExtension(_ekus, test_critical("2.5.29.37")));
+						_exts.Add(new X509ApplicationPoliciesExtension(_ekus, test_critical("1.3.6.1.4.1.311.21.10")));
 						break;
 					case "2.5.29.32":
 						if (CertificatePolicies.Count > 0) {
@@ -280,18 +279,18 @@ namespace PKI.CertificateTemplates {
 								} catch { }
 								policies.Add(policy);
 							}
-							exts.Add(new X509CertificatePoliciesExtension(policies, test_critical("2.5.29.32")));
+							_exts.Add(new X509CertificatePoliciesExtension(policies, test_critical("2.5.29.32")));
 						}
 						break;
 					case "1.3.6.1.4.1.311.20.2":
 						if (schemaVersion == 1) {
-							exts.Add(new X509Extension(new Oid("1.3.6.1.4.1.311.20.2"), Asn1Utils.EncodeBMPString((String)entry.Properties["cn"].Value), test_critical("1.3.6.1.4.1.311.20.2")));
+							_exts.Add(new X509Extension(new Oid("1.3.6.1.4.1.311.20.2"), Asn1Utils.EncodeBMPString((String)_entry.Properties["cn"].Value), test_critical("1.3.6.1.4.1.311.20.2")));
 						} else {
-							Int32 major = (Int32)entry.Properties["Revision"].Value;
-							Int32 minor = (Int32)entry.Properties["msPKI-Template-Minor-Revision"].Value;
-							Oid tempoid = new Oid((String)entry.Properties["msPKI-Cert-Template-OID"].Value);
-							exts.Add(new X509CertificateTemplateExtension(tempoid, major, minor));
-							exts[exts.Count - 1].Critical = test_critical("1.3.6.1.4.1.311.21.7");
+							Int32 major = (Int32)_entry.Properties["Revision"].Value;
+							Int32 minor = (Int32)_entry.Properties["msPKI-Template-Minor-Revision"].Value;
+							Oid tempoid = new Oid((String)_entry.Properties["msPKI-Cert-Template-OID"].Value);
+							_exts.Add(new X509CertificateTemplateExtension(tempoid, major, minor));
+							_exts[_exts.Count - 1].Critical = test_critical("1.3.6.1.4.1.311.21.7");
 						}
 						break;
 					case "2.5.29.19":
@@ -303,12 +302,12 @@ namespace PKI.CertificateTemplates {
 							Boolean isCA;
 							if (SubjectType == "Certification Authority" || SubjectType == "Cross Certification Authority") { isCA = true; } else { isCA = false; }
 							Boolean hasConstraints = GetPathLengthConstraint() != -1;
-							exts.Add(new X509BasicConstraintsExtension(isCA, hasConstraints, GetPathLengthConstraint(), test_critical("2.5.29.19")));
+							_exts.Add(new X509BasicConstraintsExtension(isCA, hasConstraints, GetPathLengthConstraint(), test_critical("2.5.29.19")));
 						}
 						break;
 					case "1.3.6.1.5.5.7.48.1.5":
 						if ((EnrollmentOptions & (Int32)CertificateTemplateEnrollmentFlags.IncludeOcspRevNoCheck) != 0) {
-							exts.Add(new X509Extension("1.3.6.1.5.5.7.48.1.5", new Byte[] { 5, 0 }, test_critical("1.3.6.1.5.5.7.48.1.5")));
+							_exts.Add(new X509Extension("1.3.6.1.5.5.7.48.1.5", new Byte[] { 5, 0 }, test_critical("1.3.6.1.5.5.7.48.1.5")));
 						}
 						break;
 				}

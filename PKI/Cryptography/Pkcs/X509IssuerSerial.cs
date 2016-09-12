@@ -14,8 +14,8 @@ namespace System.Security.Cryptography.Pkcs {
 		///		<strong>issuer</strong> and/or <strong>serialNumber</strong> parameters are null or empty.
 		/// </exception>
 		public X509IssuerSerial(X500DistinguishedName issuer, String serialNumber) {
-			if (issuer == null || issuer.RawData == null) { throw new ArgumentNullException("issuer"); }
-			if (String.IsNullOrEmpty(serialNumber)) { throw new ArgumentNullException("serialNumber"); }
+			if (issuer == null || issuer.RawData == null) { throw new ArgumentNullException(nameof(issuer)); }
+			if (String.IsNullOrEmpty(serialNumber)) { throw new ArgumentNullException(nameof(serialNumber)); }
 			IssuerName = issuer;
 			SerialNumber = serialNumber;
 		}
@@ -27,13 +27,10 @@ namespace System.Security.Cryptography.Pkcs {
 		/// <summary>
 		/// Gets an X.509 certificate issuer's distinguished name in a string format.
 		/// </summary>
-		public String Issuer {
-			get {
-				return IssuerName == null
-					? null
-					: IssuerName.Name;
-			}
-		}
+		public String Issuer => IssuerName == null
+			? null
+			: IssuerName.Name;
+
 		/// <summary>
 		/// Gets or sets an X.509 certificate issuer's serial number.
 		/// </summary>

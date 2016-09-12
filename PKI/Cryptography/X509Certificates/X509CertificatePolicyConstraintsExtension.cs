@@ -21,7 +21,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="ArgumentNullException"></exception>
         public X509CertificatePolicyConstraintsExtension(AsnEncodedData constraints)
             : base("2.5.29.36", constraints.RawData, true){
-            if (constraints == null) { throw new ArgumentNullException("constraints"); }
+            if (constraints == null) { throw new ArgumentNullException(nameof(constraints)); }
             m_decode(constraints.RawData);
         }
 

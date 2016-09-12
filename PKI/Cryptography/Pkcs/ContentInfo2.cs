@@ -21,7 +21,7 @@ namespace System.Security.Cryptography.Pkcs {
 		/// </param>
 		/// <exception cref="ArgumentNullException"><strong>content</strong> parameter is null or empty array.</exception>
 		public ContentInfo2(Byte[] content) {
-			if (content == null) { throw new ArgumentNullException("content"); }
+			if (content == null) { throw new ArgumentNullException(nameof(content)); }
 			m_initialize(content);
 		}
 		internal ContentInfo2(Wincrypt.CRYPTOAPI_BLOB blob) {

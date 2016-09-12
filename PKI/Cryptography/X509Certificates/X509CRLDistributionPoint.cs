@@ -15,7 +15,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </summary>
 		/// <param name="uris">One or more URLs to include to the current distribution point.</param>
 		public X509DistributionPoint(Uri[] uris) {
-			if (uris == null) { throw new ArgumentNullException("uris"); }
+			if (uris == null) { throw new ArgumentNullException(nameof(uris)); }
 			m_encode(uris);
 		}
 		/// <summary>
@@ -24,7 +24,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </summary>
 		/// <param name="rawData">ASN.1-encoded byte array that represents single distribution point section.</param>
 		public X509DistributionPoint(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 

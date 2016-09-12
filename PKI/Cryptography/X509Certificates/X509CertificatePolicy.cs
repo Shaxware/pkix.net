@@ -8,7 +8,7 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// Represents a single certificate policy which consists of an object identifier (OID) and optional qualifiers.
 	/// </summary>
 	public class X509CertificatePolicy {
-		readonly List<Byte> rawData = new List<Byte>();
+		readonly List<Byte> _rawData = new List<Byte>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="X509CertificatePolicy"/> class from a string that represents a
@@ -17,7 +17,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <param name="policyOid">A string that represents certificate policy OID value.</param>
 		/// <exception cref="ArgumentNullException"><strong>policyOid</strong> parameter is null or empty string.</exception>
 		public X509CertificatePolicy(String policyOid) {
-			if (String.IsNullOrEmpty(policyOid)) { throw new ArgumentNullException("policyOid"); }
+			if (String.IsNullOrEmpty(policyOid)) { throw new ArgumentNullException(nameof(policyOid)); }
 			m_initialize(policyOid);
 		}
 		/// <summary>
@@ -30,8 +30,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <strong>policyOid</strong> and/or <strong>qualifiers</strong> parameter is null or empty string.
 		/// </exception>
 		public X509CertificatePolicy(String policyOid, X509PolicyQualifierCollection qualifiers) {
-			if (String.IsNullOrEmpty(policyOid)) { throw new ArgumentNullException("policyOid"); }
-			if (qualifiers == null) { throw new ArgumentNullException("qualifiers"); }
+			if (String.IsNullOrEmpty(policyOid)) { throw new ArgumentNullException(nameof(policyOid)); }
+			if (qualifiers == null) { throw new ArgumentNullException(nameof(qualifiers)); }
 			m_initialize(policyOid, qualifiers);
 		}
 		/// <summary>
@@ -42,7 +42,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <exception cref="InvalidDataException">The data in the <strong>rawData</strong> parameter is not valid
 		/// certificate policy.</exception>
 		public X509CertificatePolicy(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 
@@ -56,7 +56,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		public X509PolicyQualifierCollection PolicyQualifiers { get; private set; }
 		
 		void m_initialize(String policyOid, X509PolicyQualifierCollection qualifiers = null) {
-			rawData.AddRange(Asn1Utils.EncodeObjectIdentifier(new Oid(policyOid)));
+			_rawData.AddRange(Asn1Utils.EncodeObjectIdentifier(new Oid(policyOid)));
 			PolicyOid = new Oid(policyOid);
 			PolicyQualifiers = qualifiers ?? new X509PolicyQualifierCollection();
 		}
@@ -96,9 +96,9 @@ namespace System.Security.Cryptography.X509Certificates {
 		public Byte[] Encode() {
 			if (PolicyOid == null) { throw new UninitializedObjectException(); }
 			if (PolicyQualifiers.Count > 0) {
-				rawData.AddRange(PolicyQualifiers.Encode());
+				_rawData.AddRange(PolicyQualifiers.Encode());
 			}
-			return Asn1Utils.Encode(rawData.ToArray(), 48);
+			return Asn1Utils.Encode(_rawData.ToArray(), 48);
 		}
 	}
 }

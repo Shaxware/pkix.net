@@ -9,8 +9,7 @@ namespace PKI.Exceptions {
 	/// <remarks>Use <see cref="Exception.Data"/> property to set exact error source.
 	/// <para>PKI library uses <strong>Source</strong> key and value of <see cref="OfflineSource"/> value type.</para>
 	/// </remarks>
-	[SerializableAttribute]
-	[ComVisible(true)]
+	[Serializable, ComVisible(true)]
 	public sealed class ServerUnavailableException : Exception {
 		/// <summary>
 		/// Initializes a new instance of the <strong>ServerUnavailableException</strong> class.

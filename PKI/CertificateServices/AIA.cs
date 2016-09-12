@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using PKI.Utils;
 
 namespace PKI.CertificateServices {
 	/// <summary>
@@ -22,7 +21,7 @@ namespace PKI.CertificateServices {
 		/// <p>Only LDAP:// and HTTP:// URLs are supported for CRT file retrieval.</p>
 		/// </remarks>
 		public AIA(String regUri) {
-			if (String.IsNullOrEmpty(regUri)) { throw new ArgumentNullException("regUri"); }
+			if (String.IsNullOrEmpty(regUri)) { throw new ArgumentNullException(nameof(regUri)); }
 			RegURI = regUri;
 			m_initialize();
 		}
@@ -42,7 +41,7 @@ namespace PKI.CertificateServices {
 		/// <p>%11 - &lt;CAObjectClass&gt; - (The object class identifier for a certification authority, used when publishing to an LDAP URL).</p>
 		/// <p>See <see cref="Flags">Flags</see> property for flag definitions.</p>
 		/// </remarks>
-		public String RegURI { get; private set; }
+		public String RegURI { get; }
 		/// <summary>
 		/// Gets an URL representation that is shown in Certification Authority MMC snap-in Extensions tab. See <see cref="RegURI"> for detailed variable token
 		/// replacement rules.</see></summary>
@@ -76,7 +75,7 @@ namespace PKI.CertificateServices {
 			Match match = regex.Match(RegURI);
 			if (match.Success) {
 				Int16 matches = Convert.ToInt16(match.Value);
-				Int16[] options = new Int16[] { 1, 2, 32 };
+				Int16[] options = { 1, 2, 32 };
 				List<Int16> validoptions = options.Where(option => (matches & option) != 0).ToList();
 				Flags = validoptions.ToArray();
 				foreach (Int16 option in validoptions) {

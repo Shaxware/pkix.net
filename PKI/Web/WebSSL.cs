@@ -16,7 +16,7 @@ namespace PKI.Web {
 		/// <exception cref="ArgumentNullException">If <strong>request</strong> parameter is <strong>null</strong> or <strong>empty</strong>.</exception>
 		/// <exception cref="ArgumentException">If connection URL scheme is not 'HTTPS'.</exception>
 		public WebSSL(WebRequest request) {
-			if (request == null) { throw new ArgumentNullException("request"); }
+			if (request == null) { throw new ArgumentNullException(nameof(request)); }
 			if (request.RequestUri.Scheme.ToLower() != "https") {
 				throw new ArgumentException("Only 'HTTPS' URL scheme is supported.");
 			}

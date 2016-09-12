@@ -51,15 +51,15 @@ namespace PKI.CertificateServices.PolicyModule {
 			Version = certificateAuthority.Version;
 			IsEnterprise = certificateAuthority.IsEnterprise;
 			if (CryptoRegistry.Ping(ComputerName)) {
-				ActivePolicyModule = (String)CryptoRegistry.GetRReg("Active", Name + "\\PolicyModules", ComputerName);
-				EditFlags = (PolicyModuleFlagEnum)CryptoRegistry.GetRReg("EditFlags", Name + "\\PolicyModules\\" + ActivePolicyModule, ComputerName);
+				ActivePolicyModule = (String)CryptoRegistry.GetRReg("Active", $@"{Name}\PolicyModules", ComputerName);
+				EditFlags = (PolicyModuleFlagEnum)CryptoRegistry.GetRReg("EditFlags", $@"{Name}\PolicyModules\{ActivePolicyModule}", ComputerName);
 			} else {
 				if (CertificateAuthority.Ping(ComputerName)) {
 					ActivePolicyModule = (String)CryptoRegistry.GetRegFallback(ConfigString, "PolicyModules", "EditFlags");
-					EditFlags = (PolicyModuleFlagEnum)CryptoRegistry.GetRegFallback(ConfigString, "PolicyModules\\" + ActivePolicyModule, "EditFlags");
+					EditFlags = (PolicyModuleFlagEnum)CryptoRegistry.GetRegFallback(ConfigString, $@"PolicyModules\{ActivePolicyModule}", "EditFlags");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}
@@ -175,19 +175,19 @@ namespace PKI.CertificateServices.PolicyModule {
 		public Boolean SetInfo(Boolean restart) {
 			if (IsModified) {
 				if (CryptoRegistry.Ping(ComputerName)) {
-					CryptoRegistry.SetRReg((Int32)EditFlags, "EditFlags", RegistryValueKind.DWord, Name + "\\PolicyModules\\" + ActivePolicyModule, ComputerName);
+					CryptoRegistry.SetRReg((Int32)EditFlags, "EditFlags", RegistryValueKind.DWord, $@"{Name}\PolicyModules\{ActivePolicyModule}", ComputerName);
 					if (restart) { CertificateAuthority.Restart(ComputerName); }
 					IsModified = false;
 					return true;
 				}
 				if (CertificateAuthority.Ping(ComputerName)) {
-					CryptoRegistry.SetRegFallback(ConfigString, "PolicyModules\\" + ActivePolicyModule, "EditFlags", (Int32)EditFlags);
+					CryptoRegistry.SetRegFallback(ConfigString, $@"PolicyModules\{ActivePolicyModule}", "EditFlags", (Int32)EditFlags);
 					if (restart) { CertificateAuthority.Restart(ComputerName); }
 					IsModified = false;
 					return true;
 				}
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", (OfflineSource)3);
+				e.Data.Add(nameof(e.Source), (OfflineSource)3);
 				throw e;
 			}
 			return false;

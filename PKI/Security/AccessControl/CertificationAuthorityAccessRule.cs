@@ -29,11 +29,8 @@ namespace PKI.Security.AccessControl {
 		/// Gets the <see cref="CertificationAuthorityRights"/> flags associated with the current
 		/// <see cref="CertificationAuthorityAccessRule"/> object.
 		/// </summary>
-		public CertificationAuthorityRights CertificationAuthorityRights {
-			get {
-				return RightsFromAccessMask(AccessMask);
-			}
-		}
+		public CertificationAuthorityRights CertificationAuthorityRights => RightsFromAccessMask(AccessMask);
+
 		static CertificationAuthorityRights RightsFromAccessMask(int accessMask) {
 			return (CertificationAuthorityRights)accessMask;
 		}

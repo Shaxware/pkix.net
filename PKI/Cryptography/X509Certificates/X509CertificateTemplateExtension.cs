@@ -11,18 +11,18 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// certificate autoenrollment to perform certificate-based renewals.
 	/// </summary>
 	public sealed class X509CertificateTemplateExtension : X509Extension {
-		readonly Oid eoid = new Oid("1.3.6.1.4.1.311.21.7");
+		readonly Oid _eoid = new Oid("1.3.6.1.4.1.311.21.7");
 
 		internal X509CertificateTemplateExtension(Byte[] rawData, Boolean critical)
             : base("1.3.6.1.4.1.311.21.7", rawData, critical){
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 		
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509CertificateTemplateExtension</strong> class.
 		/// </summary>
-		public X509CertificateTemplateExtension() { Oid = eoid; }
+		public X509CertificateTemplateExtension() { Oid = _eoid; }
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509CertificateTemplateExtension</strong> class using an
 		/// <see cref="AsnEncodedData"/> object and a value that identifies whether the extension is critical.
@@ -60,7 +60,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		public Int32 MinorVersion { get; private set; }
 		
 		void m_initialize(Oid oid, Int32 majorVersion, Int32 minorVersion) {
-			Oid = eoid;
+			Oid = _eoid;
 			Asn1Utils.EncodeObjectIdentifier(oid);
 			Wincrypt.CERT_TEMPLATE_EXT pvStructInfo = new Wincrypt.CERT_TEMPLATE_EXT {
 				pszObjId = oid.Value,

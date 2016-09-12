@@ -42,7 +42,7 @@ namespace PKI.ServiceProviders {
 		///		<item>Signing</item>
 		/// </list>
 		/// </summary>
-		AnyAsymmetricOperation	= (AsymmetricEncryption | SecretAgreement) | Signing, // 28
+		AnyAsymmetricOperation	= AsymmetricEncryption | SecretAgreement | Signing, // 28
 		/// <summary>
 		/// The algorithm can be used to generate a random number.
 		/// </summary>

@@ -16,7 +16,7 @@ namespace PKI.OCSP.Server {
 
 		/// <param name="computerName">Online Responder computer name to connect.</param>
 		public OnlineResponder(String computerName) {
-			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException("computerName"); }
+			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
 			IsDisposed = false;
 			m_initialize(computerName);
 		}
@@ -32,9 +32,8 @@ namespace PKI.OCSP.Server {
 		/// <summary>
 		/// Gets the revocation configurations count.
 		/// </summary>
-		public Int32 ConfigurationCount {
-			get { return OcspAdmin.OCSPCAConfigurationCollection.Count; }
-		}
+		public Int32 ConfigurationCount => OcspAdmin.OCSPCAConfigurationCollection.Count;
+
 		/// <summary>
 		/// Gets an array of revocation configurations.
 		/// </summary>
@@ -196,7 +195,7 @@ namespace PKI.OCSP.Server {
 		/// </returns>
 		/// <exception cref="ArgumentNullException"><strong>computerName</strong> parameter is null or empty string.</exception>
 		public static Boolean Ping(String computerName) {
-			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException("computerName"); }
+			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
 			OCSPAdmin ocspAdmin = null;
 			try {
 				ocspAdmin = new OCSPAdmin();

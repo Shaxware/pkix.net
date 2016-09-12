@@ -16,13 +16,13 @@ namespace PKI.CertificateTemplates {
 	/// </summary>
 	public class CryptographyTemplateSettings {
 		Int32 pkf, schemaVersion;
-		readonly DirectoryEntry entry;
+		readonly DirectoryEntry _entry;
 
 		internal CryptographyTemplateSettings(IX509CertificateTemplate template) {
 			InitializeCom(template);
 		}
 		internal CryptographyTemplateSettings(DirectoryEntry Entry) {
-			entry = Entry;
+			_entry = Entry;
 			InitializeDs();
 		}
 
@@ -77,15 +77,15 @@ namespace PKI.CertificateTemplates {
 		public String PrivateKeySecuritySDDL { get; private set; }
 
 		void InitializeDs() {
-			schemaVersion = (Int32)entry.Properties["msPKI-Template-Schema-Version"].Value;
+			schemaVersion = (Int32)_entry.Properties["msPKI-Template-Schema-Version"].Value;
 			KeyAlgorithm = new Oid("RSA");
 			HashAlgorithm = new Oid("SHA1");
-			MinimalKeyLength = (Int32)entry.Properties["msPKI-Minimal-Key-Size"].Value;
-			pkf = (Int32)entry.Properties["msPKI-Private-Key-Flag"].Value;
-			KeySpec = (X509KeySpecFlags)(Int32)entry.Properties["pKIDefaultKeySpec"].Value;
+			MinimalKeyLength = (Int32)_entry.Properties["msPKI-Minimal-Key-Size"].Value;
+			pkf = (Int32)_entry.Properties["msPKI-Private-Key-Flag"].Value;
+			KeySpec = (X509KeySpecFlags)(Int32)_entry.Properties["pKIDefaultKeySpec"].Value;
 			get_csp();
 			get_keyusages();
-			String ap = (String)entry.Properties["msPKI-RA-Application-Policies"].Value;
+			String ap = (String)_entry.Properties["msPKI-RA-Application-Policies"].Value;
 			if (ap != null && ap.Contains("`")) {
 				String[] splitstring = new [] { "`" };
 				String[] strings = ap.Split(splitstring, StringSplitOptions.RemoveEmptyEntries);
@@ -104,18 +104,18 @@ namespace PKI.CertificateTemplates {
 			List<String> csplist = new List<String>();
 
 			try {
-				Object[] CSPObject = (Object[])entry.Properties["pKIDefaultCSPs"].Value;
+				Object[] CSPObject = (Object[])_entry.Properties["pKIDefaultCSPs"].Value;
 				if (CSPObject != null) {
 					csplist.AddRange(CSPObject.Select(csp => Regex.Replace(csp.ToString(), "^\\d+,", String.Empty)));
 				}
 			} catch {
-				String cspString = (String)entry.Properties["pKIDefaultCSPs"].Value;
+				String cspString = (String)_entry.Properties["pKIDefaultCSPs"].Value;
 				csplist.Add(Regex.Replace(cspString, "^\\d+,", String.Empty));
 			}
 			CSPList = csplist.ToArray();
 		}
 		void get_keyusages() {
-			Byte[] ku = (Byte[])entry.Properties["pKIKeyUsage"].Value;
+			Byte[] ku = (Byte[])_entry.Properties["pKIKeyUsage"].Value;
 			if (ku == null) {
 				KeyUsage = 0;
 			} else {
@@ -123,7 +123,7 @@ namespace PKI.CertificateTemplates {
 					KeyUsage = (X509KeyUsageFlags)ku[0];
 				} else {
 					Array.Reverse(ku);
-					KeyUsage = (X509KeyUsageFlags)Convert.ToInt32(String.Join("", ku.Select(item => String.Format("{0:x2}", item)).ToArray()), 16);
+					KeyUsage = (X509KeyUsageFlags)Convert.ToInt32(String.Join("", ku.Select(item => $"{item:x2}").ToArray()), 16);
 				}
 			}
 			if (schemaVersion > 2) {
@@ -198,34 +198,31 @@ namespace PKI.CertificateTemplates {
 		/// </summary>
 		/// <returns>A textual representation of the certificate template cryptography settings</returns>
 		public override String ToString() {
+			String nl = Environment.NewLine;
 			StringBuilder SB = new StringBuilder();
-			SB.Append("[Cryptography Settings]" + Environment.NewLine);
+			SB.Append($"[Cryptography Settings]{nl}");
 			SB.Append("  CSP list: ");
 			if (CSPList == null) {
-				SB.Append("Any installed CSP" + Environment.NewLine);
+				SB.Append($"Any installed CSP{nl}");
 			} else {
-				SB.Append(Environment.NewLine);
+				SB.Append(nl);
 				foreach (String csp in CSPList) {
-					SB.Append("     " + csp + Environment.NewLine);
+					SB.Append($"     {csp}{nl}");
 				}
-				SB.Append(Environment.NewLine);
+				SB.Append(nl);
 			}
-			if (String.IsNullOrEmpty(KeyAlgorithm.FriendlyName)) {
-				SB.Append("  Key Algorithm: " + KeyAlgorithm.Value + Environment.NewLine);
-			} else {
-				SB.Append("  Key Algorithm: " + KeyAlgorithm.FriendlyName + " (" + KeyAlgorithm.Value + ")" + Environment.NewLine);
-			}
-			if (String.IsNullOrEmpty(HashAlgorithm.FriendlyName)) {
-				SB.Append("  Hash Algorithm: " + HashAlgorithm.Value + Environment.NewLine);
-			} else {
-				SB.Append("  Hash Algorithm: " + HashAlgorithm.FriendlyName + " (" + HashAlgorithm.Value + ")" + Environment.NewLine);
-			}
-			SB.Append("  Key Length: " + MinimalKeyLength + Environment.NewLine);
-			SB.Append("  Private key options: " + PrivateKeyOptions + Environment.NewLine);
-			SB.Append("  KeySpec: " + KeySpec + Environment.NewLine);
-			SB.Append("  CNG key usage: " + CNGKeyUsage);
+			SB.Append(String.IsNullOrEmpty(KeyAlgorithm.FriendlyName)
+				? $"  Key Algorithm: {KeyAlgorithm.Value}{nl}"
+				: $"  Key Algorithm: {KeyAlgorithm.FriendlyName} ({KeyAlgorithm.Value}){nl}");
+			SB.Append(String.IsNullOrEmpty(HashAlgorithm.FriendlyName)
+				? $"  Hash Algorithm: {HashAlgorithm.Value}{nl}"
+				: $"  Hash Algorithm: {HashAlgorithm.FriendlyName} ({HashAlgorithm.Value}){nl}");
+			SB.Append($"  Key Length: {MinimalKeyLength}{nl}");
+			SB.Append($"  Private key options: {PrivateKeyOptions}{nl}");
+			SB.Append($"  KeySpec: {KeySpec}{nl}");
+			SB.Append($"  CNG key usage: {CNGKeyUsage}");
 			if (!String.IsNullOrEmpty(PrivateKeySecuritySDDL)) {
-				SB.Append(Environment.NewLine + "  Private key security descriptor: " + PrivateKeySecuritySDDL);
+				SB.Append($"{nl}  Private key security descriptor: {PrivateKeySecuritySDDL}");
 			}
 			return SB.ToString();
 		}

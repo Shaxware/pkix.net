@@ -53,7 +53,7 @@ namespace PKI.CertificateServices.Flags {
 					KRAFlags = (KRAFlagEnum)CryptoRegistry.GetRegFallback(ConfigString, "", "KRAFlags");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}
@@ -144,7 +144,7 @@ namespace PKI.CertificateServices.Flags {
 					return true;
 				}
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", (OfflineSource)3);
+				e.Data.Add(nameof(e.Source), (OfflineSource)3);
 				throw e;
 			}
 			return false;

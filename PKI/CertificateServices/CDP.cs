@@ -20,7 +20,7 @@ namespace PKI.CertificateServices {
 		/// <p>Only LDAP:// and HTTP:// URLs are supported for CRL file retrieval.</p>
 		/// </remarks>
 		public CDP(String regUri) {
-			if (String.IsNullOrEmpty(regUri)) { throw new ArgumentNullException("regUri"); }
+			if (String.IsNullOrEmpty(regUri)) { throw new ArgumentNullException(nameof(regUri)); }
 			RegURI = regUri;
 			m_initialize();
 		}
@@ -42,7 +42,7 @@ namespace PKI.CertificateServices {
 		/// <p>%11 - &lt;CAObjectClass&gt; - (The object class identifier for a certification authority, used when publishing to an LDAP URL).</p>
 		/// <p>See <see cref="Flags">Flags</see> property for flag definitions.</p>
 		/// </remarks>
-		public String RegURI { get; private set; }
+		public String RegURI { get; }
 		/// <summary>
 		/// Gets an URL representation that is shown in Certification Authority MMC snap-in Extensions tab. See <see cref="RegURI">RegURI</see> property
 		/// description for detailed variable token replacement rules.</summary>
@@ -91,7 +91,7 @@ namespace PKI.CertificateServices {
 		/// Gets True if provided URL is configured to publish provided URL to CRLs.
 		/// </summary>
 		/// <remarks>Only LDAP:// paths are supported.</remarks>
-		public Boolean AddToCRLCDP { get; private set; }
+		public Boolean AddToCrlcdp { get; private set; }
 		/// <summary>
 		/// Gets True if provided URL is configured to publish CRLs to CRLs' IDP (Issuing Distribution Point) extension.
 		/// </summary>
@@ -111,7 +111,7 @@ namespace PKI.CertificateServices {
 						case 1: CRLPublish = true; break;
 						case 2: AddToCertCDP = true; break;
 						case 4: AddToFreshestCRL = true; break;
-						case 8: AddToCRLCDP = true; break;
+						case 8: AddToCrlcdp = true; break;
 						case 64: DeltaCRLPublish = true; break;
 						case 128: IDP = true; break;
 						default: throw new Exception("Invalid publishing Flags.");

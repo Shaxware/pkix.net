@@ -27,7 +27,7 @@ namespace System.Security.Cryptography.Pkcs {
 		/// <exception cref="ArgumentException"><strong>path</strong> parameter is null or empty string.</exception>
 		/// <exception cref="ArgumentNullException">Specified file does not exist.</exception>
 		public PKCS7SignedMessage(String path) {
-			if (String.IsNullOrEmpty(path)) { throw new ArgumentNullException("path"); }
+			if (String.IsNullOrEmpty(path)) { throw new ArgumentNullException(nameof(path)); }
 			if (!File.Exists(path)) { throw new ArgumentException("The system cannot find the file specified."); }
 			m_initialize(Crypt32Managed.CryptFileToBinary(path));
 		}
@@ -35,7 +35,7 @@ namespace System.Security.Cryptography.Pkcs {
 		/// <exception cref="ArgumentNullException"><strong>rawData</strong> parameter is null.</exception>
 		/// <exception cref="InvalidDataException">The data in the <strong>rawData</strong> parameter is not valid PKCS#7/CMS message.</exception>
 		public PKCS7SignedMessage(Byte[] message) {
-			if (message == null) { throw new ArgumentNullException("message"); }
+			if (message == null) { throw new ArgumentNullException(nameof(message)); }
 			m_initialize(message);
 		}
 
@@ -87,43 +87,31 @@ namespace System.Security.Cryptography.Pkcs {
 		/// <summary>
 		/// Gets a collection of certificates contained in the message.
 		/// </summary>
-		public X509Certificate2Collection Certificates {
-			get {
-				return certificates == null
-					? null
-					: new X509Certificate2Collection(certificates);
-			}
-		}
+		public X509Certificate2Collection Certificates => certificates == null
+			? null
+			: new X509Certificate2Collection(certificates);
+
 		/// <summary>
 		/// Gets an array of certificate revocation lists contained in the message.
 		/// </summary>
-		public X509CRL2[] RevocationLists {
-			get {
-				return crls == null
-					? null
-					: crls.ToArray();
-			}
-		}
+		public X509CRL2[] RevocationLists => crls == null
+			? null
+			: crls.ToArray();
+
 		/// <summary>
 		/// Gets a collection of tagged attributes associated with the message.
 		/// </summary>
-		public X509AttributeCollection Attributes {
-			get {
-				return attributes == null
-					? null
-					: new X509AttributeCollection(attributes.ToArray());
-			}
-		}
+		public X509AttributeCollection Attributes => attributes == null
+			? null
+			: new X509AttributeCollection(attributes.ToArray());
+
 		/// <summary>
 		/// Gets an array of signer information that were used to sign the message.
 		/// </summary>
-		public SignerInfo2[] SignerInfos {
-			get {
-				return signerInfos == null
-					? null
-					: signerInfos.ToArray();
-			}
-		}
+		public SignerInfo2[] SignerInfos => signerInfos == null
+			? null
+			: signerInfos.ToArray();
+
 		/// <summary>
 		/// Gets 
 		/// </summary>
@@ -198,7 +186,7 @@ namespace System.Security.Cryptography.Pkcs {
 			if (asn.Tag != 49) { throw new InvalidDataException("The data is invalid."); }
 			asn.MoveNext();
 			do {
-				digestAlgs.Add(new PKI.ManagedAPI.StructClasses.AlgorithmIdentifier((asn.GetTagRawData())).AlgorithmId);
+				digestAlgs.Add(new PKI.ManagedAPI.StructClasses.AlgorithmIdentifier(asn.GetTagRawData()).AlgorithmId);
 			} while (asn.MoveNextCurrentLevel());
 		}
 		void switchInnerType(Wincrypt.CRYPTOAPI_BLOB blob) {

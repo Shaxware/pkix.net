@@ -10,10 +10,10 @@ namespace PKI.CertificateTemplates {
 	/// Represents certificate template key archival settings.
 	/// </summary>
 	public class KeyArchivalOptions {
-		readonly DirectoryEntry entry;
+		readonly DirectoryEntry _entry;
 
 		internal KeyArchivalOptions(DirectoryEntry Entry) {
-			entry = Entry;
+			_entry = Entry;
 			InitializeDs();
 		}
 		internal KeyArchivalOptions (IX509CertificateTemplate template) {
@@ -34,9 +34,9 @@ namespace PKI.CertificateTemplates {
 		public Int32 KeyLength { get; private set; }
 
 		void InitializeDs() {
-			if (((Int32)entry.Properties["msPKI-Private-Key-Flag"].Value & (Int32)PrivateKeyFlags.RequireKeyArchival) > 0) {
+			if (((Int32)_entry.Properties["msPKI-Private-Key-Flag"].Value & (Int32)PrivateKeyFlags.RequireKeyArchival) > 0) {
 				KeyArchival = true;
-				String ap = (String)entry.Properties["msPKI-RA-Application-Policies"].Value;
+				String ap = (String)_entry.Properties["msPKI-RA-Application-Policies"].Value;
 				if (ap != null && ap.Contains("`")) {
 					String[] splitstring = { "`" };
 					String[] strings = ap.Split(splitstring, StringSplitOptions.RemoveEmptyEntries);

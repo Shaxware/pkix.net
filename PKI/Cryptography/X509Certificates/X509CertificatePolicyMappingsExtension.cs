@@ -21,7 +21,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </exception>
         public X509CertificatePolicyMappingsExtension(AsnEncodedData mappings)
             : base("2.5.29.33", mappings.RawData, true) {
-            if (mappings == null) { throw new ArgumentNullException("mappings"); }
+            if (mappings == null) { throw new ArgumentNullException(nameof(mappings)); }
             m_decode(mappings.RawData);
         }
         /// <summary>
@@ -37,7 +37,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </exception>
         public X509CertificatePolicyMappingsExtension(OidMapping[] mappings) {
             if (mappings == null || mappings.Length < 1) {
-                throw new ArgumentNullException("mappings");
+                throw new ArgumentNullException(nameof(mappings));
             }
             m_initialize(mappings);
         }

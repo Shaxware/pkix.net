@@ -33,7 +33,7 @@ namespace PKI.CertificateServices {
 		/// <exception cref="ServerUnavailableException">The computer specified in the <strong>computerName</strong>
 		/// parameter could not be contacted via remote registry.</exception>
 		public CertificateAuthority(String computerName) {
-			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException("computerName"); }
+			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
 			RegistryOnline = CryptoRegistry.Ping(computerName);
 			IsAccessible = Ping(computerName);
 			lookInDs(computerName);
@@ -45,7 +45,7 @@ namespace PKI.CertificateServices {
 					initializeFromServerName(computerName);
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(computerName);
-					e.Data.Add("Source", OfflineSource.Registry);
+					e.Data.Add(nameof(e.Source), OfflineSource.Registry);
 					throw e;
 				}
 			}
@@ -67,8 +67,8 @@ namespace PKI.CertificateServices {
 		/// get registry data.</para>
 		/// </remarks>
 		public CertificateAuthority(String computerName, String name) {
-			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException("computerName"); }
-			if (String.IsNullOrEmpty(name)) { throw new ArgumentNullException("name"); }
+			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
+			if (String.IsNullOrEmpty(name)) { throw new ArgumentNullException(nameof(name)); }
 			RegistryOnline = CryptoRegistry.Ping(computerName);
 			IsAccessible = Ping(computerName);
 			lookInDs(computerName);
@@ -119,14 +119,14 @@ namespace PKI.CertificateServices {
 		/// <para>This property does not indicate whether remote registry is available or not. Refer to <see cref="RegistryOnline"/>
 		/// property to determine remote registry availability.</para>
 		/// </summary>
-		public Boolean IsAccessible { get; private set; }
+		public Boolean IsAccessible { get; }
 		/// <summary>
 		/// Gets remote registry accessibility status for Certification Authority. Returns <strong>True</strong> if Certification Authority
 		/// if remote registry is accessible, otherwise <strong>False</strong>.
 		/// <para>This property does not indicate whether management interfaces are available or not. Refer to <see cref="IsAccessible"/>
 		/// property to determine management interface availability.</para>
 		/// </summary>
-		public Boolean RegistryOnline { get; private set; }
+		public Boolean RegistryOnline { get; }
 		/// <summary>
 		/// Gets the status of the <strong>CertSvc</strong> service.
 		/// </summary>
@@ -155,7 +155,7 @@ namespace PKI.CertificateServices {
 		internal String Version { get; private set; }
 		internal String Sku { get; private set; }
 		internal Boolean IsEnterprise { get; private set; }
-		private String Active { get; set; }
+		String Active { get; set; }
 
 		void lookInDs(String computerName) {
 			if (!ActiveDirectory.Ping()) { return; }
@@ -181,7 +181,7 @@ namespace PKI.CertificateServices {
 					buildFromCertConfigOnly();
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(computerName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			} else {
@@ -210,7 +210,7 @@ namespace PKI.CertificateServices {
 					Name = (String)CryptoRegistry.GetRegFallback(configString, String.Empty, "CommonName");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(computerName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}
@@ -243,7 +243,7 @@ namespace PKI.CertificateServices {
 				}
 				SetupStatus = (SetupStatusEnum)CryptoRegistry.GetRReg("SetupStatus", String.Empty, ComputerName);
 			} else {
-				String ver = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_PRODUCTVERSION, 0, 4, 0);
+				String ver = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropProductversion, 0, 4, 0);
 				String[] vers = ver.Split(new [] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 				switch (vers[0]) {
 					case "5.0": Version = "2000"; break;
@@ -268,20 +268,20 @@ namespace PKI.CertificateServices {
 		}
 		void getCaProperty() {
 			if (!IsAccessible) { return; }
-			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_CASIGCERTCOUNT, 0, 1, 0);
+			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcertcount, 0, 1, 0);
 			Certificate = new X509Certificate2(
 				Convert.FromBase64String(
-					(String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_CASIGCERT, count - 1, 3, 1)
+					(String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcert, count - 1, 3, 1)
 					)
 				);
 			// loop over cert index from higher index to lower. Get first entry where CRL appears
 			for (Int32 index = count - 1; index >= 0; index--) {
 				try {
-					String crl = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_BASECRL, index, 3, 1);
+					String crl = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropBasecrl, index, 3, 1);
 					if (crl != String.Empty) {
 						BaseCRL = new X509CRL2(Convert.FromBase64String(crl));
 						try {
-							String crl2 = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_DELTACRL, index, 3, 1);
+							String crl2 = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropDeltacrl, index, 3, 1);
 							if (crl2 != String.Empty) { DeltaCRL = new X509CRL2(Convert.FromBase64String(crl2)); }
 						} catch { }
 						break;
@@ -338,11 +338,11 @@ namespace PKI.CertificateServices {
 		}
 		void buildKeyMap() {
 			if (!IsAccessible) { return; }
-			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_CASIGCERTCOUNT, 0, 1, 0);
+			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcertcount, 0, 1, 0);
 			keyMap = new Boolean[count];
 			for (Int32 index = count - 1; index >= 0; index--) {
 				try {
-					CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_BASECRL, index, CertAdmConst.PROPTYPE_BINARY, 0);
+					CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropBasecrl, index, CertAdmConst.ProptypeBinary, 0);
 					keyMap[index] = true;
 				} catch {
 					keyMap[index] = false;
@@ -395,7 +395,7 @@ namespace PKI.CertificateServices {
 			if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
 			if (!Ping()) {
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", OfflineSource.DCOM);
+				e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
 				throw e;
 			}
 			CCertView CaView = new CCertView();
@@ -435,14 +435,14 @@ namespace PKI.CertificateServices {
 			if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
 			if (!Ping()) {
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", OfflineSource.DCOM);
+				e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
 				throw e;
 			}
 			CertAdmin = new CCertAdmin();
 			X509Certificate2Collection certs = new X509Certificate2Collection();
-			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_CASIGCERTCOUNT, 0, 1, 0);
+			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcertcount, 0, 1, 0);
 			for (Int32 index = 0; index < count; index++) {
-				certs.Add(new X509Certificate(Convert.FromBase64String((String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_CASIGCERT, index, 3, 1))));
+				certs.Add(new X509Certificate(Convert.FromBase64String((String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcert, index, 3, 1))));
 			}
 			CryptographyUtils.ReleaseCom(CertAdmin);
 			return certs;
@@ -461,14 +461,14 @@ namespace PKI.CertificateServices {
 			if (!IsEnterprise) { throw new PlatformNotSupportedException(Error.E_NONENTERPRISE); }
 			if (!Ping()) {
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", OfflineSource.DCOM);
+				e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
 				throw e;
 			}
 			CertAdmin = new CCertAdmin();
 			try {
-				Int32 index = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_CAXCHGCERTCOUNT, 0, 1, 0) - 1;
+				Int32 index = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCaxchgcertcount, 0, 1, 0) - 1;
 				if (index >= 0) {
-					String Base64 = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CR_PROP_CAXCHGCERT, index, 3, 1);
+					String Base64 = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCaxchgcert, index, 3, 1);
 					return new X509Certificate2(Convert.FromBase64String(Base64));
 				}
 				throw new Exception(String.Format(Error.E_XCHGUNAVAILABLE, DisplayName));
@@ -530,7 +530,7 @@ namespace PKI.CertificateServices {
 			if (String.IsNullOrEmpty(ConfigString)) {throw new UninitializedObjectException();}
 			if (!IsAccessible) {
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", OfflineSource.DCOM);
+				e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
 				throw e;
 			}
 			CertAdmin = new CCertAdmin();
@@ -557,7 +557,7 @@ namespace PKI.CertificateServices {
 			if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
 			if (!Ping()) {
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", OfflineSource.DCOM);
+				e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
 				throw e;
 			}
 			CertAdmin = new CCertAdmin();
@@ -608,7 +608,7 @@ namespace PKI.CertificateServices {
 					sdBinary = (Byte[])CryptoRegistry.GetRegFallback(ConfigString, String.Empty, "Security");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}
@@ -623,7 +623,7 @@ namespace PKI.CertificateServices {
 		/// <exception cref="ArgumentNullException">If the <strong>computerName</strong> parameter is null or empty.</exception>
 		/// <returns><strong>True</strong> if management interfaces are available and accessible, otherwise <strong>False</strong>.</returns>
 		public static Boolean Ping(String computerName) {
-			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException("computerName"); }
+			if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
 			Boolean online = false;
 			CertAdm.CertSrvIsServerOnline(computerName, ref online);
 			return online;
@@ -680,7 +680,7 @@ namespace PKI.CertificateServices {
 		/// <returns>A CertificationAuthority object.</returns>
 		/// <exception cref="ArgumentNullException">If the <strong>computerName</strong> parameter is <strong>null</strong> or <strong>empty</strong>.</exception>
 		public static CertificateAuthority Connect(String computerName) {
-			if (String.IsNullOrEmpty(computerName)) {throw new ArgumentNullException("computerName");}
+			if (String.IsNullOrEmpty(computerName)) {throw new ArgumentNullException(nameof(computerName));}
 			return new CertificateAuthority(computerName);
 		}
 		/// <summary>

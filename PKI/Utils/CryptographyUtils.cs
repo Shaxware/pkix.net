@@ -79,12 +79,12 @@ namespace PKI.Utils {
 		}
 		public static Byte[] DecodeDerString(String str) {
             if (String.IsNullOrEmpty(str)) {
-                throw new ArgumentNullException("str");
+                throw new ArgumentNullException(nameof(str));
             }
             return Encoding.Unicode.GetBytes(str);
 		}
 		public static String EncodeDerString(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException(); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             if (rawData.Length == 0) { throw new ArgumentException("The vlue is empty"); }
             List<Byte> rawBytes;
             if (rawData.Length % 2 > 0) {

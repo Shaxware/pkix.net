@@ -23,7 +23,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </exception>
 		/// <remarks>This extension SHOULD NOT be marked critical.</remarks>
 		public X509NextCRLPublishExtension(AsnEncodedData encodedPublishTime, Boolean critical) {
-			if (encodedPublishTime == null) { throw new ArgumentNullException("encodedPublishTime"); }
+			if (encodedPublishTime == null) { throw new ArgumentNullException(nameof(encodedPublishTime)); }
 			if (encodedPublishTime.RawData == null) { throw new ArgumentException("The parameter is incorrect."); }
 			Critical = critical;
 			Oid = _oid;

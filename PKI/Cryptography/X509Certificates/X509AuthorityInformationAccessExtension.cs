@@ -14,7 +14,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		
 		internal X509AuthorityInformationAccessExtension(Byte[] rawData, Boolean critical)
             : base("1.3.6.1.5.5.7.1.1", rawData, critical) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 

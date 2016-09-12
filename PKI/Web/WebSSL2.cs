@@ -18,11 +18,11 @@ namespace PKI.Web {
 		X509Certificate2 clientCert;
 
 		public WebSSL2(Uri url) {
-			if (url == null) { throw new ArgumentNullException("url"); }
+			if (url == null) { throw new ArgumentNullException(nameof(url)); }
 			RequestedUrl = url;
 		}
 
-		public Uri RequestedUrl { get; private set; }
+		public Uri RequestedUrl { get; }
 		public Uri ReturnedUrl { get; private set; }
 		public Boolean StrictKeyUsageValidation { get; set; }
 		public Boolean AllowUserStoreTrust { get; set; }

@@ -105,7 +105,7 @@
     <Compile Include="Utils\CLRExtensions\X509Certificate2Extensions.cs" />
     <Compile Include="Utils\ErrorSeverity.cs" />
     <Compile Include="Utils\CLRExtensions\BigIntegerExtensions.cs" />
-    <Compile Include="Utils\CLRExtensions\X500DistinguishedName2.cs" />
+    <Compile Include="Utils\CLRExtensions\X500DistinguishedNameExtensions.cs" />
     <Compile Include="Cryptography\X509Certificates\X500RdnAttribute.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CRLNumberExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509FreshestCRLExtension.cs" />
@@ -239,7 +239,7 @@
     <Compile Include="Exceptions\ServerUnavailableException.cs" />
     <Compile Include="Exceptions\UninitializedObjectException.cs" />
     <Compile Include="Utils\CLRExtensions\X509Certificate2Collection2.cs" />
-    <Compile Include="Utils\CLRExtensions\X509Extension2.cs" />
+    <Compile Include="Utils\CLRExtensions\X509ExtensionExtensions.cs" />
     <Compile Include="Utils\CLRExtensions\X509ExtensionCollection2.cs" />
     <Compile Include="Utils\CryptographyUtils.cs" />
     <Compile Include="Utils\EnumFlags.cs" />

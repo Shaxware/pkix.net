@@ -21,7 +21,7 @@ namespace PKI.OCSP {
 		/// <param name="rawData">A DER-encoded byte array that represents a binary form of <strong>CertID</strong> object.</param>
 		/// <exception cref="ArgumentNullException"><strong>rawData</strong> parameter is null reference.</exception>
 		public CertID(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			initializeFromAsn(rawData);
 		}
 		/// <param name="cert">An <see cref="X509Certificate2"/> from which the <strong>CertID</strong> object is constructed.</param>
@@ -30,7 +30,7 @@ namespace PKI.OCSP {
 		///		The certificate is not initialized.
 		/// </exception>
 		public CertID(X509Certificate2 cert) {
-			if (cert == null) { throw new ArgumentNullException("cert"); }
+			if (cert == null) { throw new ArgumentNullException(nameof(cert)); }
 			if (cert.Handle.Equals(IntPtr.Zero)) { throw new UninitializedObjectException(); }
 			_issuerName = cert.IssuerName;
 			serialNumber = cert.GetSerialNumber().Reverse().ToArray();
@@ -52,8 +52,8 @@ namespace PKI.OCSP {
 		/// Either, a <strong>issuer</strong> and/or <strong>leafCert</strong> parameter is null.
 		/// </exception>
 		public CertID(X509Certificate2 issuer, X509Certificate2 leafCert) {
-			if (issuer == null) { throw new ArgumentNullException("issuer"); }
-			if (leafCert == null) { throw new ArgumentNullException("leafCert"); }
+			if (issuer == null) { throw new ArgumentNullException(nameof(issuer)); }
+			if (leafCert == null) { throw new ArgumentNullException(nameof(leafCert)); }
 			_issuerName = issuer.SubjectName;
 			issuerPublicKey = issuer.GetPublicKey();
 			serialNumber = leafCert.GetSerialNumber().Reverse().ToArray();
@@ -89,11 +89,8 @@ namespace PKI.OCSP {
 		/// <summary>
 		///  Gets the serial number of the certificate for which status is being requested.
 		/// </summary>
-		public String SerialNumber {
-			get {
-				return AsnFormatter.BinaryToString(serialNumber, EncodingType.HexRaw, EncodingFormat.NOCRLF).Trim();
-			}
-		}
+		public String SerialNumber => AsnFormatter.BinaryToString(serialNumber, EncodingType.HexRaw, EncodingFormat.NOCRLF).Trim();
+
 		/// <summary>
 		/// Gets the status of the object and an ability to change <see cref="HashAlgorithm"/> member.
 		/// If thie member is set to <strong>True</strong>, <see cref="HashAlgorithm"/> property is read-only.
@@ -106,7 +103,7 @@ namespace PKI.OCSP {
 				throw new Exception("Unable to decode. Input data is not valid ASN.1 encoded data.");
 			}
 			asn1.MoveNext();
-			HashingAlgorithm = (new AlgorithmIdentifier(Asn1Utils.Encode(asn1.GetPayload(), 48))).AlgorithmId;
+			HashingAlgorithm = new AlgorithmIdentifier(Asn1Utils.Encode(asn1.GetPayload(), 48)).AlgorithmId;
 			asn1.MoveNextCurrentLevel();
 			// issuerNameHash
 			if (asn1.Tag != 4) { throw new Exception("Unable to decode. The data is invalid"); }

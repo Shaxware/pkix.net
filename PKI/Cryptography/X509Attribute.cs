@@ -1,10 +1,9 @@
-﻿using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using PKI.Enrollment;
-using PKI.ManagedAPI;
+﻿using PKI.Enrollment;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace System.Security.Cryptography {
 	/// <summary>
@@ -159,7 +158,7 @@ namespace System.Security.Cryptography {
 					// szOID_NTDS_REPLICATION
 					case "1.3.6.1.4.1.311.25.1":
 						if (asn.Tag == (Byte)Asn1Type.OCTET_STRING) {
-							SB.Append("NTDS Replication GUID (OID=1.3.6.1.4.1.311.25.1): " + (new Guid(asn.GetPayload())));
+							SB.Append("NTDS Replication GUID (OID=1.3.6.1.4.1.311.25.1): " + new Guid(asn.GetPayload()));
 							if (multiLine) { SB.Append(Environment.NewLine); }
 						}
 						break;

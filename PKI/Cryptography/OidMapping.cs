@@ -23,8 +23,8 @@ namespace System.Security.Cryptography {
         /// Either, <strong>issuerOid</strong> or <strong>subjectOid</strong> is null.
         /// </exception>
         public OidMapping(Oid issuerOid, Oid subjectOid) {
-            if (issuerOid == null) { throw new ArgumentNullException("issuerOid"); }
-            if (subjectOid == null) { throw new ArgumentNullException("subjectOid"); }
+            if (issuerOid == null) { throw new ArgumentNullException(nameof(issuerOid)); }
+            if (subjectOid == null) { throw new ArgumentNullException(nameof(subjectOid)); }
             if (String.IsNullOrEmpty(issuerOid.Value) || String.IsNullOrEmpty(subjectOid.Value)) {
                 throw new ArgumentException("Oid value cannot be empty");
             }
@@ -38,7 +38,7 @@ namespace System.Security.Cryptography {
         /// <param name="asnData">ASN.1-encoded byte array.</param>
         /// <exception cref="ArgumentNullException"></exception>
         public OidMapping(Byte[] asnData) {
-            if (asnData == null) { throw new ArgumentNullException("asnData"); }
+            if (asnData == null) { throw new ArgumentNullException(nameof(asnData)); }
             m_decode(asnData);
         }
 
@@ -76,8 +76,8 @@ namespace System.Security.Cryptography {
         /// <returns>ASN.1-encoded byte array.</returns>
         public String Format(Boolean multiline) {
             return multiline
-                ? String.Format("Issuer Domain={0}\r\nSubject Domain={1}", IssuerDomainOid.Format(false), SubjectDomainOid.Format(false))
-                : String.Format("Issuer Domain={0}, Subject Domain={1}", IssuerDomainOid.Format(false), SubjectDomainOid.Format(false));
+                ? $"Issuer Domain={IssuerDomainOid.Format(false)}\r\nSubject Domain={SubjectDomainOid.Format(false)}"
+	            : $"Issuer Domain={IssuerDomainOid.Format(false)}, Subject Domain={SubjectDomainOid.Format(false)}";
         }
     }
 }

@@ -14,6 +14,7 @@ namespace PKI.CertificateTemplates {
 	/// </summary>
 	public class CertificateTemplate {
 		Int32 major, minor, flags;
+		static readonly String _baseDsPath = $"CN=Certificate Templates, CN=Public Key Services, CN=Services,{ActiveDirectory.ConfigContext}";
 
 		internal CertificateTemplate(IX509CertificateTemplate template) {
 			initializeCom(template);
@@ -47,9 +48,8 @@ namespace PKI.CertificateTemplates {
 		/// Any template changes causes internal version change.
 		/// </summary>
 		/// <remarks>Template internal version is not changed if you modify template ACL only.</remarks>
-		public String Version {
-			get { return major.ToString(CultureInfo.InvariantCulture) + "." + minor.ToString(CultureInfo.InvariantCulture); }
-		}
+		public String Version => $"{major}.{minor}";
+
 		/// <summary>
 		/// Gets certificate template schema version (also known as template version). The value can be either 1, 2, 3 or 4. For template support
 		/// by CA version see <see cref="SupportedCA"/> property description.
@@ -58,9 +58,8 @@ namespace PKI.CertificateTemplates {
 		/// <summary>
 		/// This flag indicates whether clients can perform autoenrollment for the specified template.
 		/// </summary>
-		public Boolean AutoenrollmentAllowed {
-			get { return SchemaVersion > 1 && (flags & (Int32)CertificateTemplateFlags.Autoenrollment) > 0; }
-		}
+		public Boolean AutoenrollmentAllowed => SchemaVersion > 1 && (flags & (Int32)CertificateTemplateFlags.Autoenrollment) > 0;
+
 		/// <summary>
 		/// Gets certificate template's object identifier. Object identifiers are used to uniquely identify certificate template. While
 		/// certificate template common and display names can be changed, OID remains the same. Once template is deleted from
@@ -134,19 +133,19 @@ namespace PKI.CertificateTemplates {
 		void m_initialize(String findType, String findValue) {
 			switch (findType.ToLower()) {
 				case "name":
-					String cn = "CN=" + escapeChars(findValue) + ", CN=Certificate Templates, CN=Public Key Services, CN=Services," + ActiveDirectory.ConfigContext;
+					String cn = $"CN={escapeChars(findValue)},{_baseDsPath}";
 					DirectoryEntry entry = new DirectoryEntry("LDAP://" + cn);
 					m_fillproperties(entry);
 					break;
 				case "displayname":
-					cn = "CN=Certificate Templates, CN=Public Key Services, CN=Services," + ActiveDirectory.ConfigContext;
+					cn = _baseDsPath;
 					DirectoryEntries entries = ActiveDirectory.GetChildItems(cn);
-					foreach (DirectoryEntry item in entries.Cast<DirectoryEntry>().Where(item => String.Equals(((String)item.Properties["displayName"].Value), findValue, StringComparison.CurrentCultureIgnoreCase))) {
+					foreach (DirectoryEntry item in entries.Cast<DirectoryEntry>().Where(item => String.Equals((String)item.Properties["displayName"].Value, findValue, StringComparison.CurrentCultureIgnoreCase))) {
 						m_fillproperties(item);
 					}
 					break;
 				case "oid":
-					cn = "CN=Certificate Templates, CN=Public Key Services, CN=Services," + ActiveDirectory.ConfigContext;
+					cn = _baseDsPath;
 					entries = ActiveDirectory.GetChildItems(cn);
 					foreach (DirectoryEntry item in entries.Cast<DirectoryEntry>().Where(item => (String)item.Properties["msPKI-Cert-Template-OID"].Value == findValue)) {
 						m_fillproperties(item);
@@ -184,15 +183,15 @@ namespace PKI.CertificateTemplates {
 		static String escapeChars(String inputStr) {
 			return inputStr
 				.Replace(@"\", @"\\")
-				.Replace(@",", @"\,")
+				.Replace(",", @"\,")
 				.Replace("/",@"\/")
-				.Replace(@"#", @"\#")
-				.Replace(@"+", @"\+")
-				.Replace(@"<", @"\<")
-				.Replace(@">", @"\>")
-				.Replace(@";", @"\;")
+				.Replace("#", @"\#")
+				.Replace("+", @"\+")
+				.Replace("<", @"\<")
+				.Replace(">", @"\>")
+				.Replace(";", @"\;")
 				.Replace("\"", "\\\"")
-				.Replace(@"=", @"\=");
+				.Replace("=", @"\=");
 		}
 
 		/// <summary>
@@ -201,7 +200,7 @@ namespace PKI.CertificateTemplates {
 		/// <returns>An array of certificate templates.</returns>
 		public static CertificateTemplate[] EnumTemplates() {
 			if (ActiveDirectory.Ping()) {
-				String cn = "CN=Certificate Templates, CN=Public Key Services, CN=Services," + ActiveDirectory.ConfigContext;
+				String cn = _baseDsPath;
 				DirectoryEntries entries = ActiveDirectory.GetChildItems(cn);
 				return (from DirectoryEntry item in entries select new CertificateTemplate("name", (String) item.Properties["cn"].Value)).ToArray();
 			}
@@ -251,47 +250,42 @@ namespace PKI.CertificateTemplates {
 		/// </summary>
 		/// <returns>Certificate template textual representation.</returns>
 		public String Format() {
+			String nl = Environment.NewLine;
 			StringBuilder SB = new StringBuilder();
-			SB.Append("[General Settings]" + Environment.NewLine);
-			SB.Append("  Common name: " + Name + Environment.NewLine);
-			SB.Append("  Display name: " + DisplayName + Environment.NewLine);
-			SB.Append("  Version: " + Version + Environment.NewLine);
-			SB.Append("  Supported CA: " + SupportedCA + Environment.NewLine);
-			SB.Append("  Subject type: " + Settings.SubjectType + Environment.NewLine);
-			if ((Settings.EnrollmentOptions & (Int32)CertificateTemplateEnrollmentFlags.DsPublish) > 0) {
-				SB.Append("  Publish to DS: True" + Environment.NewLine);
-			} else {
-				SB.Append("  Publish to DS: False" + Environment.NewLine);
-			}
-			if ((Settings.EnrollmentOptions & (Int32)CertificateTemplateEnrollmentFlags.AutoenrollmentCheckDsCert) > 0) {
-				SB.Append("  Check for existing certificate in DS: True" + Environment.NewLine);
-			} else {
-				SB.Append("  Check for existing certificate in DS: False" + Environment.NewLine);
-			}
-			if ((Settings.EnrollmentOptions & (Int32)CertificateTemplateEnrollmentFlags.ReuseKeyTokenFull) > 0) {
-				SB.Append("  Reuse key when tokein is full: True" + Environment.NewLine);
-			} else {
-				SB.Append("  Reuse key when tokein is full: False" + Environment.NewLine);
-			}
-			SB.Append("[Subject]" + Environment.NewLine);
-			SB.Append("  " + Settings.SubjectName + Environment.NewLine);
-			SB.Append(Settings.Cryptography + Environment.NewLine);
-			SB.Append(Settings.RegistrationAuthority + Environment.NewLine);
-			SB.Append(Settings.KeyArchivalSettings + Environment.NewLine);
-			SB.Append("[Superseded Templates]" + Environment.NewLine);
+			SB.Append($"[General Settings]{nl}");
+			SB.Append($"  Common name: {Name}{nl}");
+			SB.Append($"  Display name: {DisplayName}{nl}");
+			SB.Append($"  Version: {Version}{nl}");
+			SB.Append($"  Supported CA: {SupportedCA}{nl}");
+			SB.Append($"  Subject type: {Settings.SubjectType}{nl}");
+			SB.Append((Settings.EnrollmentOptions & (Int32) CertificateTemplateEnrollmentFlags.DsPublish) > 0
+				? $"  Publish to DS: True{nl}"
+				: $"  Publish to DS: False{nl}");
+			SB.Append((Settings.EnrollmentOptions & (Int32) CertificateTemplateEnrollmentFlags.AutoenrollmentCheckDsCert) > 0
+				? $"  Check for existing certificate in DS: True{nl}"
+				: $"  Check for existing certificate in DS: False{nl}");
+			SB.Append((Settings.EnrollmentOptions & (Int32) CertificateTemplateEnrollmentFlags.ReuseKeyTokenFull) > 0
+				? $"  Reuse key when tokein is full: True{nl}"
+				: $"  Reuse key when tokein is full: False{nl}");
+			SB.Append($"[Subject]{nl}");
+			SB.Append($"  {Settings.SubjectName}{nl}");
+			SB.Append(Settings.Cryptography + nl);
+			SB.Append(Settings.RegistrationAuthority + nl);
+			SB.Append(Settings.KeyArchivalSettings + nl);
+			SB.Append($"[Superseded Templates]{nl}");
 			if (Settings.SupersededTemplates == null) {
-				SB.Append("  None" + Environment.NewLine);
+				SB.Append($"  None{nl}");
 			} else {
 				foreach(String template in Settings.SupersededTemplates) {
-					SB.Append("  " + template + Environment.NewLine);
+					SB.Append($"  {template}{nl}");
 				}
 			}
-			SB.Append("[Extensions]" + Environment.NewLine);
+			SB.Append($"[Extensions]{nl}");
 			foreach (X509Extension ext in Settings.Extensions) {
-				SB.Append("  Extension name:" + Environment.NewLine + "    " + ext.Oid.FriendlyName + Environment.NewLine);
-				SB.Append("  Extension value:" + Environment.NewLine + "    " + ext.Format(true).Replace("\r\n","\r\n    ") + Environment.NewLine);
+				SB.Append($"  Extension name:{nl}    {ext.Oid.FriendlyName}{nl}");
+				SB.Append($"  Extension value:{nl}    {ext.Format(true).Replace("\r\n","\r\n    ")}{nl}");
 			}
-			SB.Append(Environment.NewLine);
+			SB.Append(nl);
 			return SB.ToString();
 		}
 	}

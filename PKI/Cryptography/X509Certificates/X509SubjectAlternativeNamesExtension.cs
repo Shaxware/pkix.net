@@ -6,12 +6,12 @@
 	///		the certificate.
 	/// </summary>
 	public sealed class X509SubjectAlternativeNamesExtension : X509Extension {
-		readonly Oid oid = new Oid("2.5.29.17");
+		readonly Oid _oid = new Oid("2.5.29.17");
 		X509AlternativeNameCollection alternativeNames = new X509AlternativeNameCollection();
 
 		internal X509SubjectAlternativeNamesExtension(Byte[] rawData, Boolean critical)
             : base("2.5.29.17", rawData, critical) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 
@@ -52,7 +52,7 @@
 
 		void m_initizlize(X509AlternativeNameCollection altNames, Boolean critical) {
 			Critical = critical;
-			Oid = oid;
+			Oid = _oid;
 			RawData = altNames.Encode();
 			alternativeNames = altNames;
 		}

@@ -10,7 +10,7 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// This class cannot be inherited.
 	/// </summary>
 	public sealed class X509NonceExtension : X509Extension {
-		readonly Oid oid = new Oid("1.3.6.1.5.5.7.48.1.2", "OCSP Nonce");
+		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.48.1.2", "OCSP Nonce");
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509NonceExtension</strong> class.
 		/// </summary>
@@ -33,7 +33,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		void m_initialize() {
 			Char[] noncechars = DateTime.Now.Ticks.ToString(CultureInfo.InvariantCulture).ToCharArray();
 			Critical = false;
-			Oid = oid;
+			Oid = _oid;
 			Byte[] charBytes = noncechars.Select(Convert.ToByte).ToArray();
 			Value = AsnFormatter.BinaryToString(charBytes, EncodingType.Hex);
 			RawData = Asn1Utils.Encode(charBytes.ToArray(), 4);

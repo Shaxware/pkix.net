@@ -9,8 +9,7 @@ namespace PKI.Exceptions {
 	/// Also this exception is thrown when cryptographic object is created, but not properly initialized.
 	/// </para>
 	/// </summary>
-	[Serializable]
-	[ComVisible(true)]
+	[Serializable, ComVisible(true)]
 	public sealed class UninitializedObjectException : Exception {
 		/// <summary>
 		/// Initializes a new instance of the <strong>UninitializedObjectException</strong> class.

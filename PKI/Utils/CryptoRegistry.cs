@@ -8,14 +8,14 @@ namespace PKI.Utils {
 	static class CryptoRegistry {
 
 #region Local registry
-		const String ContextAutoEnrollment = "SOFTWARE\\Policies\\Microsoft\\Cryptography";
+		const String ContextAutoEnrollment = @"SOFTWARE\Policies\Microsoft\Cryptography";
 		public static Object GetLKey(String context, Boolean userContext) {
 			RegistryKey key;
 			switch (context) {
 				case "Autoenrollment":
 					key = userContext
-						? Registry.CurrentUser.OpenSubKey(ContextAutoEnrollment + "\\AutoEnrollment")
-						: Registry.LocalMachine.OpenSubKey(ContextAutoEnrollment + "\\AutoEnrollment");
+						? Registry.CurrentUser.OpenSubKey($@"{ContextAutoEnrollment}\AutoEnrollment")
+						: Registry.LocalMachine.OpenSubKey($@"{ContextAutoEnrollment}\AutoEnrollment");
 					if (key == null) { return null; }
 					Int32 result = (Int32)key.GetValue("AEPolicy");
 					key.Close();
@@ -37,7 +37,7 @@ namespace PKI.Utils {
 			String entry,
 			String caName,
 			String computerName,
-			String node = "System\\CurrentControlSet\\Services\\CertSvc\\Configuration\\"
+			String node = @"System\CurrentControlSet\Services\CertSvc\Configuration\"
 		) {
 			RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, computerName);
 			key = caName == String.Empty
@@ -60,21 +60,17 @@ namespace PKI.Utils {
 			RegistryValueKind type,
 			String caName,
 			String computerName,
-			String node = "System\\CurrentControlSet\\Services\\CertSvc\\Configuration\\"
+			String node = @"System\CurrentControlSet\Services\CertSvc\Configuration\"
 		) {
 			RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, computerName);
 			key = caName == String.Empty
 				? key.OpenSubKey(node, true)
 				: key.OpenSubKey(node + caName, true);
 			try {
-				if (key != null) {
-					key.SetValue(entry, value, type);
-				}
+				key?.SetValue(entry, value, type);
 			}
 			finally {
-				if (key != null) {
-					key.Close();
-				}
+				key?.Close();
 			}
 		}
 		public static void SetRReg(
@@ -82,20 +78,17 @@ namespace PKI.Utils {
 			String entry,
 			String caName,
 			String computerName,
-			String node = "System\\CurrentControlSet\\Services\\CertSvc\\Configuration\\"
+			String node = @"System\CurrentControlSet\Services\CertSvc\Configuration\"
 		) {
 			RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, computerName);
 			key = caName == String.Empty
 				? key.OpenSubKey(node, true)
 				: key.OpenSubKey(node + caName, true);
 			try {
-				if (key != null) {
-					key.SetValue(entry, value.ToArray(), RegistryValueKind.MultiString);
-				}
-			} finally {
-				if (key != null) {
-					key.Close();
-				}
+				key?.SetValue(entry, value.ToArray(), RegistryValueKind.MultiString);
+			}
+			finally {
+				key?.Close();
 			}
 		}
 		public static void SetRReg(
@@ -103,20 +96,17 @@ namespace PKI.Utils {
 			String entry,
 			String caName,
 			String computerName,
-			String node = "System\\CurrentControlSet\\Services\\CertSvc\\Configuration\\"
+			String node = @"System\CurrentControlSet\Services\CertSvc\Configuration\"
 		) {
 			RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, computerName);
 			key = caName == String.Empty
 				? key.OpenSubKey(node, true)
 				: key.OpenSubKey(node + caName, true);
 			try {
-				if (key != null) {
-					key.SetValue(entry, value, RegistryValueKind.Binary);
-				}
-			} finally {
-				if (key != null) {
-					key.Close();
-				}
+				key?.SetValue(entry, value, RegistryValueKind.Binary);
+			}
+			finally {
+				key?.Close();
 			}
 		}
 #endregion

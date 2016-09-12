@@ -14,11 +14,8 @@ namespace PKI.Security.AccessControl {
 			AuditFlags flags)
 			: base(identity, AccessMaskFromRights(accessMask), false, InheritanceFlags.None, PropagationFlags.None, flags) { }
 
-		public CertificationAuthorityRights CertificationAuthorityRights {
-			get {
-				return RightsFromAccessMask(AccessMask);
-			}
-		}
+		public CertificationAuthorityRights CertificationAuthorityRights => RightsFromAccessMask(AccessMask);
+
 		static CertificationAuthorityRights RightsFromAccessMask(int accessMask) {
 			return (CertificationAuthorityRights)accessMask;
 		}

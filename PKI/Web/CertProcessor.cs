@@ -7,7 +7,7 @@ using System.Text;
 
 namespace PKI.Web {
 	static class CertProcessor {
-		static readonly String n = Environment.NewLine;
+		static readonly String _n = Environment.NewLine;
 		static Boolean redirected;
 
 		//static void getResponse(SslTransaction transaction) {

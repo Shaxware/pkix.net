@@ -1,14 +1,13 @@
-﻿using PKI.Cryptography;
-using SysadminsLV.Asn1Parser;
+﻿using SysadminsLV.Asn1Parser;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace System.Security.Cryptography.X509Certificates {
-    /// <summary>
-    /// Represents application policy mappings certificate extension.
-    /// </summary>
-    /// <remarks><see cref="X509Extension.Critical"/> member is always set to <strong>True</strong>.</remarks>
-    public sealed class X509ApplicationPolicyMappingsExtension : X509Extension {
+	/// <summary>
+	/// Represents application policy mappings certificate extension.
+	/// </summary>
+	/// <remarks><see cref="X509Extension.Critical"/> member is always set to <strong>True</strong>.</remarks>
+	public sealed class X509ApplicationPolicyMappingsExtension : X509Extension {
         readonly Oid _oid = new Oid("1.3.6.1.4.1.311.21.11");
 
         /// <summary>
@@ -20,7 +19,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <strong>mappings</strong> parameter is null.
         /// </exception>
         public X509ApplicationPolicyMappingsExtension(AsnEncodedData mappings) : base("1.3.6.1.4.1.311.21.11", mappings.RawData, true) {
-            if (mappings == null) { throw new ArgumentNullException("mappings"); }
+            if (mappings == null) { throw new ArgumentNullException(nameof(mappings)); }
             m_decode(mappings.RawData);
         }
         /// <summary>
@@ -36,7 +35,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </exception>
         public X509ApplicationPolicyMappingsExtension(OidMapping[] mappings) {
             if (mappings == null || mappings.Length < 1) {
-                throw new ArgumentNullException("mappings");
+                throw new ArgumentNullException(nameof(mappings));
             }
             m_initialize(mappings);
         }

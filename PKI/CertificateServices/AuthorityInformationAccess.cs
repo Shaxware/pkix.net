@@ -63,7 +63,7 @@ namespace PKI.CertificateServices {
 					urls = (String[])CryptoRegistry.GetRegFallback(ConfigString, String.Empty, "CACertPublicationURLs");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}
@@ -108,7 +108,7 @@ namespace PKI.CertificateServices {
 					return true;
 				}
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", (OfflineSource)3);
+				e.Data.Add(nameof(e.Source), (OfflineSource)3);
 				throw e;
 			}
 			return false;

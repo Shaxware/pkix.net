@@ -53,7 +53,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <param name="rawData">A byte array containing data from an X.509 CRL.</param>
 		/// <exception cref="ArgumentNullException"></exception>
 		public X509CRL2(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_import(rawData);
 			isReadOnly = true;
 		}
@@ -85,7 +85,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <remarks>This property contains the name of the certificate authority (CA) that issued the CRL.
 		/// The distinguished name for the certificate is a textual representation of the CRL issuer. This representation
 		/// consists of name attributes (for example, "CN=MyName, OU=MyOrgUnit, C=US").</remarks>
-		public String Issuer { get { return IssuerName.Name; } }
+		public String Issuer => IssuerName.Name;
+
 		/// <summary>
 		/// Gets the issue date of this CRL.
 		/// </summary>
@@ -329,7 +330,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			SB.AppendFormat("{0}\r\n", tempString.Replace("\r\n", "\r\n    ").TrimEnd());
 		}
 		internal static X509CRL2 CreateLocalRevocationInformation(X509Certificate2 issuer) {
-			if (issuer == null) { throw new ArgumentNullException("issuer"); }
+			if (issuer == null) { throw new ArgumentNullException(nameof(issuer)); }
 			if (issuer.Handle.Equals(IntPtr.Zero)) { throw new UninitializedObjectException(); }
 			Oid hashAlgorithm = new Oid(issuer.SignatureAlgorithm.FriendlyName.Replace("RSA", null));
 			String[] algs = {
@@ -348,11 +349,11 @@ namespace System.Security.Cryptography.X509Certificates {
 			tbsData.AddRange(issuer.SubjectName.RawData);
 			// dates prior to 2050 year are encoded as UTC Time and after 2050 are encoded as Generalized Time. See RFC5280.
 			tbsData.AddRange(issuer.NotBefore.Year <= 2049
-				? (new Asn1UtcTime(issuer.NotBefore, false)).RawData
-				: (new Asn1GeneralizedTime(issuer.NotBefore, false)).RawData);
+				? new Asn1UtcTime(issuer.NotBefore, false).RawData
+				: new Asn1GeneralizedTime(issuer.NotBefore, false).RawData);
 			tbsData.AddRange(issuer.NotAfter.Year <= 2049
-				? (new Asn1UtcTime(issuer.NotAfter, false)).RawData
-				: (new Asn1GeneralizedTime(issuer.NotAfter, false)).RawData);
+				? new Asn1UtcTime(issuer.NotAfter, false).RawData
+				: new Asn1GeneralizedTime(issuer.NotAfter, false).RawData);
 			tbsData = new List<Byte>(Asn1Utils.Encode(tbsData.ToArray(), 48));
 			HashAlgorithm hasher = HashAlgorithm.Create(hashAlgorithm.FriendlyName);
 			List<Byte> sig = new List<Byte> { 0 };
@@ -442,7 +443,7 @@ namespace System.Security.Cryptography.X509Certificates {
 				case X509EncodingType.Base64:
 					return Convert.ToBase64String(RawData, Base64FormattingOptions.InsertLineBreaks);
 				case X509EncodingType.Base64Header:
-					return AsnFormatter.BinaryToString(RawData, EncodingType.Base64CrlHeader, 0);
+					return AsnFormatter.BinaryToString(RawData, EncodingType.Base64CrlHeader);
 				default: throw new ArgumentException("Binary encoding is not supported.");
 			}
 		}
@@ -547,7 +548,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		public BigInteger GetCRLNumber() {
 			if (RawData == null) { throw new UninitializedObjectException(); }
 			X509Extension e = Extensions["2.5.29.20"];
-			return e == null ? 0 : ((X509CRLNumberExtension)e).CRLNumber;
+			return ((X509CRLNumberExtension) e)?.CRLNumber ?? 0;
 		}
 		/// <summary>
 		/// Gets the date and time when the next CRL is planned to be published. The method uses either <strong>Next CRL Publish</strong> extension
@@ -623,7 +624,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		///  </remarks>
 		public void ImportCRLEntries(X509CRLEntryCollection entries) {
 			if (isReadOnly) { throw new InvalidOperationException(); }
-			if (entries == null) { throw new ArgumentNullException("entries"); }
+			if (entries == null) { throw new ArgumentNullException(nameof(entries)); }
 			RevokedCertificates = entries;
 			RevokedCertificates.Close();
 		}
@@ -672,7 +673,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		///  </remarks>
 		public void ImportExtensions(X509ExtensionCollection extensions) {
 			if (isReadOnly) { throw new InvalidOperationException(); }
-			if (extensions == null) { throw new ArgumentNullException("extensions"); }
+			if (extensions == null) { throw new ArgumentNullException(nameof(extensions)); }
 			if (extensions.Count < 1) { return; }
 			Version = 2;
 			Extensions = extensions;
@@ -814,7 +815,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		///   </remarks>
 		public void Build(X509Certificate2 signerInfo, Boolean hashOnly, Boolean versionTwo = false) {
 			if (isReadOnly) { throw new InvalidOperationException(); }
-			if (signerInfo == null) { throw new ArgumentNullException("signerInfo"); }
+			if (signerInfo == null) { throw new ArgumentNullException(nameof(signerInfo)); }
 			if (signerInfo.RawData == null) { throw new UninitializedObjectException(); }
 			if (versionTwo) { Version = 2; }
 

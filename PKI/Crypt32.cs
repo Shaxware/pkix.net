@@ -258,11 +258,11 @@ namespace PKI {
 		);
 		[DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		internal static extern Boolean PFXIsPFXBlob(
-			[In] Wincrypt.CRYPTOAPI_BLOB pPFX
+			[In] Wincrypt.CRYPTOAPI_BLOB Pfx
 		);
 		[DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		internal static extern Boolean PFXVerifyPassword(
-			[In] Wincrypt.CRYPTOAPI_BLOB pPFX,
+			[In] Wincrypt.CRYPTOAPI_BLOB Pfx,
 			[MarshalAs(UnmanagedType.LPWStr)]
 			[In] String szPassword,
 			[In] UInt32 dwFlags

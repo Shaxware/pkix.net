@@ -18,7 +18,7 @@ namespace System.Security.Cryptography.Pkcs {
 		///  <param name="rawData">ASN.1-encoded byte array that represents current object.</param>
 		/// <exception cref="ArgumentNullException"><strong>rawData</strong> is null or empty array.</exception>
 		public SignerInfo2(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_initialize(rawData);
 		}
 		///  <summary>
@@ -31,7 +31,7 @@ namespace System.Security.Cryptography.Pkcs {
 		///  </param>
 		/// <exception cref="ArgumentNullException"><strong>rawData</strong> is null or empty array.</exception>
 		public SignerInfo2(Byte[] rawData, X509Certificate2Collection certs) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_initialize(rawData);
 			if (certs == null || certs.Count == 0) { return; }
 			X509Certificate2Collection finds;

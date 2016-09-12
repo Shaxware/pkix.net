@@ -18,7 +18,7 @@ namespace PKI.ManagedAPI.StructClasses {
 		/// </param>
 		public SignedContentBlob(Byte[] rawData) {
 			if (rawData == null) {
-				throw new ArgumentNullException("rawData");
+				throw new ArgumentNullException(nameof(rawData));
 			}
 			m_decode(rawData);
 		}

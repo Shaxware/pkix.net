@@ -13,7 +13,7 @@ namespace System.Security.Cryptography.X509Certificates {
 
 		internal X509CRLReferenceExtension(Byte[] rawData, Boolean critical)
             : base(new Oid("1.3.6.1.5.5.7.48.1.3", "OCSP CRL Reference"), rawData, critical) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 
@@ -44,9 +44,9 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// CRL reference number is not in the hexadecimal format.
 		/// </exception>
 		public X509CRLReferenceExtension(String url, String crlNumber, DateTime thisUpdate) {
-			if (url == null) { throw new ArgumentNullException("url"); }
-			if (crlNumber == null) { throw new ArgumentNullException("crlNumber"); }
-			if (thisUpdate == null) { throw new ArgumentNullException("thisUpdate"); }
+			if (url == null) { throw new ArgumentNullException(nameof(url)); }
+			if (crlNumber == null) { throw new ArgumentNullException(nameof(crlNumber)); }
+			if (thisUpdate == null) { throw new ArgumentNullException(nameof(thisUpdate)); }
 			if (!Regex.IsMatch(crlNumber, @"\A\b[0-9a-fA-F]+\b\Z")) {
 				throw new ArgumentException("The parameter is incorrect");
 			}

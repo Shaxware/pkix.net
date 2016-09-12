@@ -16,18 +16,15 @@ namespace PKI.Cryptography.Pkcs {
 
 
         public Pkcs1Key(Byte[] rawData) {
-            if (rawData == null) { throw new ArgumentNullException("rawData"); }
+            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             decodePrivate(rawData);
         }
         protected Pkcs1Key(Byte[] rawData, Boolean pkcs8) {
 
         }
 
-        public Int32 Version {
-            get { return version + 1; }
-            
-        }
-        public KeyType Type { get; protected set; }
+        public Int32 Version => version + 1;
+	    public KeyType Type { get; protected set; }
         public Byte[] RawData { get; protected set; }
 
         void decodePrivate(Byte[] rawData) {
@@ -41,35 +38,35 @@ namespace PKI.Cryptography.Pkcs {
             if (!asn.MoveNext()) {
                 
             }
-            modulus = new BigInteger(getNormalizedArray(asn.GetPayload()));
+            modulus = new BigInteger(GetNormalizedArray(asn.GetPayload()));
             if (!asn.MoveNext()) {
                 
             }
-            pubExponent = new BigInteger(getNormalizedArray(asn.GetPayload()));
+            pubExponent = new BigInteger(GetNormalizedArray(asn.GetPayload()));
             if (!asn.MoveNext()) {
                 
             }
-            privateExponent = new BigInteger(getNormalizedArray(asn.GetPayload()));
+            privateExponent = new BigInteger(GetNormalizedArray(asn.GetPayload()));
             if (!asn.MoveNext()) {
                 
             }
-            prime1 = new BigInteger(getNormalizedArray(asn.GetPayload()));
+            prime1 = new BigInteger(GetNormalizedArray(asn.GetPayload()));
             if (!asn.MoveNext()) {
                 
             }
-            prime2 = new BigInteger(getNormalizedArray(asn.GetPayload()));
+            prime2 = new BigInteger(GetNormalizedArray(asn.GetPayload()));
             if (!asn.MoveNext()) {
                 
             }
-            exp1 = new BigInteger(getNormalizedArray(asn.GetPayload()));
+            exp1 = new BigInteger(GetNormalizedArray(asn.GetPayload()));
             if (!asn.MoveNext()) {
                 
             }
-            exp2 = new BigInteger(getNormalizedArray(asn.GetPayload()));
+            exp2 = new BigInteger(GetNormalizedArray(asn.GetPayload()));
             if (!asn.MoveNext()) {
                 
             }
-            coefficient = new BigInteger(getNormalizedArray(asn.GetPayload()));
+            coefficient = new BigInteger(GetNormalizedArray(asn.GetPayload()));
 
             Type = KeyType.Private;
             RawData = rawData;
@@ -78,7 +75,7 @@ namespace PKI.Cryptography.Pkcs {
             Type = KeyType.Public;
             RawData = rawData;
         }
-        protected static Byte[] getNormalizedArray(Byte[] rawData) {
+        protected static Byte[] GetNormalizedArray(Byte[] rawData) {
             var padding = rawData.Length % 8;
             return padding == 0 ? rawData : rawData.Skip(padding).ToArray();
         }

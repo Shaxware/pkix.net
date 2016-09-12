@@ -68,7 +68,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </summary>
 		/// <returns>Textual representation of the current object.</returns>
 		public override string ToString() {
-			String str = @"
+			const string str = @"
 Policy Server Url: {0}
 Policy Id: {1}
 Url Flags: {2}

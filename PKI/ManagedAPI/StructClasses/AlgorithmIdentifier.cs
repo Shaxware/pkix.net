@@ -1,8 +1,7 @@
-﻿using System;
+﻿using SysadminsLV.Asn1Parser;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Security.Cryptography;
-using SysadminsLV.Asn1Parser;
 
 namespace PKI.ManagedAPI.StructClasses {
 	/// <summary>
@@ -18,7 +17,7 @@ namespace PKI.ManagedAPI.StructClasses {
 		/// <param name="rawData">ASN.1-encoded byte array.</param>
 		public AlgorithmIdentifier(Byte[] rawData) {
 			if (rawData == null) {
-				throw new ArgumentNullException("rawData");
+				throw new ArgumentNullException(nameof(rawData));
 			}
 			m_decode(rawData);
 		}
@@ -39,7 +38,7 @@ namespace PKI.ManagedAPI.StructClasses {
 		///		This parameter can be <strong>NULL</strong>.
 		/// </param>
 		public AlgorithmIdentifier(Oid oid, Byte[] parameters) {
-			if (oid == null) { throw new ArgumentNullException("oid"); }
+			if (oid == null) { throw new ArgumentNullException(nameof(oid)); }
 			if (String.IsNullOrEmpty(oid.Value)) { throw new ArgumentException("Object identifier is empty"); }
 			m_encode(oid, parameters);
 		}
@@ -92,7 +91,7 @@ namespace PKI.ManagedAPI.StructClasses {
 			String retValue = "Algorithm Data:" + n + "    Algorithm Identifier: ";
 			retValue += String.IsNullOrEmpty(AlgorithmId.FriendlyName)
 				? AlgorithmId.Value + n + "    "
-				: String.Format("{0} ({1}){2}    ", AlgorithmId.FriendlyName, AlgorithmId.Value, n);
+				: $"{AlgorithmId.FriendlyName} ({AlgorithmId.Value}){n}    ";
 			retValue += "Algorithm Parameters:" + n + "    ";
 			retValue += AsnFormatter.BinaryToString(Parameters, EncodingType.Hex)
 				.Replace("\r\n", "\r\n    ")

@@ -8,19 +8,19 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// implementation of <strong>Enhanced Key Usage</strong> extension.
 	/// </summary>
 	public sealed class X509ApplicationPoliciesExtension : X509Extension {
-		readonly Oid oid = new Oid("1.3.6.1.4.1.311.21.10");
-		readonly List<Oid> oids = new List<Oid>();
+		readonly Oid _oid = new Oid("1.3.6.1.4.1.311.21.10");
+		readonly List<Oid> _oids = new List<Oid>();
 
 		internal X509ApplicationPoliciesExtension(Byte[] rawData, Boolean critical)
             : base("1.3.6.1.4.1.311.21.10", rawData, critical) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 		
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509ApplicationPoliciesExtension</strong> class.
 		/// </summary>
-		public X509ApplicationPoliciesExtension() { Oid = oid; }
+		public X509ApplicationPoliciesExtension() { Oid = _oid; }
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509ApplicationPoliciesExtension</strong> class using an
 		/// <see cref="AsnEncodedData"/> object and a value that identifies whether the extension is critical.
@@ -37,7 +37,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <param name="critical"><strong>True</strong> if the extension is critical; otherwise, <strong>False</strong>.</param>
 		/// <exception cref="ArgumentNullException"><strong>applicationPolicies</strong> parameter is null.</exception>
 		public X509ApplicationPoliciesExtension(OidCollection applicationPolicies, Boolean critical) {
-			if (applicationPolicies == null || applicationPolicies.Count == 0) { throw new ArgumentNullException("applicationPolicies"); }
+			if (applicationPolicies == null || applicationPolicies.Count == 0) { throw new ArgumentNullException(nameof(applicationPolicies)); }
 			m_initialize(applicationPolicies, critical);
 		}
 
@@ -47,7 +47,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		public OidCollection ApplicationPolicies {
 			get {
 				OidCollection aoids = new OidCollection();
-				foreach (Oid OID in oids) {
+				foreach (Oid OID in _oids) {
 					aoids.Add(OID);
 				}
 				return aoids;
@@ -55,11 +55,11 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 
 		void m_initialize(OidCollection applicationPolicies, Boolean critical) {
-			Oid = oid;
+			Oid = _oid;
 			Critical = critical;
 			List<Byte> rawData = new List<Byte>();
 			foreach (Oid aoid in applicationPolicies.Cast<Oid>().Where(aoid => !String.IsNullOrEmpty(aoid.Value))) {
-				oids.Add(aoid);
+				_oids.Add(aoid);
 				rawData.AddRange(Asn1Utils.Encode(Asn1Utils.EncodeObjectIdentifier(aoid), 48));
 			}
 			RawData = Asn1Utils.Encode(rawData.ToArray(), 48);
@@ -69,7 +69,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			if (asn.Tag != 48) { throw new ArgumentException("The data is invalid."); }
 			asn.MoveNext();
 			do {
-				oids.Add(Asn1Utils.DecodeObjectIdentifier(asn.GetPayload()));
+				_oids.Add(Asn1Utils.DecodeObjectIdentifier(asn.GetPayload()));
 			} while (asn.MoveNextCurrentLevel());
 		}
 	}

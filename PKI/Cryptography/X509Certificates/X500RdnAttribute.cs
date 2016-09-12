@@ -14,7 +14,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			Value = value;
 		}
 		public X500RdnAttribute(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 

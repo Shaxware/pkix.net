@@ -17,7 +17,7 @@ namespace System.Security.Cryptography {
 	/// </summary>
 	public sealed class Oid2 {
 		readonly Boolean _cng;
-		readonly String searchBy;
+		readonly String _searchBy;
 		String[] urls;
 		Int32 flags;
 
@@ -45,8 +45,8 @@ namespace System.Security.Cryptography {
 		public Oid2(String oid, OidGroupEnum group, Boolean searchInDirectory) {
 			try {
 				CryptoConfig.EncodeOID(oid);
-				searchBy = "ByValue";
-			} catch { searchBy = "ByName"; }
+				_searchBy = "ByValue";
+			} catch { _searchBy = "ByName"; }
 			if (Environment.OSVersion.Version.Major >= 6) { _cng = true; }
 			if (searchInDirectory) {
 				if (ActiveDirectory.Ping()) { initializeDS(oid, group); } else { initializeLocal(oid, group); }
@@ -74,7 +74,7 @@ namespace System.Security.Cryptography {
 
 		void initializeLocal(String oid, OidGroupEnum group) {
 			IntPtr ptr, oidptr;
-			if (searchBy.ToLower() == "byvalue") {
+			if (_searchBy.ToLower() == "byvalue") {
 				oidptr = Marshal.StringToHGlobalAnsi(oid);
 				ptr = Crypt32.CryptFindOIDInfo(Wincrypt.CRYPT_OID_INFO_OID_KEY, oidptr, (UInt32)group);
 			} else {
@@ -103,7 +103,7 @@ namespace System.Security.Cryptography {
 			}
 			Boolean found = false;
 			String oidvalue = oid;
-			if (searchBy.ToLower() == "byname") {
+			if (_searchBy.ToLower() == "byname") {
 				Oid oidobj = new Oid(oid);
 				if (String.IsNullOrEmpty(oidobj.Value)) { return; }
 				oidvalue = oidobj.Value;
@@ -159,9 +159,9 @@ namespace System.Security.Cryptography {
 		static void registerLocal(Oid oid, OidGroupEnum group) {
 			Boolean CNG = Environment.OSVersion.Version.Major >= 6;
 			if (CNG) {
-				registerCNG(oid, @group);
+				registerCNG(oid, group);
 			} else {
-				registerLegacy(oid, @group);
+				registerLegacy(oid, group);
 			}
 		}
 		static void registerDS(Oid oid, OidGroupEnum group, CultureInfo localeId, String cpsUrl) {
@@ -192,7 +192,7 @@ namespace System.Security.Cryptography {
 				cbSize = Marshal.SizeOf(typeof(Wincrypt.CRYPT_OID_INFO_Win2k3)),
 				pszOID = oid.Value,
 				pwszName = oid.FriendlyName,
-				dwGroupId = (Int32) @group
+				dwGroupId = (Int32) group
 			};
 			if (!Crypt32.CryptRegisterOIDInfo(oidinfo, 0)) {
 				throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -203,7 +203,7 @@ namespace System.Security.Cryptography {
 				cbSize = Marshal.SizeOf(typeof(Wincrypt.CRYPT_OID_INFO)),
 				pszOID = oid.Value,
 				pwszName = oid.FriendlyName,
-				dwGroupId = (Int32) @group
+				dwGroupId = (Int32) group
 			};
 			if (!Crypt32.CryptRegisterOIDInfo(oidinfo, 0)) {
 				throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -268,7 +268,7 @@ namespace System.Security.Cryptography {
 			Byte[] bytes = hasher.ComputeHash(Encoding.Unicode.GetBytes(oid));
 			StringBuilder hexstring = new StringBuilder();
 			foreach (Byte hashbyte in bytes) {
-				hexstring.Append(String.Format("{0:X2}", hashbyte));
+				hexstring.Append($"{hashbyte:X2}");
 			}
 			hasher.Clear();
 			return LastArc + "." + hexstring;
@@ -280,9 +280,9 @@ namespace System.Security.Cryptography {
 		/// <returns>The hash code for the <strong>Oid2</strong> as an integer.</returns>
 		public override Int32 GetHashCode() {
 			unchecked {
-				Int32 hashCode = (Value != null ? Value.GetHashCode() : 0);
+				Int32 hashCode = Value?.GetHashCode() ?? 0;
 				hashCode = (hashCode * 397) ^ (Int32)OidGroup;
-				hashCode = (hashCode * 397) ^ (FriendlyName != null ? FriendlyName.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ (FriendlyName?.GetHashCode() ?? 0);
 				return hashCode;
 			}
 		}
@@ -349,11 +349,11 @@ namespace System.Security.Cryptography {
 			} catch {
 				Oid oid = new Oid(value);
 				if (String.IsNullOrEmpty(oid.Value)) {
-					throw new ArgumentException("Specified OID value is not recognized.", "value");
+					throw new ArgumentException("Specified OID value is not recognized.", nameof(value));
 				}
 				oidvalue = oid.Value;
 			}
-			return new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }.Select(@group => new Oid2(oidvalue, (OidGroupEnum)@group, searchInDirectory)).Where(obj => !String.IsNullOrEmpty(obj.Value)).ToArray();
+			return new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }.Select(group => new Oid2(oidvalue, (OidGroupEnum)group, searchInDirectory)).Where(obj => !String.IsNullOrEmpty(obj.Value)).ToArray();
 		}
 		/// <summary>
 		/// Registers object identifier in the OID database, either, local or in Active Directory.
@@ -404,13 +404,13 @@ namespace System.Security.Cryptography {
 		/// </remarks>
 		/// <returns>Registered object identifier.</returns>
 		public static Oid2 Register(String value, String friendlyName, OidGroupEnum group, Boolean writeInDirectory, CultureInfo localeId, String cpsUrl = null) {
-			if (String.IsNullOrEmpty(value)) { throw new ArgumentNullException("value"); }
-			if (String.IsNullOrEmpty(friendlyName)) { throw new ArgumentNullException("friendlyName"); }
+			if (String.IsNullOrEmpty(value)) { throw new ArgumentNullException(nameof(value)); }
+			if (String.IsNullOrEmpty(friendlyName)) { throw new ArgumentNullException(nameof(friendlyName)); }
 			try { CryptoConfig.EncodeOID(value); } catch { throw new InvalidDataException("The value is not valid OID string."); }
 			String cn = null;
 			if (writeInDirectory) {
 				if (!ActiveDirectory.Ping()) { throw new NotSupportedException("Workgroup environment is not supported."); }
-				if (!String.IsNullOrEmpty((new Oid2(value,group,true)).DistinguishedName)) {
+				if (!String.IsNullOrEmpty(new Oid2(value,group,true).DistinguishedName)) {
 					throw new InvalidOperationException("The object already exist.");
 				}
 				List<Int32> exclude = new List<Int32>(new[] { 0, 1, 2, 3, 4, 5, 6, 9, 10 });
@@ -452,7 +452,7 @@ namespace System.Security.Cryptography {
 		/// <i>CN=OID, CN=Public Key Services, CN=Services,CN=Configuration, {Configuration naming context}</i>.
 		/// </remarks>
 		public static Boolean Unregister(String value, OidGroupEnum group, Boolean deleteFromDirectory) {
-			if (String.IsNullOrEmpty(value)) { throw new ArgumentNullException("value"); }
+			if (String.IsNullOrEmpty(value)) { throw new ArgumentNullException(nameof(value)); }
 			List<Oid2> oids = new List<Oid2>();
 			if (group == OidGroupEnum.AllGroups) {
 				try { oids.AddRange(GetAllOids(value, deleteFromDirectory)); } catch { return false; }
@@ -464,10 +464,10 @@ namespace System.Security.Cryptography {
 				return unregisterLocal(oids);
 			}
 			List<Int32> valid = new List<Int32>(new[] {0, 7, 8, 9 });
-			if (oids.Where(oid => !String.IsNullOrEmpty(oid.DistinguishedName)).Any(oid => oid.OidGroup != @group && @group != OidGroupEnum.AllGroups)) {
+			if (oids.Where(oid => !String.IsNullOrEmpty(oid.DistinguishedName)).Any(oid => oid.OidGroup != group && group != OidGroupEnum.AllGroups)) {
 				return false;
 			}
-			return valid.Contains((Int32)@group) && unregisterDS(oids[0].Value, @group);
+			return valid.Contains((Int32)group) && unregisterDS(oids[0].Value, group);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using CERTENROLLLib;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
 namespace PKI.ServiceProviders {
@@ -25,11 +26,7 @@ namespace PKI.ServiceProviders {
 			KeySpec = (X509KeySpecFlags)csp.KeySpec;
 			Version = csp.Version;
 			IsValid = csp.Valid;
-			List<ProviderAlgorithm> algs = new List<ProviderAlgorithm>();
-			foreach (ICspAlgorithm alg in csp.CspAlgorithms) {
-				algs.Add(new ProviderAlgorithm(alg));
-			}
-			Algorithms = algs.ToArray();
+			Algorithms = (from ICspAlgorithm alg in csp.CspAlgorithms select new ProviderAlgorithm(alg)).ToArray();
 		}
 
 		/// <summary>

@@ -64,11 +64,7 @@ namespace PKI.OCSP.Server {
 		/// <summary>
 		/// Gets revocation provider status message.
 		/// </summary>
-		public String StatusMessage {
-			get {
-				return StatusCode == 0 ? "Ok" : (new Win32Exception(StatusCode)).Message;
-			}
-		}
+		public String StatusMessage => StatusCode == 0 ? "Ok" : new Win32Exception(StatusCode).Message;
 
 		void m_initialize(IOCSPCAConfiguration ocspconfig) {
 			Object[,] props = (Object[,])ocspconfig.ProviderProperties;
@@ -127,7 +123,7 @@ namespace PKI.OCSP.Server {
 				}
 				throw new ArgumentException("Specified hash algorithm is not supported.");
 			}
-			throw new ArgumentNullException("hashAlgorithm");
+			throw new ArgumentNullException(nameof(hashAlgorithm));
 		}
 	}
 }

@@ -14,14 +14,14 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </summary>
 	public sealed class X509ServiceLocatorExtension : X509Extension {
 		Byte[] AIARaw;
-		readonly Oid oid = new Oid("1.3.6.1.5.5.7.48.1.7", "OCSP Service Locator");
+		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.48.1.7", "OCSP Service Locator");
 		
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509ServiceLocatorExtension</strong> class.
 		/// </summary>
 		/// <param name="cert">An <see cref="X509Certificate2"/> object from which to construct the extension.</param>
 		public X509ServiceLocatorExtension(X509Certificate2 cert) {
-			if (cert == null) { throw new ArgumentNullException("cert"); }
+			if (cert == null) { throw new ArgumentNullException(nameof(cert)); }
 			if (cert.Handle.Equals(IntPtr.Zero)) { throw new UninitializedObjectException(); }
 			m_initialize(cert);
 		}
@@ -56,12 +56,12 @@ namespace System.Security.Cryptography.X509Certificates {
 			rawData = new List<Byte>(Asn1Utils.Encode(rawData.ToArray(), 48));
 			IssuerName = cert.Issuer;
 			Critical = false;
-			Oid = oid;
+			Oid = _oid;
 			RawData = rawData.ToArray();
 		}
 		void m_extracturls(X509Certificate2 cert) {
 			List<String> urls = new List<String>();
-			foreach (UInt32 extid in (new [] { 1, 13 })) {
+			foreach (UInt32 extid in new [] { 1, 13 }) {
 				UInt32 pcbUrlArray = 0;
 				UInt32 pcbUrlInfo = 0;
 				if (Cryptnet.CryptGetObjectUrl(extid, cert.Handle, 2, null, ref pcbUrlArray, IntPtr.Zero, ref pcbUrlInfo, 0)) {

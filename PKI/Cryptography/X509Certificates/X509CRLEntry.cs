@@ -33,7 +33,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <exception cref="ArgumentNullException">The <strong>serialNumber</strong> parameter is null reference or empty string.</exception>
 		/// <exception cref="ArgumentException">The <strong>reasonCode</strong> contains invalid reason code.</exception>
 		public X509CRLEntry(String serialNumber, DateTime? revocationDate = null, Int32 reasonCode = 0) {
-			if (String.IsNullOrEmpty(serialNumber)) { throw new ArgumentNullException("serialNumber"); }
+			if (String.IsNullOrEmpty(serialNumber)) { throw new ArgumentNullException(nameof(serialNumber)); }
 			if (revocationDate == null) { revocationDate = DateTime.Now; }
 			m_initialize(serialNumber, revocationDate.Value, reasonCode);
 		}
@@ -44,7 +44,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <exception cref="ArgumentNullException">The <strong>rawData</strong> parameter is null reference.</exception>
 		/// <exception cref="InvalidDataException">The data do not contains valid CRL entry structure.</exception>
 		public X509CRLEntry(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_initialize(rawData);
 		}
 
@@ -118,9 +118,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// Gets the textual representation of RevocationCode. See <see cref="ReasonCode"/> for the list of possible values
 		/// and code meanings.
 		/// </summary>
-		public String ReasonMessage {
-			get { return get_reasontext(ReasonCode); }
-		}
+		public String ReasonMessage => get_reasontext(ReasonCode);
+
 		/// <summary>
 		/// Gets the ASN.1-encoded byte array.
 		/// </summary>
@@ -221,7 +220,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <returns>The hash code for the CRL entry as an integer.</returns>
 		public override Int32 GetHashCode() {
 			unchecked {
-				Int32 hashCode = (SerialNumber != null ? SerialNumber.GetHashCode() : 0);
+				Int32 hashCode = SerialNumber?.GetHashCode() ?? 0;
 				hashCode = (hashCode * 397) ^ RevocationDate.GetHashCode();
 				hashCode = (hashCode * 397) ^ ReasonCode;
 				return hashCode;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 using PKI.Exceptions;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
@@ -67,41 +68,41 @@ namespace PKI.CertificateServices.PolicyModule {
 			ComputerName = certificateAuthority.ComputerName;
 			ConfigString = certificateAuthority.ConfigString;
 			if (CryptoRegistry.Ping(ComputerName)) {
-				ActivePolicyModule = (String)CryptoRegistry.GetRReg("Active", Name + "\\PolicyModules", ComputerName);
+				ActivePolicyModule = (String)CryptoRegistry.GetRReg("Active", $@"{Name}\PolicyModules", ComputerName);
 
-				String[] oidstrings = (String[])CryptoRegistry.GetRReg("EnableRequestExtensionList", Name + "\\PolicyModules\\" + ActivePolicyModule, ComputerName);
+				String[] oidstrings = (String[])CryptoRegistry.GetRReg("EnableRequestExtensionList", $@"{Name}\PolicyModules\{ActivePolicyModule}", ComputerName);
 				Oids.AddRange(oidstrings.Select(item => new Oid(item)));
 				EnabledExtensionList = Oids.ToArray();
 
 				Oids.Clear();
-				oidstrings = (String[])CryptoRegistry.GetRReg("EnableEnrolleeRequestExtensionList", Name + "\\PolicyModules\\" + ActivePolicyModule, ComputerName);
+				oidstrings = (String[])CryptoRegistry.GetRReg("EnableEnrolleeRequestExtensionList", $@"{Name}\PolicyModules\{ActivePolicyModule}", ComputerName);
 				Oids.AddRange(oidstrings.Select(item => new Oid(item)));
 				OfflineExtensionList = Oids.ToArray();
 
 				Oids.Clear();
-				oidstrings = (String[])CryptoRegistry.GetRReg("DisableExtensionList", Name + "\\PolicyModules\\" + ActivePolicyModule, ComputerName);
+				oidstrings = (String[])CryptoRegistry.GetRReg("DisableExtensionList", $@"{Name}\PolicyModules\{ActivePolicyModule}", ComputerName);
 				Oids.AddRange(oidstrings.Select(item => new Oid(item)));
 				DisabledExtensionList = Oids.ToArray();
 				Oids.Clear();
 			} else {
 				if (CertificateAuthority.Ping(ComputerName)) {
-					ActivePolicyModule = (String)CryptoRegistry.GetRReg("Active", Name + "\\PolicyModules", ComputerName);
-					String[] oidstrings = (String[])CryptoRegistry.GetRegFallback(ConfigString, "PolicyModules\\" + ActivePolicyModule, "EnableRequestExtensionList");
+					ActivePolicyModule = (String)CryptoRegistry.GetRReg("Active", $@"{Name}\PolicyModules", ComputerName);
+					String[] oidstrings = (String[])CryptoRegistry.GetRegFallback(ConfigString, $@"PolicyModules\{ActivePolicyModule}", "EnableRequestExtensionList");
 					Oids.AddRange(oidstrings.Select(item => new Oid(item)));
 					EnabledExtensionList = Oids.ToArray();
 
 					Oids.Clear();
-					oidstrings = (String[])CryptoRegistry.GetRegFallback(ConfigString, "PolicyModules\\" + ActivePolicyModule, "EnableEnrolleeRequestExtensionList");
+					oidstrings = (String[])CryptoRegistry.GetRegFallback(ConfigString, $@"PolicyModules\{ActivePolicyModule}", "EnableEnrolleeRequestExtensionList");
 					Oids.AddRange(oidstrings.Select(item => new Oid(item)));
 					OfflineExtensionList = Oids.ToArray();
 
 					Oids.Clear();
-					oidstrings = (String[])CryptoRegistry.GetRegFallback(ConfigString, "PolicyModules\\" + ActivePolicyModule, "DisableExtensionList");
+					oidstrings = (String[])CryptoRegistry.GetRegFallback(ConfigString, $@"PolicyModules\{ActivePolicyModule}", "DisableExtensionList");
 					Oids.AddRange(oidstrings.Select(item => new Oid(item)));
 					DisabledExtensionList = Oids.ToArray();
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}
@@ -120,37 +121,41 @@ namespace PKI.CertificateServices.PolicyModule {
 		public void Add(String extensionType, Oid oid) {
 			try { Asn1Utils.EncodeObjectIdentifier(oid); }
 			catch { throw new ArgumentException("Specified object identifier is not valid or is not resolvable"); }
-			if (!String.IsNullOrEmpty(extensionType)) {
-				List<Oid> existing;
-				switch (extensionType.ToLower()) {
-					case "enabledextensionlist":
-						existing = new List<Oid>(EnabledExtensionList);
-						if (!GenericArray.OidContains(EnabledExtensionList, oid)) {
-							existing.Add(oid);
-							IsModified = true;
-						}
-						EnabledExtensionList = existing.ToArray();
-						break;
-					case "offlineextensionlist":
-						existing = new List<Oid>(OfflineExtensionList);
-						if (!GenericArray.OidContains(OfflineExtensionList, oid)) {
-							existing.Add(oid);
-							IsModified = true;
-						}
-						OfflineExtensionList = existing.ToArray();
-						break;
-					case "disabledextensionlist":
-						existing = new List<Oid>(DisabledExtensionList);
-						if (!GenericArray.OidContains(DisabledExtensionList, oid)) {
-							existing.Add(oid);
-							IsModified = true;
-						}
-						DisabledExtensionList = existing.ToArray();
-						break;
-					default: throw new ArgumentException("Invalid extension type is specified. Allowed types are: EnabledExtensionList, OfflineExtensionList and DisabledExtensionList.");
-				}
-			} else { throw new ArgumentNullException("extensionType"); }
+			if (String.IsNullOrEmpty(extensionType)) {
+				throw new ArgumentNullException(nameof(extensionType));
+			}
+			List<Oid> existing;
+			switch (extensionType.ToLower()) {
+				case "enabledextensionlist":
+					existing = new List<Oid>(EnabledExtensionList);
+					if (!GenericArray.OidContains(EnabledExtensionList, oid)) {
+						existing.Add(oid);
+						IsModified = true;
+					}
+					EnabledExtensionList = existing.ToArray();
+					break;
+				case "offlineextensionlist":
+					existing = new List<Oid>(OfflineExtensionList);
+					if (!GenericArray.OidContains(OfflineExtensionList, oid)) {
+						existing.Add(oid);
+						IsModified = true;
+					}
+					OfflineExtensionList = existing.ToArray();
+					break;
+				case "disabledextensionlist":
+					existing = new List<Oid>(DisabledExtensionList);
+					if (!GenericArray.OidContains(DisabledExtensionList, oid)) {
+						existing.Add(oid);
+						IsModified = true;
+					}
+					DisabledExtensionList = existing.ToArray();
+					break;
+				default:
+					throw new ArgumentException(
+						"Invalid extension type is specified. Allowed types are: EnabledExtensionList, OfflineExtensionList and DisabledExtensionList.");
+			}
 		}
+
 		/// <summary>
 		/// Removes certificate extension object identifier (OID) value from a specified extension group.
 		/// </summary>
@@ -165,36 +170,39 @@ namespace PKI.CertificateServices.PolicyModule {
 			if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
 			try { Asn1Utils.EncodeObjectIdentifier(oid); }
 			catch { throw new ArgumentException("Specified object identifier is not valid or is not resolvable"); }
-			if (!String.IsNullOrEmpty(extensionType)) {
-				List<Oid> existing;
-				switch (extensionType.ToLower()) {
-					case "enabledextensionlist":
-						existing = new List<Oid>(EnabledExtensionList);
-						if (GenericArray.OidContains(EnabledExtensionList, oid)) {
-							GenericArray.RemoveOid(ref existing, oid);
-							IsModified = true;
-						}
-						EnabledExtensionList = existing.ToArray();
-						break;
-					case "offlineextensionlist":
-						existing = new List<Oid>(OfflineExtensionList);
-						if (GenericArray.OidContains(EnabledExtensionList, oid)) {
-							GenericArray.RemoveOid(ref existing, oid);
-							IsModified = true;
-						}
-						OfflineExtensionList = existing.ToArray();
-						break;
-					case "disabledextensionlist":
-						existing = new List<Oid>(DisabledExtensionList);
-						if (GenericArray.OidContains(DisabledExtensionList, oid)) {
-							GenericArray.RemoveOid(ref existing, oid);
-							IsModified = true;
-						}
-						DisabledExtensionList = existing.ToArray();
-						break;
-					default: throw new ArgumentException("Invalid extension type is specified. Allowed types are: EnabledExtensionList, OfflineExtensionList and DisabledExtensionList.");
-				}
-			} else { throw new ArgumentNullException("extensionType"); }
+			if (String.IsNullOrEmpty(extensionType)) {
+				throw new ArgumentNullException(nameof(extensionType));
+			}
+			List<Oid> existing;
+			switch (extensionType.ToLower()) {
+				case "enabledextensionlist":
+					existing = new List<Oid>(EnabledExtensionList);
+					if (GenericArray.OidContains(EnabledExtensionList, oid)) {
+						GenericArray.RemoveOid(ref existing, oid);
+						IsModified = true;
+					}
+					EnabledExtensionList = existing.ToArray();
+					break;
+				case "offlineextensionlist":
+					existing = new List<Oid>(OfflineExtensionList);
+					if (GenericArray.OidContains(EnabledExtensionList, oid)) {
+						GenericArray.RemoveOid(ref existing, oid);
+						IsModified = true;
+					}
+					OfflineExtensionList = existing.ToArray();
+					break;
+				case "disabledextensionlist":
+					existing = new List<Oid>(DisabledExtensionList);
+					if (GenericArray.OidContains(DisabledExtensionList, oid)) {
+						GenericArray.RemoveOid(ref existing, oid);
+						IsModified = true;
+					}
+					DisabledExtensionList = existing.ToArray();
+					break;
+				default:
+					throw new ArgumentException(
+						"Invalid extension type is specified. Allowed types are: EnabledExtensionList, OfflineExtensionList and DisabledExtensionList.");
+			}
 		}
 		/// <summary>
 		/// Updates policy module extension lists by writing them to Certification Authority.
@@ -217,7 +225,7 @@ namespace PKI.CertificateServices.PolicyModule {
 			if (IsModified) {
 				List<String> oidstrings;
 				if (CryptoRegistry.Ping(ComputerName)) {
-					String path = Name + "\\PolicyModules\\" + ActivePolicyModule;
+					String path = $@"{Name}\PolicyModules\{ActivePolicyModule}";
 
 					oidstrings = EnabledExtensionList.Select(oid => oid.Value).ToList();
 					CryptoRegistry.SetRReg(oidstrings, "EnableRequestExtensionList", path, ComputerName);
@@ -236,7 +244,7 @@ namespace PKI.CertificateServices.PolicyModule {
 					return true;
 				}
 				if (CertificateAuthority.Ping(ComputerName)) {
-					String path = "PolicyModules\\" + ActivePolicyModule;
+					String path = $@"PolicyModules\{ActivePolicyModule}";
 
 					oidstrings = EnabledExtensionList.Select(oid => oid.Value).ToList();
 					CryptoRegistry.SetRegFallback(ConfigString, path, "EnableRequestExtensionList", oidstrings.ToArray());
@@ -255,7 +263,7 @@ namespace PKI.CertificateServices.PolicyModule {
 					return true;
 				}
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", (OfflineSource)3);
+				e.Data.Add(nameof(e.Source), (OfflineSource)3);
 				throw e;
 			}
 			return false;
@@ -265,30 +273,43 @@ namespace PKI.CertificateServices.PolicyModule {
 		/// </summary>
 		/// <returns>Extension lists.</returns>
 		public override String ToString() {
+			String nl = Environment.NewLine;
 			StringBuilder SB = new StringBuilder();
-			SB.Append("Extension list for '" + DisplayName + "' CA server:" + Environment.NewLine);
-			SB.Append("[Enabled Extensions]" + Environment.NewLine);
+			SB.Append($"Extension list for '{DisplayName}' CA server:{nl}");
+			SB.Append($"[Enabled Extensions]{Environment.NewLine}");
 			if (EnabledExtensionList.Length > 0) {
 				foreach (Oid oid in EnabledExtensionList) {
-					SB.Append("    " + oid.Value);
-					if (oid.FriendlyName != String.Empty) { SB.Append(" (" + oid.FriendlyName + ")" + Environment.NewLine); }
+					SB.Append($"    {oid.Value}");
+					if (oid.FriendlyName != String.Empty) {
+						SB.Append($" ({oid.FriendlyName}){nl}");
+					}
 				}
-			} else { SB.Append("    No extensions." + Environment.NewLine); }
-			SB.Append("[Offline Extensions]" + Environment.NewLine);
+			} else {
+				SB.Append($"    No extensions.{nl}");
+			}
+			SB.Append($"[Offline Extensions]{nl}");
 			if (OfflineExtensionList.Length > 0) {
 				foreach (Oid oid in OfflineExtensionList) {
-					SB.Append("    " + oid.Value);
-					if (oid.FriendlyName != String.Empty) { SB.Append(" (" + oid.FriendlyName + ")" + Environment.NewLine); }
+					SB.Append($"    {oid.Value}");
+					if (oid.FriendlyName != String.Empty) {
+						SB.Append($" ({oid.FriendlyName}){nl}");
+					}
 				}
-			} else { SB.Append("No extensions." + Environment.NewLine); }
-			SB.Append("[Disabled Extensions]" + Environment.NewLine + "    ");
+			} else {
+				SB.Append($"    No extensions.{nl}");
+			}
+			SB.Append($"[Disabled Extensions]{nl}");
 			if (DisabledExtensionList.Length > 0) {
 				foreach (Oid oid in DisabledExtensionList) {
-					SB.Append("    " + oid.Value);
-					if (oid.FriendlyName != String.Empty) { SB.Append(" (" + oid.FriendlyName + ")" + Environment.NewLine); }
+					SB.Append($"    {oid.Value}");
+					if (oid.FriendlyName != String.Empty) {
+						SB.Append($" ({oid.FriendlyName}){nl}");
+					}
 				}
-			} else { SB.Append("No extensions." + Environment.NewLine); }
-			SB.Append(Environment.NewLine);
+			} else {
+				SB.Append($"    No extensions.{nl}");
+			}
+			SB.Append(nl);
 			return SB.ToString();
 		}
 	}

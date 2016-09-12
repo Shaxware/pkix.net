@@ -15,20 +15,16 @@ namespace PKI.ServiceProviders {
 		/// <summary>
 		/// Gets provider name.
 		/// </summary>
-		public string Name {
-			get { return pname; }
-		}
+		public string Name => pname;
+
 		/// <summary>
 		/// Gets optional comments about the provider.
 		/// </summary>
-		public string Comments {
-			get { return pcomments; }
-		}
+		public string Comments => pcomments;
+
 		/// <summary>
 		/// Gets algorithms supported by the provider.
 		/// </summary>
-		public ALG_ID_CNGCollection SupportedAlgorithms {
-			get { return algs; }
-		}
+		public ALG_ID_CNGCollection SupportedAlgorithms => algs;
 	}
 }

@@ -73,7 +73,7 @@ namespace PKI.CertificateServices {
 					m_validity += (String)CryptoRegistry.GetRegFallback(ConfigString, String.Empty, "ValidityPeriod");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}
@@ -85,7 +85,7 @@ namespace PKI.CertificateServices {
 				if (match.Success) {
 					Period = Convert.ToInt32(match.Groups[1].Value);
 					PeriodUnits = match.Groups[2].Value.ToLower();
-					m_validity = Period + " " + PeriodUnits;
+					m_validity = $"{Period} {PeriodUnits}";
 					IsModified = true;
 				} else { throw new FormatException(); }
 			}
@@ -126,7 +126,7 @@ namespace PKI.CertificateServices {
 				return true;
 			}
 			ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-			e.Data.Add("Source", (OfflineSource)3);
+			e.Data.Add(nameof(e.Source), (OfflineSource)3);
 			throw e;
 		}
 		/// <summary>
@@ -134,7 +134,7 @@ namespace PKI.CertificateServices {
 		/// </summary>
 		/// <returns>A string representation of the current validity period setting.</returns>
 		public override String ToString() {
-			return DisplayName + ": " + ValidityPeriod;
+			return $"{DisplayName}: {ValidityPeriod}";
 		}
 	}
 }

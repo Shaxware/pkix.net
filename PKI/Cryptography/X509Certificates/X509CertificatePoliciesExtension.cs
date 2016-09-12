@@ -5,18 +5,18 @@
 	///		of which consists of an object identifier (OID) and optional qualifiers.
 	/// </summary>
 	public sealed class X509CertificatePoliciesExtension : X509Extension {
-		readonly Oid oid = new Oid("2.5.29.32");
+		readonly Oid _oid = new Oid("2.5.29.32");
 
 		internal X509CertificatePoliciesExtension(Byte[] rawData, Boolean critical)
             : base("2.5.29.32", rawData, critical) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 		
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509CertificatePoliciesExtension</strong> class.
 		/// </summary>
-		public X509CertificatePoliciesExtension() { Oid = oid; }
+		public X509CertificatePoliciesExtension() { Oid = _oid; }
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509CertificatePoliciesExtension</strong> class using an
 		/// <see cref="AsnEncodedData"/> object and a value that identifies whether the extension is critical.
@@ -37,7 +37,7 @@
 		/// <param name="critical"><strong>True</strong> if the extension is critical; otherwise, <strong>False</strong>.</param>
 		/// <exception cref="ArgumentNullException"><strong>polcies</strong> parameter is either null or empty.</exception>
 		public X509CertificatePoliciesExtension(X509CertificatePolicyCollection policies, Boolean critical) {
-			if (policies == null || policies.Count == 0) { throw new ArgumentNullException("policies"); }
+			if (policies == null || policies.Count == 0) { throw new ArgumentNullException(nameof(policies)); }
 			m_initialize(policies, critical);
 		}
 		
@@ -47,7 +47,7 @@
 		public X509CertificatePolicyCollection Policies { get; private set; }
 
 		void m_initialize(X509CertificatePolicyCollection policies, Boolean critical) {
-			Oid = oid;
+			Oid = _oid;
 			Policies = policies;
 			Critical = critical;
 			RawData = Policies.Encode();

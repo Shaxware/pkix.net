@@ -41,7 +41,7 @@ namespace PKI.Utils {
 				Kernel32.LocalFree(lpMsgBuf);
 				return message;
 			}
-			throw new Exception("No error messages are assoicated with error code: " + errorCode + " Operation failed.");
+			throw new Exception($"No error messages are assoicated with error code: {errorCode} Operation failed.");
 		}
 
 		internal static Exception ComExceptionHandler(Exception e) {

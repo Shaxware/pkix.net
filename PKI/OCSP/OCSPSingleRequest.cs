@@ -31,7 +31,7 @@ namespace PKI.OCSP {
 		/// </remarks>
 		/// <exception cref="ArgumentNullException">The <strong>cert</strong> parameter is null.</exception>
 		public OCSPSingleRequest(X509Certificate2 cert, Boolean serviceLocator) {
-			if (cert == null) { throw new ArgumentNullException("cert"); }
+			if (cert == null) { throw new ArgumentNullException(nameof(cert)); }
 			if (cert.Handle.Equals(IntPtr.Zero)) { throw new UninitializedObjectException(); }
 			m_initialize(null, cert, serviceLocator);
 		}
@@ -56,8 +56,8 @@ namespace PKI.OCSP {
 		/// extension SHOULD NOT be used.
 		/// </remarks>
 		public OCSPSingleRequest(X509Certificate2 issuer, X509Certificate2 leafCert, Boolean serviceLocator) {
-			if (issuer == null) { throw new ArgumentNullException("issuer"); }
-			if (leafCert == null) { throw new ArgumentNullException("leafCert"); }
+			if (issuer == null) { throw new ArgumentNullException(nameof(issuer)); }
+			if (leafCert == null) { throw new ArgumentNullException(nameof(leafCert)); }
 			m_initialize(issuer, leafCert, serviceLocator);
 		}
 

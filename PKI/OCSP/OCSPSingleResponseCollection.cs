@@ -6,7 +6,7 @@ namespace PKI.OCSP {
 	/// Represents a collection of <see cref="OCSPSingleResponse"/> objects.
 	/// </summary>
 	public class OCSPSingleResponseCollection : ICollection {
-		private readonly ArrayList _list;
+		readonly ArrayList _list;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OCSPSingleResponseCollection"/> class without any <see cref="OCSPSingleResponse"/> information.
@@ -16,9 +16,7 @@ namespace PKI.OCSP {
 		/// <summary>
 		/// Gets the number of <see cref="OCSPSingleResponse"/> objects in a collection.
 		/// </summary>
-		public Int32 Count {
-			get { return _list.Count; }
-		}
+		public Int32 Count => _list.Count;
 
 		/// <internalonly/>
 		IEnumerator IEnumerable.GetEnumerator() {
@@ -26,9 +24,9 @@ namespace PKI.OCSP {
 		}
 		/// <internalonly/> 
 		void ICollection.CopyTo(Array array, Int32 index) {
-			if (array == null) { throw new ArgumentNullException("array"); }
+			if (array == null) { throw new ArgumentNullException(nameof(array)); }
 			if (array.Rank != 1) { throw new ArgumentException("Multidimensional arrays are not supported."); }
-			if (index < 0 || index >= array.Length) { throw new ArgumentOutOfRangeException("index"); }
+			if (index < 0 || index >= array.Length) { throw new ArgumentOutOfRangeException(nameof(index)); }
 			if (index + Count > array.Length) { throw new ArgumentException("Index is out of range."); }
 			for (Int32 i = 0; i < Count; i++) {
 				array.SetValue(this[i], index);
@@ -48,9 +46,8 @@ namespace PKI.OCSP {
 		/// </summary>
 		/// <param name="index">The location of the <see cref="OCSPSingleResponse"/> object in the collection.</param>
 		/// <returns></returns>
-		public OCSPSingleResponse this[Int32 index] {
-			get { return _list[index] as OCSPSingleResponse; }
-		}
+		public OCSPSingleResponse this[Int32 index] => _list[index] as OCSPSingleResponse;
+
 		/// <summary>
 		/// Gets an <see cref="OCSPSingleResponse"/> object from the <see cref="OCSPSingleResponseCollection"/> object by revoked certificate's
 		/// serial number.
@@ -90,9 +87,8 @@ namespace PKI.OCSP {
 		/// Gets a value that indicates whether access to the <see cref="OCSPSingleResponseCollection"/> object is thread safe.
 		/// </summary>
 		/// <remarks>Returns <strong>False</strong> in all cases.</remarks>
-		public bool IsSynchronized {
-			get { return false; }
-		}
+		public bool IsSynchronized => false;
+
 		/// <summary>
 		/// Gets an object that can be used to synchronize access to the <see cref="OCSPSingleResponseCollection"/> object.
 		/// </summary>
@@ -102,9 +98,7 @@ namespace PKI.OCSP {
 		/// object, not directly on the object itself. This ensures proper operation of collections that are derived from
 		/// other objects. Specifically, it maintains proper synchronization with other threads that might simultaneously
 		/// be modifying the <see cref="OCSPSingleResponseCollection"/> object.</remarks>
-		public Object SyncRoot {
-			get { return this; }
-		}
+		public Object SyncRoot => this;
 	}
 	/// <summary>
 	/// Provides the ability to navigate through an <see cref="OCSPSingleResponseCollection"/> object.
@@ -127,14 +121,11 @@ namespace PKI.OCSP {
 		/// call to <see cref="MoveNext"/> returns false, which indicates that the end of the collection has been reached.</p>
 		/// <p><strong>Current</strong> does not move the position of the enumerator, and consecutive calls to <strong>Current</strong>
 		/// return the same object, until <see cref="MoveNext"/> is called.</p></remarks>
-		public OCSPSingleResponse Current {
-			get { return _entries[m_current]; }
-		}
+		public OCSPSingleResponse Current => _entries[m_current];
 
 		/// <internalonly/>
-		Object IEnumerator.Current {
-			get { return _entries[m_current]; }
-		}
+		Object IEnumerator.Current => _entries[m_current];
+
 		/// <summary>
 		/// Advances to the next <see cref="OCSPSingleResponse"/> object in an <see cref="OCSPSingleResponseCollection"/> object
 		/// </summary>
@@ -149,7 +140,7 @@ namespace PKI.OCSP {
 		/// <returns><strong>True</strong>, if the enumerator was successfully advanced to the next element; <strong>False</strong>,
 		/// if the enumerator has passed the end of the collection.</returns>
 		public bool MoveNext() {
-			if (m_current == (_entries.Count - 1)) { return false; }
+			if (m_current == _entries.Count - 1) { return false; }
 			m_current++;
 			return true;
 		}

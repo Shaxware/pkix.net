@@ -7,7 +7,7 @@ namespace PKI.Utils.CLRExtensions {
             return fullValue
                 ? (String.IsNullOrEmpty(oid.FriendlyName)
                     ? oid.Value
-                    : String.Format("{0} ({1}", oid.FriendlyName, oid.Value))
+                    : $"{oid.FriendlyName} ({oid.Value})")
                 : (String.IsNullOrEmpty(oid.FriendlyName)
                     ? oid.Value
                     : oid.FriendlyName);

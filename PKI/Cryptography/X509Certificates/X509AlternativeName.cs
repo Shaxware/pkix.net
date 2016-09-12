@@ -1,11 +1,10 @@
-﻿using System.Linq;
+﻿using PKI.Utils.CLRExtensions;
+using SysadminsLV.Asn1Parser;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Numerics;
 using System.Text;
-using PKI.Utils.CLRExtensions;
-using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
 	/// <summary>
@@ -109,7 +108,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </list>
 		/// </remarks>
 		public X509AlternativeName(X509AlternativeNamesEnum type, Object value) {
-			if (value == null) { throw new ArgumentNullException("value"); }
+			if (value == null) { throw new ArgumentNullException(nameof(value)); }
 			if (type == X509AlternativeNamesEnum.OtherName) { throw new InvalidOperationException("Invalid constructor."); }
 			m_initialize(type, value);
 		}
@@ -145,8 +144,8 @@ namespace System.Security.Cryptography.X509Certificates {
 				type != X509AlternativeNamesEnum.Guid &&
 				type != X509AlternativeNamesEnum.UserPrincipalName
 				) { throw new InvalidOperationException("Invalid constructor."); }
-			if (value == null) { throw new ArgumentNullException("value"); }
-			if (oid == null || String.IsNullOrEmpty(oid.Value)) { throw new ArgumentNullException("oid"); }
+			if (value == null) { throw new ArgumentNullException(nameof(value)); }
+			if (String.IsNullOrEmpty(oid?.Value)) { throw new ArgumentNullException(nameof(oid)); }
 			encodeOtherName(value, oid);
 		}
 		///  <summary>
@@ -159,7 +158,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		///		The data in the <strong>rawData</strong> argument is invalid or alternative name type cannot be determined.
 		/// </exception>
 		public X509AlternativeName(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			decodeFromRawData(rawData);
 		}
 
@@ -242,7 +241,7 @@ namespace System.Security.Cryptography.X509Certificates {
 				default:
 					Value = String.Empty;
 					foreach (Byte B in rawBytes) {
-						Value += String.Format("{0:x2}", B) + " ";
+						Value += $"{B:x2}" + " ";
 					}
 					Value = Value.Trim();
 					tag = Asn1Type.OCTET_STRING;
@@ -363,7 +362,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			} else {
 				try {
 					guid = new Guid((String)value);
-					Value = (new Guid(RawData)).ToString();
+					Value = new Guid(RawData).ToString();
 				} catch { throw new ArgumentException("Input string is not valid Guid string."); }
 			}
 			encodeOtherName(guid.ToByteArray(), new Oid("1.3.6.1.4.1.311.25.1"));
@@ -421,7 +420,7 @@ namespace System.Security.Cryptography.X509Certificates {
 						Value = String.Empty;
 						Type = X509AlternativeNamesEnum.OtherName;
 						foreach (Byte B in asn.GetPayload()) {
-							Value += String.Format("{0:x2}", B) + " ";
+							Value += $"{B:x2}" + " ";
 						}
 						Value = Value.Trim();
 						break;
@@ -446,7 +445,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			Type = X509AlternativeNamesEnum.DirectoryName;
 			try {
 				Asn1Reader asn = new Asn1Reader(RawData);
-				Value = (new X500DistinguishedName(asn.GetPayload())).Name;
+				Value = new X500DistinguishedName(asn.GetPayload()).Name;
 			} catch { throw new ArgumentException("Input data is not valid X.500 distinguished name."); }
 		}
 		void decodeUrl() {
@@ -520,7 +519,7 @@ namespace System.Security.Cryptography.X509Certificates {
 					retValue = "Directory Address:";
 					if (multiLine) {
 						String[] rdns = Value.Split(new []{ ", " }, StringSplitOptions.RemoveEmptyEntries);
-						retValue = rdns.Aggregate(retValue, (current, RDN) => current + (p + RDN + n));
+						retValue = rdns.Aggregate(retValue, (current, RDN) => current + p + RDN + n);
 						retValue = retValue.Trim();
 					} else {
 						retValue = "Directory Address:" + Value + ", ";

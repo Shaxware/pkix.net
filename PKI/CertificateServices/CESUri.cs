@@ -16,7 +16,7 @@ namespace PKI.CertificateServices {
 		/// (do not support initial certificate enrollment).</param>
 		/// <exception cref="ArgumentNullException">The string in the <strong>uri</strong> parameter is null or empty.</exception>
 		public CESUri(String uri, PolicyAuthenticationEnum authentication, Int32 priority, Boolean renewalOnly) {
-			if (String.IsNullOrEmpty(uri)) { throw new ArgumentNullException("uri"); }
+			if (String.IsNullOrEmpty(uri)) { throw new ArgumentNullException(nameof(uri)); }
 			m_initialize2(uri, authentication, priority, renewalOnly);
 		}
 

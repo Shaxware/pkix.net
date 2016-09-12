@@ -36,7 +36,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </exception>
         public X509CrossCertificateDistributionPointsExtension(AsnEncodedData crossCertPoints, Boolean critical)
             : base("1.3.6.1.4.1.311.10.9.1", crossCertPoints.RawData, critical) {
-            if (crossCertPoints == null) { throw new ArgumentNullException("crossCertPoints"); }
+            if (crossCertPoints == null) { throw new ArgumentNullException(nameof(crossCertPoints)); }
             m_decode(crossCertPoints.RawData);
         }
 
@@ -53,7 +53,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </param>
         /// <exception cref="ArgumentNullException"><strong>urls</strong>> parameter is null.</exception>
         public X509CrossCertificateDistributionPointsExtension(String[] urls, Int32? syncDeltaTime, Boolean critical) {
-            if (urls == null) { throw new ArgumentNullException("urls"); }
+            if (urls == null) { throw new ArgumentNullException(nameof(urls)); }
             m_initialize(urls, syncDeltaTime, critical);
         }
 
@@ -107,7 +107,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// Gets an array of cross-certificate URL strings listed in the extension.
         /// </summary>
         /// <returns>An array of URLs.</returns>
-        public String[] GetURLs() {
+        public String[] GetUrLs() {
             List<String> urls = new List<String>();
             foreach (X509AlternativeName crldp in CrossCertDistributionPoints) {
                 urls.AddRange(from X509AlternativeName url in crldp.Value where url.Type == X509AlternativeNamesEnum.URL select url.Value);

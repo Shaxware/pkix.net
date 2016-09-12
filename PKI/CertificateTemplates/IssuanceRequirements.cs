@@ -11,14 +11,14 @@ namespace PKI.CertificateTemplates {
 	/// policy requirements.
 	/// </summary>
 	public class IssuanceRequirements {
-		readonly DirectoryEntry entry;
+		readonly DirectoryEntry _entry;
 		Int32 enrollmentFlags;
 
 		internal IssuanceRequirements(IX509CertificateTemplate template) {
 			InitializeCom(template);
 		}
 		internal IssuanceRequirements(DirectoryEntry Entry) {
-			entry = Entry;
+			_entry = Entry;
 			InitializeDs();
 		}
 		/// <summary>
@@ -39,17 +39,13 @@ namespace PKI.CertificateTemplates {
 		/// existing valid certificate is sufficient for reenrollment, otherwise, the same enrollment
 		/// criteria is required for certificate renewal as was used for initial enrollment.
 		/// </summary>
-		public Boolean ExistingCertForRenewal {
-			get {
-				return (enrollmentFlags & (Int32)CertificateTemplateEnrollmentFlags.ReenrollExistingCert) > 0;
-			}
-		}
+		public Boolean ExistingCertForRenewal => (enrollmentFlags & (Int32)CertificateTemplateEnrollmentFlags.ReenrollExistingCert) > 0;
 
 		void InitializeDs() {
-			enrollmentFlags = (Int32)entry.Properties["msPKI-Enrollment-Flag"].Value;
-			SignatureCount = (Int32)entry.Properties["msPKI-RA-Signature"].Value;
+			enrollmentFlags = (Int32)_entry.Properties["msPKI-Enrollment-Flag"].Value;
+			SignatureCount = (Int32)_entry.Properties["msPKI-RA-Signature"].Value;
 			if (SignatureCount > 0) {
-				String ap = (String)entry.Properties["msPKI-RA-Application-Policies"].Value;
+				String ap = (String)_entry.Properties["msPKI-RA-Application-Policies"].Value;
 				if (ap == null) { return; }
 				if (ap.Contains("`")) {
 					String[] splitstring = { "`" };
@@ -66,14 +62,14 @@ namespace PKI.CertificateTemplates {
 		void get_rapolicies() {
 			OidCollection oids = new OidCollection();
 			try {
-				Object[] RaObject = (Object[])entry.Properties["msPKI-RA-Policies"].Value;
+				Object[] RaObject = (Object[])_entry.Properties["msPKI-RA-Policies"].Value;
 				if (RaObject != null) {
 					foreach (Object obj in RaObject) {
 						oids.Add(new Oid(obj.ToString()));
 					}
 				}
 			} catch {
-				String RaString = (String)entry.Properties["msPKI-RA-Policies"].Value;
+				String RaString = (String)_entry.Properties["msPKI-RA-Policies"].Value;
 				oids.Add(new Oid(RaString));
 			}
 			CertificatePolicies = oids;

@@ -42,7 +42,7 @@ namespace PKI.Utils.CLRExtensions {
 			return -1;
 		}
 		public static void Insert(this X509ExtensionCollection exts, Int32 index, X509Extension extension ) {
-			if (extension == null) { throw new ArgumentNullException("extension"); }
+			if (extension == null) { throw new ArgumentNullException(nameof(extension)); }
 			if (exts == null) { return; }
 			if (index < 0 || index >= exts.Count) { throw new OverflowException(); }
 			List<X509Extension> e = new List<X509Extension>(exts.Cast<X509Extension>());

@@ -7,35 +7,22 @@ namespace PKI.OCSP {
 	/// <summary>
 	/// Represents a collection of <see cref="OCSPSingleRequest"/> objects.
 	/// </summary>
-	public class OCSPSingleRequestCollection : ICollection {
-		private readonly ArrayList _list;
+	public class OCSPSingleRequestCollection : IEnumerable<OCSPSingleRequest> {
+		readonly List<OCSPSingleRequest> _list;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OCSPSingleRequestCollection"/> class without any <see cref="OCSPSingleRequest"/> information.
 		/// </summary>
-		public OCSPSingleRequestCollection() { _list = new ArrayList(); }
+		public OCSPSingleRequestCollection() { _list = new List<OCSPSingleRequest>(); }
 
 		/// <summary>
 		/// Gets the number of <see cref="OCSPSingleRequest"/> objects in a collection.
 		/// </summary>
-		public Int32 Count {
-			get { return _list.Count; }
-		}
+		public Int32 Count => _list.Count;
 
 		/// <internalonly/>
 		IEnumerator IEnumerable.GetEnumerator() {
 			return new OCSPSingleRequestCollectionEnumerator(this);
-		}
-		/// <internalonly/> 
-		void ICollection.CopyTo(Array array, Int32 index) {
-			if (array == null) { throw new ArgumentNullException("array"); }
-			if (array.Rank != 1) { throw new ArgumentException("Multidimensional arrays are not supported."); }
-			if (index < 0 || index >= array.Length) { throw new ArgumentOutOfRangeException("index"); }
-			if (index + Count > array.Length) { throw new ArgumentException("Index is out of range."); }
-			for (Int32 i = 0; i < Count; i++) {
-				array.SetValue(this[i], index);
-				index++;
-			}
 		}
 
 		/// <summary>
@@ -44,15 +31,17 @@ namespace PKI.OCSP {
 		/// <remarks>Use this method to add an <see cref="OCSPSingleRequest"/> object to an existing collection at the current location.</remarks>
 		/// <param name="entry">The <see cref="OCSPSingleRequest"/> object to add to the collection.</param>
 		/// <returns>The index of the added <see cref="OCSPSingleRequest"/> object.</returns>
-		public Int32 Add(OCSPSingleRequest entry) { return _list.Add(entry); }
+		public Int32 Add(OCSPSingleRequest entry) {
+			_list.Add(entry);
+			return _list.Count - 1;
+		}
 		/// <summary>
 		/// Gets an <see cref="OCSPSingleRequest"/> object from the <see cref="OCSPSingleRequestCollection"/> object.
 		/// </summary>
 		/// <param name="index">The location of the <see cref="OCSPSingleRequest"/> object in the collection.</param>
 		/// <returns></returns>
-		public OCSPSingleRequest this[Int32 index] {
-			get { return _list[index] as OCSPSingleRequest; }
-		}
+		public OCSPSingleRequest this[Int32 index] => _list[index];
+
 		/// <summary>
 		/// Gets an <see cref="OCSPSingleRequest"/> object from the <see cref="OCSPSingleRequestCollection"/> object by revoked certificate's
 		/// serial number.
@@ -67,7 +56,7 @@ namespace PKI.OCSP {
 		public OCSPSingleRequest this[String serialNumber] {
 			get {
 				foreach (OCSPSingleRequest entry in _list) {
-					if (entry.CertId.SerialNumber.ToLower() == serialNumber.ToLower()) { return entry; }
+					if (String.Equals(entry.CertId.SerialNumber, serialNumber, StringComparison.CurrentCultureIgnoreCase)) { return entry; }
 				}
 				return null;
 			}
@@ -92,9 +81,8 @@ namespace PKI.OCSP {
 		/// Gets a value that indicates whether access to the <see cref="OCSPSingleRequestCollection"/> object is thread safe.
 		/// </summary>
 		/// <remarks>Returns <strong>False</strong> in all cases.</remarks>
-		public bool IsSynchronized {
-			get { return false; }
-		}
+		public bool IsSynchronized => false;
+
 		/// <summary>
 		/// Gets an object that can be used to synchronize access to the <see cref="OCSPSingleRequestCollection"/> object.
 		/// </summary>
@@ -104,9 +92,8 @@ namespace PKI.OCSP {
 		/// object, not directly on the object itself. This ensures proper operation of collections that are derived from
 		/// other objects. Specifically, it maintains proper synchronization with other threads that might simultaneously
 		/// be modifying the <see cref="OCSPSingleRequestCollection"/> object.</remarks>
-		public Object SyncRoot {
-			get { return this; }
-		}
+		public Object SyncRoot => this;
+
 		/// <summary>
 		/// Encodes the collection of OCSPSingleResponse to a ASN.1-encoded byte array.
 		/// </summary>
@@ -120,6 +107,10 @@ namespace PKI.OCSP {
 				return Asn1Utils.Encode(rawData.ToArray(), 48); // requestList
 			}
 			return null;
+		}
+
+		IEnumerator<OCSPSingleRequest> IEnumerable<OCSPSingleRequest>.GetEnumerator() {
+			throw new NotImplementedException();
 		}
 	}
 	/// <summary>
@@ -143,14 +134,11 @@ namespace PKI.OCSP {
 		/// call to <see cref="MoveNext"/> returns false, which indicates that the end of the collection has been reached.</p>
 		/// <p><strong>Current</strong> does not move the position of the enumerator, and consecutive calls to <strong>Current</strong>
 		/// return the same object, until <see cref="MoveNext"/> is called.</p></remarks>
-		public OCSPSingleRequest Current {
-			get { return _entries[m_current]; }
-		}
+		public OCSPSingleRequest Current => _entries[m_current];
 
 		/// <internalonly/>
-		Object IEnumerator.Current {
-			get { return _entries[m_current]; }
-		}
+		Object IEnumerator.Current => _entries[m_current];
+
 		/// <summary>
 		/// Advances to the next <see cref="OCSPSingleRequest"/> object in an <see cref="OCSPSingleRequestCollection"/> object
 		/// </summary>
@@ -165,7 +153,7 @@ namespace PKI.OCSP {
 		/// <returns><strong>True</strong>, if the enumerator was successfully advanced to the next element; <strong>False</strong>,
 		/// if the enumerator has passed the end of the collection.</returns>
 		public bool MoveNext() {
-			if (m_current == (_entries.Count - 1)) { return false; }
+			if (m_current == _entries.Count - 1) { return false; }
 			m_current++;
 			return true;
 		}

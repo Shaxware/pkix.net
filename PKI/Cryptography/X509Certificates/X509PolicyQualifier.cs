@@ -16,8 +16,8 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <param name="url">A string that contains URL information.</param>
 		/// <exception cref="ArgumentNullException"><strong>url</strong> parameter is null.</exception>
 		public X509PolicyQualifier(String url) {
-			if (String.IsNullOrEmpty(url)) { throw new ArgumentNullException("url"); }
-			m_initializeUrl(url);
+			if (String.IsNullOrEmpty(url)) { throw new ArgumentNullException(nameof(url)); }
+			InitializeUrl(url);
 		}
 		/// <summary>
 		/// Initializes a new instance of the <see cref="X509PolicyQualifier"/> class from either or both notice reference
@@ -31,7 +31,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </exception>
 		public X509PolicyQualifier(String noticeText, String noticeRef) {
 			if (String.IsNullOrEmpty(noticeText) && String.IsNullOrEmpty(noticeRef)) {
-				throw new ArgumentNullException("noticeText","Both 'noticeText' and 'noticeRef' parameters cannot be null");
+				throw new ArgumentNullException(nameof(noticeText),"Both 'noticeText' and 'noticeRef' parameters cannot be null");
 			}
 			if (!String.IsNullOrEmpty(noticeText) && noticeText.Length > 200) {
 				throw new OverflowException("Notice text cannot be larger than 200 characters.");
@@ -39,14 +39,14 @@ namespace System.Security.Cryptography.X509Certificates {
 			if (!String.IsNullOrEmpty(noticeRef) && noticeRef.Length > 200) {
 				throw new OverflowException("Notice reference cannot be larger than 200 characters.");
 			}
-			m_initializeNotice(noticeText, noticeRef);
+			InitializeNotice(noticeText, noticeRef);
 		}
 		/// <summary>
 		/// Initializes a new instance of the <see cref="X509PolicyQualifier"/> class from a ASN.1-encoded byte array.
 		/// </summary>
 		/// <param name="rawData">ASN.1-encoded byte array.</param>
 		public X509PolicyQualifier(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 		
@@ -73,11 +73,11 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </summary>
 		public Int32 NoticeNumber { get; internal set; }
 
-		void m_initializeUrl(String url) {
+		void InitializeUrl(String url) {
 			Type = X509PolicyQualifierType.CpsUrl;
 			PolicyUrl = new Uri(url);
 		}
-		void m_initializeNotice(String noticeText, String noticeRef) {
+		void InitializeNotice(String noticeText, String noticeRef) {
 			Type = X509PolicyQualifierType.UserNotice;
 			NoticeReference = noticeRef;
 			NoticeText = noticeText;
@@ -124,7 +124,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			NoticeText = null;
 		}
 
-		static IEnumerable<Byte> m_encodeString(String str) {
+		static IEnumerable<Byte> EncodeString(String str) {
 			try {
 				return Asn1Utils.EncodeVisibleString(str);
 			} catch {
@@ -152,7 +152,7 @@ namespace System.Security.Cryptography.X509Certificates {
 				case X509PolicyQualifierType.UserNotice:
 					List<Byte> refpart = new List<Byte>();
 					if (!String.IsNullOrEmpty(NoticeReference)) {
-						refpart.AddRange(m_encodeString(NoticeReference));
+						refpart.AddRange(EncodeString(NoticeReference));
 						refpart.AddRange(Asn1Utils.Encode(new Asn1Integer(NoticeNumber).RawData, 48));
 						refpart = new List<Byte>(Asn1Utils.Encode(refpart.ToArray(), 48));
 					}

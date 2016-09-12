@@ -24,7 +24,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <param name="nameConstraints">An ASN.1-encoded Name Constraints extension value.</param>
 		public X509NameConstraintsExtension(AsnEncodedData nameConstraints)
             : base(new Oid("2.5.29.30"), nameConstraints.RawData, true) {
-            if (nameConstraints == null) { throw new ArgumentNullException("nameConstraints"); }
+            if (nameConstraints == null) { throw new ArgumentNullException(nameof(nameConstraints)); }
             m_decode(nameConstraints.RawData);
         }
 		/// <summary>

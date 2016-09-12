@@ -21,7 +21,7 @@ namespace PKI.Utils {
 			return ipInUint;
 		}
 		public static Boolean InSameSubnet(String firstIP, Int32 subNet, String secondIP) {
-			Int64 temp = Convert.ToUInt32((new String('1', subNet).PadRight(32, '0')), 2);
+			Int64 temp = Convert.ToUInt32(new String('1', subNet).PadRight(32, '0'), 2);
 			String[] tokens = new IPAddress(temp).ToString().Split('.');
 			Array.Reverse(tokens);
 			String subnet = String.Join(".", tokens);

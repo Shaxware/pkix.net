@@ -66,14 +66,14 @@ namespace PKI.CertificateServices {
 					urls = (String[])CryptoRegistry.GetRegFallback(ConfigString, String.Empty, "CRLPublicationURLs");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-					e.Data.Add("Source", (OfflineSource)3);
+					e.Data.Add(nameof(e.Source), (OfflineSource)3);
 					throw e;
 				}
 			}
 			m_cdp = urls.Select(url => new CDP(url)).ToArray();
-			ResolveURLs();
+			ResolveUrLs();
 		}
-		void ResolveURLs() {
+		void ResolveUrLs() {
 			if (keyMap == null || keyMap.Length < 1) { return; }
 			foreach (CDP cdp in m_cdp) {
 				List<String> resolved = new List<String>();
@@ -164,7 +164,7 @@ namespace PKI.CertificateServices {
 					return true;
 				}
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", (OfflineSource)3);
+				e.Data.Add(nameof(e.Source), (OfflineSource)3);
 				throw e;
 			}
 			return false;

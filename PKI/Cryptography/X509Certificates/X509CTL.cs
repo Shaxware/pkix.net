@@ -18,20 +18,20 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </summary>
 	public class X509CTL {
 		Wincrypt.CTL_INFO CTLInfo;
-		readonly Boolean isGeneric;
-		readonly List<X509Extension> listExtensions = new List<X509Extension>();
+		readonly Boolean _isGeneric;
+		readonly List<X509Extension> _listExtensions = new List<X509Extension>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="X509CTL"/> class. 
 		/// </summary>
-		public X509CTL() { isGeneric = false; }
+		public X509CTL() { _isGeneric = false; }
 		/// <summary>
 		/// Initializes a new instance of the <see cref="X509CTL"/> class using the path to a CTL file. 
 		/// </summary>
 		/// <param name="path">The path to a CRL file.</param>
 		public X509CTL(String path) {
 			m_import(Crypt32Managed.CryptFileToBinary(path));
-			isGeneric = true;
+			_isGeneric = true;
 		}
 		/// <summary>
 		/// Initializes a new instance of the <see cref="X509CTL"/> class defined from a sequence of bytes representing
@@ -40,9 +40,9 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <param name="rawData">A byte array containing data from an X.509 CTL.</param>
 		/// <exception cref="ArgumentNullException"></exception>
 		public X509CTL(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_import(rawData);
-			isGeneric = true;
+			_isGeneric = true;
 		}
 
 		/// <summary>
@@ -85,9 +85,9 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// </remarks>
 		public X509ExtensionCollection Extensions {
 			get {
-				if (listExtensions.Count == 0) { return null; }
+				if (_listExtensions.Count == 0) { return null; }
 				X509ExtensionCollection retValue = new X509ExtensionCollection();
-				foreach (X509Extension item in listExtensions) { retValue.Add(item); }
+				foreach (X509Extension item in _listExtensions) { retValue.Add(item); }
 				return retValue;
 			}
 		}
@@ -137,7 +137,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			Byte[] seqnumber = new Byte[CTLInfo.SequenceNumber.cbData];
 			Marshal.Copy(CTLInfo.SequenceNumber.pbData, seqnumber, 0, seqnumber.Length);
 			Array.Reverse(seqnumber);
-			foreach (Byte item in seqnumber) { SB.Append(String.Format("{0:x2}", item)); }
+			foreach (Byte item in seqnumber) { SB.Append($"{item:x2}"); }
 			SequenceNumber = SB.ToString();
 		}
 		void get_ctlentries() {
@@ -151,7 +151,7 @@ namespace System.Security.Cryptography.X509Certificates {
 					Wincrypt.CTL_ENTRY CTLEntry = (Wincrypt.CTL_ENTRY)Marshal.PtrToStructure(rgCTLEntry, typeof(Wincrypt.CTL_ENTRY));
 					byte[] bytes = new Byte[CTLEntry.SubjectIdentifier.cbData];
 					Marshal.Copy(CTLEntry.SubjectIdentifier.pbData, bytes, 0, bytes.Length);
-					foreach (Byte item in bytes) { SB.Append(String.Format("{0:X2}", item)); }
+					foreach (Byte item in bytes) { SB.Append($"{item:X2}"); }
 					String thumbprint = SB.ToString();
 					if (CTLEntry.cAttribute > 0) {
 						IntPtr rgAttribute = CTLEntry.rgAttribute;
@@ -176,7 +176,7 @@ namespace System.Security.Cryptography.X509Certificates {
 					rgExtension = CTLInfo.rgExtension,
 					cExtension = CTLInfo.cExtension
 				};
-				listExtensions.AddRange(CryptographyUtils.DecodeX509ExtensionCollection2(extstruct));
+				_listExtensions.AddRange(CryptographyUtils.DecodeX509ExtensionCollection2(extstruct));
 			}
 		}
 		void get_algorithm() {
@@ -272,26 +272,26 @@ namespace System.Security.Cryptography.X509Certificates {
 		#endregion
 
 		void SetSequenceNumber(String number) {
-			if (isGeneric) { throw new InvalidOperationException(); }
+			if (_isGeneric) { throw new InvalidOperationException(); }
 			if (String.IsNullOrEmpty(number)) { number = "01"; }
 		}
 		void SetSubjectUsage(Oid subjectUsage) {
-			if (isGeneric) { throw new InvalidOperationException(); }
+			if (_isGeneric) { throw new InvalidOperationException(); }
 			if (subjectUsage == null || String.IsNullOrEmpty(subjectUsage.Value)) {
 				
 			}
 		}
 		void SetExtensions(X509ExtensionCollection extensions) {
-			if (isGeneric) { throw new InvalidOperationException(); }
-			if (extensions == null) { throw new ArgumentNullException("extensions"); }
+			if (_isGeneric) { throw new InvalidOperationException(); }
+			if (extensions == null) { throw new ArgumentNullException(nameof(extensions)); }
 		}
 		void ImportCertificates(X509Certificate2Collection certs) {
-			if (isGeneric) { throw new InvalidOperationException(); }
-			if (certs == null) { throw new ArgumentNullException("certs"); }
+			if (_isGeneric) { throw new InvalidOperationException(); }
+			if (certs == null) { throw new ArgumentNullException(nameof(certs)); }
 		}
 		void ImportCertificates(X509Certificate2[] certs) {
-			if (isGeneric) { throw new InvalidOperationException(); }
-			if (certs == null) { throw new ArgumentNullException("certs"); }
+			if (_isGeneric) { throw new InvalidOperationException(); }
+			if (certs == null) { throw new ArgumentNullException(nameof(certs)); }
 		}
 		/// <summary>
 		/// Resets the state of an X509CTL.
@@ -306,7 +306,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			SubjectAlgorithm = null;
 			Entries.Reset();
 			Entries = null;
-			listExtensions.Clear();
+			_listExtensions.Clear();
 			Handle = IntPtr.Zero;
 			RawData = null;
 		}

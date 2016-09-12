@@ -48,7 +48,7 @@ namespace PKI.ManagedAPI {
 		/// 	</list>
 		/// </remarks>
 		public static Byte[] AnyToBinary(String anyString) {
-			if (String.IsNullOrEmpty(anyString)) { throw new ArgumentNullException("anyString"); }
+			if (String.IsNullOrEmpty(anyString)) { throw new ArgumentNullException(nameof(anyString)); }
 			try {
 				return AsnFormatter.StringToBinary(anyString, EncodingType.HexAny);
 			} catch {
@@ -151,7 +151,7 @@ namespace PKI.ManagedAPI {
 				Marshal.FreeHGlobal(ptr);
 				return result;
 			}
-			throw new ArgumentNullException("rawData");
+			throw new ArgumentNullException(nameof(rawData));
 		}
 		/// <summary>
 		/// attempts to decode the outer layer of a BLOB as a Personal Information Exchange (PFX) packet and to decrypt it
@@ -184,7 +184,7 @@ namespace PKI.ManagedAPI {
 				Marshal.FreeHGlobal(ptr);
 				return result;
 			}
-			throw new ArgumentNullException("rawData");
+			throw new ArgumentNullException(nameof(rawData));
 		}
 		#endregion
 		/// <summary>
@@ -196,12 +196,12 @@ namespace PKI.ManagedAPI {
 		/// <exception cref="ArgumentNullException"><strong>rawData</strong> parameter is null reference.</exception>
 		/// <exception cref="Asn1InvalidTagException">Byte array do not represent requested object.</exception>
 		public static X509Extension DecodeX509Extension(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			Asn1Reader asn = new Asn1Reader(rawData);
 			if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
 			asn.MoveNext();
 			if (asn.Tag != (Byte)Asn1Type.OBJECT_IDENTIFIER) { throw new Asn1InvalidTagException(asn.Offset); }
-			Oid oid = (new Asn1ObjectIdentifier(asn)).Value;
+			Oid oid = new Asn1ObjectIdentifier(asn).Value;
 			Boolean critical = false;
 			asn.MoveNext();
 			if (asn.Tag == (Byte)Asn1Type.BOOLEAN) {
@@ -219,7 +219,7 @@ namespace PKI.ManagedAPI {
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="UninitializedObjectException"></exception>
 		public static Byte[] EncodeX509Extension(X509Extension extension) {
-			if (extension == null) { throw new ArgumentNullException("extension"); }
+			if (extension == null) { throw new ArgumentNullException(nameof(extension)); }
 			if (String.IsNullOrEmpty(extension.Oid.Value)) { throw new UninitializedObjectException(); }
 			List<Byte> rawData = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(extension.Oid));
 			if (extension.Critical) {
@@ -236,7 +236,7 @@ namespace PKI.ManagedAPI {
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="InvalidDataException"></exception>
 		public static X509ExtensionCollection DecodeX509Extensions(Byte[] rawData) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			Asn1Reader asn = new Asn1Reader(rawData);
 			if (asn.Tag != 48) { throw new InvalidDataException(); }
 			X509ExtensionCollection exts = new X509ExtensionCollection();
@@ -255,7 +255,7 @@ namespace PKI.ManagedAPI {
 		/// <exception cref="ArgumentException"></exception>
 		/// <returns></returns>
 		public static Byte[] EncodeX509Extensions(X509ExtensionCollection extensions) {
-			if (extensions == null) { throw new ArgumentNullException("extensions"); }
+			if (extensions == null) { throw new ArgumentNullException(nameof(extensions)); }
 			if (extensions.Count < 1) { throw new ArgumentException("Sequence is empty."); }
 			List<Byte> rawData = new List<Byte>();
 			foreach (X509Extension e in extensions) {

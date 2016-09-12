@@ -50,7 +50,7 @@ namespace PKI.CertificateServices {
 			if (!certificateAuthority.IsEnterprise) { throw new PlatformNotSupportedException(); }
 			if (!certificateAuthority.Ping()) {
 				ServerUnavailableException e = new ServerUnavailableException(certificateAuthority.DisplayName);
-				e.Data.Add("Source", OfflineSource.DCOM);
+				e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
 				throw e;
 			}
 			Name = certificateAuthority.Name;
@@ -60,7 +60,7 @@ namespace PKI.CertificateServices {
 			ConfigString = certificateAuthority.ConfigString;
 
 			CCertAdmin CertAdmin = new CCertAdmin();
-			String templates = (String)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConst.CR_PROP_TEMPLATES, 0, CertAdmConst.PROPTYPE_STRING, 0);
+			String templates = (String)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConst.CrPropTemplates, 0, CertAdmConst.ProptypeString, 0);
 			List<CertificateTemplate> tobeadded = new List<CertificateTemplate>();
 			if (templates != String.Empty) {
 				String[] SplitString = { "\n" };
@@ -119,7 +119,7 @@ namespace PKI.CertificateServices {
 		/// If the method returns <strong>True</strong>, a <see cref="IsModified"/> property is set to <strong>True</strong>.
 		/// </remarks>
 		public Boolean Add(CertificateTemplate template) {
-			if (template == null) { throw new ArgumentNullException("template"); }
+			if (template == null) { throw new ArgumentNullException(nameof(template)); }
 			if (String.IsNullOrEmpty(template.Name)) { throw new UninitializedObjectException(); }
 			List<CertificateTemplate> extemplates = new List<CertificateTemplate>(Templates);
 			if (extemplates.Contains(template)) { return false; }
@@ -138,7 +138,7 @@ namespace PKI.CertificateServices {
 		/// <exception cref="NotSupportedException">One or more certificate templates are not supported by this CA version.</exception>
 		/// <remarks>If <see cref="Templates"/> property already contains certificate template object, the template is silently skipped.</remarks>
 		public void AddRange(CertificateTemplate[] templates) {
-			if (templates == null) { throw new ArgumentNullException("templates"); }
+			if (templates == null) { throw new ArgumentNullException(nameof(templates)); }
 			List<CertificateTemplate> extemplates = new List<CertificateTemplate>(Templates);
 			foreach (CertificateTemplate item in templates.Where(item => !extemplates.Contains(item))) {
 				if (IsSupported(item.SchemaVersion)) {
@@ -156,7 +156,7 @@ namespace PKI.CertificateServices {
 		/// <exception cref="UninitializedObjectException">An object in the <strong>template</strong> parameter is not initialized.</exception>
 		/// <returns><strong>True</strong> if the specified template was found and successfully removed, otherwise <strong>False</strong>.</returns>
 		public Boolean Remove(CertificateTemplate template) {
-			if (template == null) { throw new ArgumentNullException("template"); }
+			if (template == null) { throw new ArgumentNullException(nameof(template)); }
 			if (String.IsNullOrEmpty(template.Name)) { throw new UninitializedObjectException(); }
 			List<CertificateTemplate> extemplates = new List<CertificateTemplate>(Templates);
 			if (!extemplates.Contains(template)) { return false; }
@@ -174,7 +174,7 @@ namespace PKI.CertificateServices {
 		/// <exception cref="UninitializedObjectException">An object in the <strong>template</strong> parameter is not initialized.</exception>
 		/// <remarks>If the <see cref="Templates"/> property do not contains certificate template object, the template is silently skipped.</remarks>
 		public void RemoveRange(CertificateTemplate[] templates) {
-			if (templates == null) { throw new ArgumentNullException("templates"); }
+			if (templates == null) { throw new ArgumentNullException(nameof(templates)); }
 			if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
 			List<CertificateTemplate> extemplates = new List<CertificateTemplate>(Templates);
 			foreach (CertificateTemplate item in templates.Where(extemplates.Contains)) {
@@ -213,7 +213,7 @@ namespace PKI.CertificateServices {
 			if (!IsModified) { return false; }
 			if (!CertificateAuthority.Ping(ComputerName)) {
 				ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-				e.Data.Add("Source", OfflineSource.DCOM);
+				e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
 				throw e;
 			}
 			CCertAdmin CertAdmin = new CCertAdmin();
@@ -225,7 +225,7 @@ namespace PKI.CertificateServices {
 				}
 			}
 			try {
-				CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CR_PROP_TEMPLATES, 0, CertAdmConst.PROPTYPE_STRING, SB.ToString());
+				CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropTemplates, 0, CertAdmConst.ProptypeString, SB.ToString());
 			} catch (Exception e) {
 				throw Error.ComExceptionHandler(e);
 			}

@@ -22,7 +22,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </exception>
         public X509AuthorityKeyIdentifierExtension(AsnEncodedData aki, Boolean critical)
             : base("2.5.29.35", aki.RawData, critical) {
-            if (aki == null) { throw new ArgumentNullException("aki"); }
+            if (aki == null) { throw new ArgumentNullException(nameof(aki)); }
             m_decode(aki.RawData);
         }
         /// <summary>
@@ -35,7 +35,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <strong>keyIdentifier</strong> value is null or empty.
         /// </exception>
         public X509AuthorityKeyIdentifierExtension(String keyIdentifier, Boolean critical) {
-            if (String.IsNullOrEmpty(keyIdentifier)) { throw new ArgumentNullException("keyIdentifier"); }
+            if (String.IsNullOrEmpty(keyIdentifier)) { throw new ArgumentNullException(nameof(keyIdentifier)); }
             initializeFromKeyId(keyIdentifier, critical);
         }
         /// <summary>
@@ -59,7 +59,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <strong>KeyIdentifier</strong> component will be included.
         /// </remarks>
         public X509AuthorityKeyIdentifierExtension(X509Certificate2 issuer, AuthorityKeyIdentifierFlags flags, Boolean critical) {
-            if (issuer == null || IntPtr.Zero.Equals(issuer.Handle)) { throw new ArgumentNullException("issuer"); }
+            if (issuer == null || IntPtr.Zero.Equals(issuer.Handle)) { throw new ArgumentNullException(nameof(issuer)); }
             if (flags == AuthorityKeyIdentifierFlags.AlternativeNames && issuer.Extensions["2.5.29.17"] == null) {
                 flags = AuthorityKeyIdentifierFlags.KeyIdentifier;
             }
@@ -73,7 +73,7 @@ namespace System.Security.Cryptography.X509Certificates {
             Oid = _oid;
             Critical = critical;
             IncludedComponents = AuthorityKeyIdentifierFlags.None;
-
+			// TODO rawData is not used
             List<Byte> rawData = new List<Byte>();
             if ((flags & AuthorityKeyIdentifierFlags.KeyIdentifier) > 0) {
                 using (var hasher = SHA1.Create()) {

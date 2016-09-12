@@ -25,11 +25,11 @@ namespace PKI.Security.AccessControl {
 		/// Gets the display name of the Certification Authority (sanitized characters are decoded to textual characters)
 		/// associated with the current instance of the object.
 		/// </summary>
-		public String DisplayName { get; private set; }
+		public String DisplayName { get; }
 		/// <summary>
 		/// Gets the host fully qualified domain name (FQDN) of the server where Certification Authority is installed.
 		/// </summary>
-		public String ComputerName { get; private set; }
+		public String ComputerName { get; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CertificationAuthorityAccessRule"/> class that represents a new access
@@ -145,16 +145,14 @@ namespace PKI.Security.AccessControl {
 		/// <summary>
 		/// Gets the <see cref="Type"/> of the securable object associated with this <see cref="ObjectSecurity"/> object.
 		/// </summary>
-		public override Type AccessRightType {
-			get { return typeof(CertificationAuthorityRights); }
-		}
+		public override Type AccessRightType => typeof(CertificationAuthorityRights);
+
 		/// <summary>
 		/// Gets the <see cref="Type"/> of the object associated with the access rules of this <see cref="ObjectSecurity"/>
 		/// object. The <see cref="Type"/> object must be an object that can be cast as a <see cref="SecurityIdentifier"/> object
 		/// </summary>
-		public override Type AccessRuleType {
-			get { return typeof(CertificationAuthorityAccessRule); }
-		}
+		public override Type AccessRuleType => typeof(CertificationAuthorityAccessRule);
+
 		/// <summary>
 		/// This member is not implemented.
 		/// </summary>
@@ -183,7 +181,7 @@ namespace PKI.Security.AccessControl {
 				return;
 			}
 			ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-			e.Data.Add("Source", (OfflineSource)3);
+			e.Data.Add(nameof(e.Source), (OfflineSource)3);
 			throw e;
 		}
 	}

@@ -101,11 +101,13 @@ namespace PKI.OCSP.Server {
 		/// Gets the status of the configuration. A zero value means good status and any non-zero value indicates an
 		/// issue with the configuration. Refer to <see cref="StatusMessage"/> property for the issue reason.
 		/// </summary>
-		public Int32 StatusCode { get { return unchecked((Int32)OcspConfig.ErrorCode); } }
+		public Int32 StatusCode => unchecked((Int32)OcspConfig.ErrorCode);
+
 		/// <summary>
 		/// Gets the textual representation of the configuration status.
 		/// </summary>
-		public String StatusMessage { get { return (new Win32Exception(StatusCode)).Message; } }
+		public String StatusMessage => new Win32Exception(StatusCode).Message;
+
 		/// <summary>
 		/// Indicates whether the current object was changed after it was instantiated.
 		/// </summary>

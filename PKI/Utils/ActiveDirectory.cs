@@ -35,7 +35,7 @@ namespace PKI.Utils {
 			IPHostEntry ip = Dns.GetHostEntry(computerName);
 
 			try {
-				DirectoryEntry subnets = new DirectoryEntry("LDAP://CN=Subnets,CN=Sites," + ConfigContext);
+				DirectoryEntry subnets = new DirectoryEntry($"LDAP://CN=Subnets,CN=Sites,{ConfigContext}");
 				foreach (DirectoryEntry subnet in subnets.Children) {
 					DirectoryEntry site = new DirectoryEntry("LDAP://" + subnet.Properties["siteObject"].Value);
 					siteTable.Add(subnet.Properties["cn"].Value, site.Properties["cn"].Value);
@@ -66,7 +66,7 @@ namespace PKI.Utils {
 		}
 
 		static Boolean isAllowedCharacter(Char c) {
-			return (c >= 0x20 && c <= 0x79) && !disallowed.Contains(c);
+			return c >= 0x20 && c <= 0x79 && !disallowed.Contains(c);
 		}
 		static String getExceedHash(IEnumerable<Char> str) {
 			unchecked {

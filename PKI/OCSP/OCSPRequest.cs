@@ -1,6 +1,10 @@
 ﻿using PKI.Exceptions;
 using PKI.ManagedAPI;
+using PKI.ManagedAPI.StructClasses;
 using PKI.Utils;
+using PKI.Utils.CLRExtensions;
+using SysadminsLV.Asn1Parser;
+using SysadminsLV.Asn1Parser.Universal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,10 +13,6 @@ using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using PKI.ManagedAPI.StructClasses;
-using PKI.Utils.CLRExtensions;
-using SysadminsLV.Asn1Parser;
-using SysadminsLV.Asn1Parser.Universal;
 
 namespace PKI.OCSP {
 	/// <summary>
@@ -32,7 +32,7 @@ namespace PKI.OCSP {
 		/// <param name="cert">An <see cref="X509Certificate2"/> object to verify against OCSP Responder.</param>
 		/// <remarks>This constructor will use OCSP URLs (if any) of the specified certificate.</remarks>
 		public OCSPRequest(X509Certificate2 cert) {
-			if (cert == null) { throw new ArgumentNullException("cert"); }
+			if (cert == null) { throw new ArgumentNullException(nameof(cert)); }
 			if (cert.Handle.Equals(IntPtr.Zero)) { throw new UninitializedObjectException(); }
 			initializeFromCert(cert);
 		}
@@ -42,7 +42,7 @@ namespace PKI.OCSP {
 		/// </summary>
 		/// <param name="certs">Certificate collection to include in request.</param>
 		public OCSPRequest(X509Certificate2Collection certs) {
-			if (certs == null || certs.Count <= 0) { throw new ArgumentNullException("certs"); }
+			if (certs == null || certs.Count <= 0) { throw new ArgumentNullException(nameof(certs)); }
 			if (!verifycerts(certs)) {
 				throw new Exception("One or more certificate in collection has distinct issuer");
 			}
@@ -66,8 +66,8 @@ namespace PKI.OCSP {
 		/// Either, <strong>issuer</strong> and/or <strong>certs</strong> parameter is null.
 		/// </exception>
 		public OCSPRequest(X509Certificate2Collection certs, X509Certificate2 issuer) {
-			if (issuer == null) { throw new ArgumentNullException("issuer"); }
-			if (certs == null) { throw new ArgumentNullException("certs"); }
+			if (issuer == null) { throw new ArgumentNullException(nameof(issuer)); }
+			if (certs == null) { throw new ArgumentNullException(nameof(certs)); }
 			if (issuer.Handle.Equals(IntPtr.Zero)) { throw new ArgumentException("The issuer certificate is invalid"); }
 			if (certs.Count == 0) { throw new ArgumentException("Empty array in 'certs' parameter"); }
 			initializeFromCertsAndIssuer(certs, issuer);
@@ -85,7 +85,7 @@ namespace PKI.OCSP {
 		///		Collection in the <strong>requestList</strong> parameter is an empty sequence.
 		/// </exception>
 		public OCSPRequest(OCSPSingleRequestCollection requestList) {
-			if (requestList == null) { throw new ArgumentNullException("requestList"); }
+			if (requestList == null) { throw new ArgumentNullException(nameof(requestList)); }
 			if (requestList.Count == 0) { throw new ArgumentException("Request list is empty"); }
 			RequestList = requestList;
 		}
@@ -93,9 +93,8 @@ namespace PKI.OCSP {
 		/// <summary>
 		/// Gets OCSP Request version. Currently only version 1 is defined.
 		/// </summary>
-		public Int32 Version {
-			get { return 1; }
-		}
+		public Int32 Version => 1;
+
 		/// <summary>
 		/// Indicates whether the client chose to add <strong>Nonce</strong> extension.
 		/// </summary>
@@ -210,7 +209,7 @@ namespace PKI.OCSP {
 			}
 			AlgorithmIdentifier algId = new AlgorithmIdentifier(signatureAlgID);
 			List<Byte> signatureInfo = new List<Byte>(algId.RawData);
-			signatureInfo.AddRange((new Asn1BitString(signature, false)).RawData);
+			signatureInfo.AddRange(new Asn1BitString(signature, false).RawData);
 			signatureInfo.AddRange(Asn1Utils.Encode(_signerChain.Encode(), 0xa0));
 			tbsRequest.AddRange(Asn1Utils.Encode(Asn1Utils.Encode(signatureInfo.ToArray(), 48), 0xa0));
 			RawData = Asn1Utils.Encode(tbsRequest.ToArray(), 48);
@@ -244,7 +243,7 @@ namespace PKI.OCSP {
             Version ver = Assembly.GetExecutingAssembly().GetName().Version;
             wc.Headers.Add("Content-Type", "application/ocsp-request");
             wc.Headers.Add("Accept", "*/*");
-            wc.Headers.Add("User-Agent", String.Format("PowerShell PKI Module/{0}.{1}", ver.Major, ver.Minor));
+            wc.Headers.Add("User-Agent", $"PowerShell PKI Module/{ver.Major}.{ver.Minor}");
             wc.Headers.Add("Cache-Control", "no-cache");
             wc.Headers.Add("Pragma", "no-cache");
         }
@@ -337,7 +336,7 @@ namespace PKI.OCSP {
 		///  <para>Once the request is signed, no modifications to the request object are allowed.</para>
 		///  </remarks>
 		public void SignRequest(X509Certificate2 signerCert, Boolean includeFullChain, Oid signatureAlgorithm) {
-			if (signerCert == null) { throw new ArgumentNullException("signerCert"); }
+			if (signerCert == null) { throw new ArgumentNullException(nameof(signerCert)); }
 			if (!signerCert.HasPrivateKey) {
 				throw new ArgumentException("The certificate do not contain private key.");
 			}

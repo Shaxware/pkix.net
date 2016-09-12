@@ -22,7 +22,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="ArgumentNullException"></exception>
         public X509ApplicationPolicyConstraintsExtension(AsnEncodedData constraints)
             : base(new Oid("1.3.6.1.4.1.311.21.12"), constraints.RawData, false) {
-            if (constraints == null) { throw new ArgumentNullException("constraints"); }
+            if (constraints == null) { throw new ArgumentNullException(nameof(constraints)); }
             m_decode(constraints.RawData);
         }
 

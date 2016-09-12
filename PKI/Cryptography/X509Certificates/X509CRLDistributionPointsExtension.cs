@@ -13,7 +13,7 @@ namespace System.Security.Cryptography.X509Certificates {
 
 		internal X509CRLDistributionPointsExtension(Byte[] rawData, Boolean critical)
             : base("2.5.29.31", rawData, critical) {
-			if (rawData == null) { throw new ArgumentNullException("rawData"); }
+			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 
@@ -41,7 +41,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <param name="urls">An array of CDP URLs.</param>
 		/// <exception cref="ArgumentNullException"><strong>urls</strong>> parameter is null.</exception>
 		public X509CRLDistributionPointsExtension(String[] urls) {
-			if (urls == null) { throw new ArgumentNullException("urls"); }
+			if (urls == null) { throw new ArgumentNullException(nameof(urls)); }
 			m_initialize(urls);
 		}
 
@@ -78,7 +78,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// Gets an array of certificate revocation list URLs listed in the extension.
 		/// </summary>
 		/// <returns>An array of URLs.</returns>
-		public String[] GetURLs() {
+		public String[] GetUrLs() {
 			List<String> urls = new List<String>();
 			foreach (X509DistributionPoint crldp in CRLDistributionPoints) {
 				urls.AddRange(from X509AlternativeName url in crldp.FullName where url.Type == X509AlternativeNamesEnum.URL select url.Value);

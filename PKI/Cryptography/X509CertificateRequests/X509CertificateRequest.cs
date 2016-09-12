@@ -16,7 +16,7 @@ namespace System.Security.Cryptography.X509CertificateRequests {
 	public class X509CertificateRequest {
 		Wincrypt.CERT_REQUEST_INFO reqData;
 		Wincrypt.CERT_SIGNED_CONTENT_INFO signedData;
-		readonly X509AttributeCollection attribs = new X509AttributeCollection();
+		readonly X509AttributeCollection _attribs = new X509AttributeCollection();
 		X509ExtensionCollection exts = new X509ExtensionCollection();
 		Byte[] signature;
 		UInt32 sigUnused;
@@ -56,11 +56,12 @@ namespace System.Security.Cryptography.X509CertificateRequests {
 		/// <summary>
 		/// Gets textual form of the distinguished name of the request subject.
 		/// </summary>
-		public String Subject { get { return SubjectDN.Name; } }
+		public String Subject => SubjectDn.Name;
+
 		/// <summary>
 		/// Gets the distinguished name of the request subject.
 		/// </summary>
-		public X500DistinguishedName SubjectDN { get; private set; }
+		public X500DistinguishedName SubjectDn { get; private set; }
 		/// <summary>
 		/// Gets a <see cref="PublicKey"/> object associated with a certificate
 		/// </summary>
@@ -77,19 +78,13 @@ namespace System.Security.Cryptography.X509CertificateRequests {
 		/// Gets <see cref="X509AttributeCollection"/> object that contains a collection of attributes associated with the
 		/// certificate request.
 		/// </summary>
-		public X509AttributeCollection Attributes {
-			get {
-				return attribs.Count > 0 ? attribs : null;
-			}
-		}
+		public X509AttributeCollection Attributes => _attribs.Count > 0 ? _attribs : null;
+
 		/// <summary>
 		/// Gets a collection of <see cref="X509Extension">X509Extension</see> objects.
 		/// </summary>
-		public X509ExtensionCollection Extensions {
-			get {
-				return exts.Count > 0 ? exts : null;
-			}
-		}
+		public X509ExtensionCollection Extensions => exts.Count > 0 ? exts : null;
+
 		/// <summary>
 		/// Gets external PKCS7 envelope. External envelope is aplicable only for PKCS7 requests.
 		/// </summary>
@@ -132,12 +127,12 @@ namespace System.Security.Cryptography.X509CertificateRequests {
 		void decodePkcs7() {
 			ExternalData = new PKCS7SignedMessage(RawData);
 			Version = ((X509CertificateRequest[])ExternalData.Content)[0].Version;
-			SubjectDN = ((X509CertificateRequest[])ExternalData.Content)[0].SubjectDN;
+			SubjectDn = ((X509CertificateRequest[])ExternalData.Content)[0].SubjectDn;
 			PublicKey = ((X509CertificateRequest[])ExternalData.Content)[0].PublicKey;
 			SignatureIsValid = ((X509CertificateRequest[])ExternalData.Content)[0].SignatureIsValid;
 			SignatureAlgorithm = ((X509CertificateRequest[])ExternalData.Content)[0].SignatureAlgorithm;
 			foreach (X509Attribute attrib in ((X509CertificateRequest[])ExternalData.Content)[0].Attributes) {
-				attribs.Add(attrib);
+				_attribs.Add(attrib);
 			}
 			foreach (X509Extension ext in ((X509CertificateRequest[])ExternalData.Content)[0].Extensions) {
 				exts.Add(ext);
@@ -161,7 +156,7 @@ namespace System.Security.Cryptography.X509CertificateRequests {
 		void getSubject() {
 			Byte[] RawBytes = new Byte[reqData.Subject.cbData];
 			Marshal.Copy(reqData.Subject.pbData, RawBytes, 0, (Int32)reqData.Subject.cbData);
-			SubjectDN = new X500DistinguishedName(RawBytes);
+			SubjectDn = new X500DistinguishedName(RawBytes);
 		}
 		void getPublickey() {
 			Oid keyoid = new Oid(reqData.SubjectPublicKeyInfo.Algorithm.pszObjId);
@@ -208,7 +203,7 @@ namespace System.Security.Cryptography.X509CertificateRequests {
 				if (attrib.pszObjId == "1.2.840.113549.1.9.14") {
 					getExtensions(bytes);
 				} else {
-					attribs.Add(new X509Attribute(attriboid, bytes));
+					_attribs.Add(new X509Attribute(attriboid, bytes));
 				}
 				rgAttribute = (IntPtr)((UInt64)rgAttribute + (UInt32)Marshal.SizeOf(typeof(Wincrypt.CRYPT_ATTRIBUTE)));
 			}
@@ -236,44 +231,42 @@ namespace System.Security.Cryptography.X509CertificateRequests {
 		}
 		// functions for ToString() method.
 		void genPkcs10String(StringBuilder SB) {
-			String n = Environment.NewLine;
-			SB.Append("PKCS10 Certificate Request:" + n);
-			SB.Append("Version: " + Version + n);
-			SB.Append("Subject:" + n);
-			SB.Append("    " + Subject + n + n);
-			SB.Append("Public Key Algorithm: " + n);
-			SB.Append("    Algorithm ObjectId: " + PublicKey.Oid.FriendlyName + " (" + PublicKey.Oid.Value + ")" + n);
-			SB.Append("    Algorithm Parameters: " + n + "    ");
+			String nl = Environment.NewLine;
+			SB.Append($"PKCS10 Certificate Request:{nl}");
+			SB.Append($"Version: {Version}{nl}");
+			SB.Append($"Subject:{nl}");
+			SB.Append($"    {Subject}{nl}{nl}");
+			SB.Append($"Public Key Algorithm: {nl}");
+			SB.Append($"    Algorithm ObjectId: {PublicKey.Oid.FriendlyName} ({PublicKey.Oid.Value}){nl}");
+			SB.Append($"    Algorithm Parameters: {nl}" + "    ");
 			String tempString = AsnFormatter.BinaryToString(PublicKey.EncodedParameters.RawData, EncodingType.Hex);
-			SB.Append(tempString.Replace("\r\n","\r\n    ").TrimEnd() + n);
+			SB.Append(tempString.Replace("\r\n","\r\n    ").TrimEnd() + nl);
 			if (PublicKey.Oid.Value == "1.2.840.10045.2.1") {
-				SB.Append("        " + curve.FriendlyName + " (" + curve.Value + ")" + n);
+				SB.Append($"        {curve.FriendlyName} ({curve.Value}){nl}");
 			}
-			SB.Append("Public Key Length: " + pubKeyLength + " bits" + n);
-			SB.Append("Public Key: UnusedBits=" + pubKeyUnused + n + "    ");
+			SB.Append($"Public Key Length: {pubKeyLength} bits{nl}");
+			SB.Append($"Public Key: UnusedBits={pubKeyUnused}{nl}    ");
 			tempString = AsnFormatter.BinaryToString(PublicKey.EncodedKeyValue.RawData, EncodingType.HexAddress);
-			SB.Append(tempString.Replace("\r\n", "\r\n    ").TrimEnd() + n);
-			SB.Append("Request attributes (Count=" + attribs.Count + "):" + n);
-			for (Int32 index = 0; index < attribs.Count; index++) {
-				SB.Append("  Attribute[" + index + "], Length=" + attribs[index].RawData.Length + " (" + String.Format("{0:x2}", attribs[index].RawData.Length) + "):" + n);
-				SB.Append("    " + attribs[index].Format(true).Replace("\r\n", "\r\n    ").TrimEnd() + n + n);
+			SB.Append(tempString.Replace("\r\n", "\r\n    ").TrimEnd() + nl);
+			SB.Append($"Request attributes (Count={_attribs.Count}):{nl}");
+			for (Int32 index = 0; index < _attribs.Count; index++) {
+				SB.Append($"  Attribute[{index}], Length={_attribs[index].RawData.Length} ({_attribs[index].RawData.Length:x2}):{nl}");
+				SB.Append($"    {_attribs[index].Format(true).Replace("\r\n", "\r\n    ").TrimEnd()}{nl}{nl}");
 			}
-			SB.Append("Request extensions (Count=" + exts.Count + "):" + n);
+			SB.Append($"Request extensions (Count={exts.Count}):{nl}");
 			foreach (X509Extension ext in exts) {
-				if (String.IsNullOrEmpty(ext.Oid.FriendlyName)) {
-					SB.Append("  " + ext.Oid.Value);
-				} else {
-					SB.Append("  OID=" + ext.Oid.FriendlyName + " (" + ext.Oid.Value + "), ");
-				}
-				SB.Append("Critical=" + ext.Critical + ", Length=" + ext.RawData.Length + " (" + String.Format("{0:x2}", ext.RawData.Length) + "):" + n);
-				SB.Append("    " + ext.Format(true).Replace("\r\n", "\r\n    ").TrimEnd() + n + n);
+				SB.Append(String.IsNullOrEmpty(ext.Oid.FriendlyName)
+					? $"  {ext.Oid.Value}"
+					: $"  OID={ext.Oid.FriendlyName} ({ext.Oid.Value}), ");
+				SB.Append($"Critical={ext.Critical}, Length={ext.RawData.Length} ({ext.RawData.Length:x2}):{nl}");
+				SB.Append($"    {ext.Format(true).Replace("\r\n", "\r\n    ").TrimEnd()}{nl}{nl}");
 			}
-			SB.Append("Signature Algorithm:" + n);
-			SB.Append("    Algorithm ObjectId: " + SignatureAlgorithm.Value + " (" + SignatureAlgorithm.FriendlyName + ")" + n);
-			SB.Append("Signature: Unused bits=" + sigUnused + n + "    ");
+			SB.Append($"Signature Algorithm:{nl}");
+			SB.Append($"    Algorithm ObjectId: {SignatureAlgorithm.Value} ({SignatureAlgorithm.FriendlyName}){nl}");
+			SB.Append($"Signature: Unused bits={sigUnused}{nl}    ");
 			tempString = AsnFormatter.BinaryToString(signature, EncodingType.HexAddress);
-			SB.Append(tempString.Replace("\r\n", "\r\n    ").TrimEnd() + n);
-			SB.Append("Signature matches Public Key: " + SignatureIsValid + n);
+			SB.Append(tempString.Replace("\r\n", "\r\n    ").TrimEnd() + nl);
+			SB.Append($"Signature matches Public Key: {SignatureIsValid}{nl}");
 		}
 		void genPkcs7String(StringBuilder SB) {
 			SB.Append(((X509CertificateRequest[])ExternalData.Content)[0]);
