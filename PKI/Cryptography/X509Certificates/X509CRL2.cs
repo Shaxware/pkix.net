@@ -256,19 +256,16 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 		void genBriefString(StringBuilder SB) {
 			String n = Environment.NewLine;
-			SB.Append("[Type]" + n + "  ");
-			SB.Append(Type);
-			SB.Append(n + n + "[Issuer]" + n + "  ");
-			SB.Append(Issuer);
-			SB.Append(n + n + "[This Update]" + n + "  ");
-			SB.Append(ThisUpdate);
-			SB.Append(n + n + "[Next Update]" + n + "  ");
+			SB.Append($"[Type]{n}  {Type}{n}{n}");
+			SB.Append($"[Issuer]{n}  {Issuer}{n}{n}");
+			SB.Append($"[This Update]{n}  {ThisUpdate}{n}{n}");
+			SB.Append($"[Next Update]{n}  ");
 			if (NextUpdate == null) {
 				SB.Append("Infinity");
 			} else {
 				SB.Append(NextUpdate);
 			}
-			SB.Append(n + n + "[Revoked Certificate Count]" + n + "  ");
+			SB.Append($"{n}{n}[Revoked Certificate Count]{n}  ");
 			if (RevokedCertificates == null) {
 				SB.Append("0");
 			} else {
@@ -278,56 +275,48 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 		void genVerboseString(StringBuilder SB) {
 			String n = Environment.NewLine;
-			SB.Append("X509 Certificate Revocation List:\r\n");
-			SB.AppendFormat("Version: {0}\r\n", Version);
-			SB.Append("Issuer: \r\n");
+			SB.Append($"X509 Certificate Revocation List:{n}");
+			SB.Append($"Version: {Version}{n}");
+			SB.Append($"Issuer: {n}");
 			String[] tokens = Issuer.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			for (Int32 index = 0; index < tokens.Length; index++) {
 				tokens[index] = "    " + tokens[index].Trim();
 			}
-			SB.Append(String.Join("\r\n", tokens) + n);
-			SB.AppendFormat("This Update: {0}\r\n", ThisUpdate);
+			SB.Append(String.Join(n, tokens) + n);
+			SB.Append($"This Update: {ThisUpdate}{n}");
 			if (NextUpdate == null) {
-				SB.Append("Next Update: Infinity\r\n");
+				SB.Append($"Next Update: Infinity{n}");
 			} else {
-				SB.AppendFormat("Next Update: {0}\r\n", NextUpdate);
+				SB.Append($"Next Update: {NextUpdate}{n}");
 			}
 			if (RevokedCertificates == null) {
-				SB.Append("CRL Entries: 0\r\n");
+				SB.Append($"CRL Entries: 0{n}");
 			} else {
-				SB.AppendFormat("CRL Entries: {0}\r\n", RevokedCertificates.Count);
+				SB.Append($"CRL Entries: {RevokedCertificates.Count}{n}");
 				foreach (X509CRLEntry revcert in RevokedCertificates) {
-					SB.AppendFormat("    Serial Number: {0}\r\n", revcert.SerialNumber);
-					SB.AppendFormat("    Revocation Date: {0}\r\n", revcert.RevocationDate);
+					SB.Append($"    Serial Number: {revcert.SerialNumber}{n}");
+					SB.Append($"    Revocation Date: {revcert.RevocationDate}{n}");
 					if (revcert.ReasonCode != 0) {
-						SB.AppendFormat("    Revocation Reason: {0} ({1})\r\n", revcert.ReasonMessage, revcert.ReasonCode);
+						SB.Append($"    Revocation Reason: {revcert.ReasonMessage} ({revcert.ReasonCode}){n}");
 					}
 					SB.Append(n);
 				}
 			}
 			if (Extensions == null) {
-				SB.Append("CRL Extensions: 0\r\n");
+				SB.Append($"CRL Extensions: 0{n}");
 			} else {
-				SB.AppendFormat("CRL Extensions: {0}\r\n", Extensions.Count);
+				SB.Append($"CRL Extensions: {Extensions.Count}{n}");
 				foreach (X509Extension ext in Extensions) {
-					if (String.IsNullOrEmpty(ext.Oid.FriendlyName)) {
-						SB.Append("  " + ext.Oid.Value);
-					} else {
-						SB.AppendFormat("  OID={0} ({1}), ", ext.Oid.FriendlyName, ext.Oid.Value);
-					}
-					SB.AppendFormat("Critical={0}, Length={1} ({1:x2}):\r\n", ext.Critical, ext.RawData.Length);
-					SB.AppendFormat("    {0}\r\n\r\n", ext.Format(true).Replace("\r\n", "\r\n    ").TrimEnd());
+					SB.Append($"  OID={ext.Oid.Format(true)}");
+					SB.Append($"Critical={ext.Critical}, Length={ext.RawData.Length} ({ext.RawData.Length:x2}):{n}");
+					SB.Append($"    {ext.Format(true).Replace(n, $"{n}    ").TrimEnd()}{n}{n}");
 				}
 			}
 			SB.Append("Signature Algorithm:" + n);
-			if (String.IsNullOrEmpty(SignatureAlgorithm.FriendlyName)) {
-				SB.AppendFormat("    Algorithm ObjectId: {0}\r\n", SignatureAlgorithm.Value);
-			} else {
-				SB.AppendFormat("    Algorithm ObjectId: {0} ({1})\r\n", SignatureAlgorithm.Value, SignatureAlgorithm.FriendlyName);
-			}
-			SB.AppendFormat("Signature: Unused bits={0}\r\n    ", sigUnused);
+			SB.Append($"    Algorithm ObjectId: {SignatureAlgorithm.Format(true)}{n}");
+			SB.Append($"Signature: Unused bits={sigUnused}{n}    ");
 			String tempString = AsnFormatter.BinaryToString(signature, EncodingType.HexAddress);
-			SB.AppendFormat("{0}\r\n", tempString.Replace("\r\n", "\r\n    ").TrimEnd());
+			SB.Append($"{tempString.Replace(n, $"{n}    ").TrimEnd()}{n}");
 		}
 		internal static X509CRL2 CreateLocalRevocationInformation(X509Certificate2 issuer) {
 			if (issuer == null) { throw new ArgumentNullException(nameof(issuer)); }

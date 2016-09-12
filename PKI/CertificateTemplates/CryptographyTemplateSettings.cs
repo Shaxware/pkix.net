@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
+using PKI.Utils.CLRExtensions;
 using X509KeyUsageFlags = System.Security.Cryptography.X509Certificates.X509KeyUsageFlags;
 
 namespace PKI.CertificateTemplates {
@@ -211,12 +212,8 @@ namespace PKI.CertificateTemplates {
 				}
 				SB.Append(nl);
 			}
-			SB.Append(String.IsNullOrEmpty(KeyAlgorithm.FriendlyName)
-				? $"  Key Algorithm: {KeyAlgorithm.Value}{nl}"
-				: $"  Key Algorithm: {KeyAlgorithm.FriendlyName} ({KeyAlgorithm.Value}){nl}");
-			SB.Append(String.IsNullOrEmpty(HashAlgorithm.FriendlyName)
-				? $"  Hash Algorithm: {HashAlgorithm.Value}{nl}"
-				: $"  Hash Algorithm: {HashAlgorithm.FriendlyName} ({HashAlgorithm.Value}){nl}");
+			SB.Append($"  Key Algorithm: {KeyAlgorithm.Format(true)}{nl}");
+			SB.Append($"  Hash Algorithm: {HashAlgorithm.Format(true)}{nl}");
 			SB.Append($"  Key Length: {MinimalKeyLength}{nl}");
 			SB.Append($"  Private key options: {PrivateKeyOptions}{nl}");
 			SB.Append($"  KeySpec: {KeySpec}{nl}");
