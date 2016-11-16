@@ -43,14 +43,19 @@
 		public X509AlternativeNameCollection AlternativeNames {
 			get {
 				X509AlternativeNameCollection retValue = new X509AlternativeNameCollection();
-				foreach (X509AlternativeName item in alternativeNames) {
-					retValue.Add(item);
+				foreach (X509AlternativeName altName in alternativeNames) {
+					retValue.Add(altName);
 				}
 				return retValue;
 			}
 		}
 
 		void m_initizlize(X509AlternativeNameCollection altNames, Boolean critical) {
+			foreach (X509AlternativeName altName in altNames) {
+				if (String.IsNullOrEmpty(altName.Value)) {
+					throw new ArgumentException($"Empty value for {altName.Type} is not allowed.");
+				}
+			}
 			Critical = critical;
 			Oid = _oid;
 			RawData = altNames.Encode();
@@ -58,6 +63,11 @@
 		}
 		void m_decode(Byte[] rawData) {
             alternativeNames.Decode(rawData);
-        }
+			foreach (X509AlternativeName altName in alternativeNames) {
+				if (String.IsNullOrEmpty(altName.Value)) {
+					throw new ArgumentException($"Empty value for {altName.Type} is not allowed.");
+				}
+			}
+		}
 	}
 }

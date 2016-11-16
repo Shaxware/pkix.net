@@ -20,7 +20,6 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// Gets the number of <see cref="X509AlternativeName"/> objects in a collection.
 		/// </summary>
 		public Int32 Count => _list.Count;
-
 		/// <summary>
 		/// Indicates whether the collection is read-only.
 		/// </summary>

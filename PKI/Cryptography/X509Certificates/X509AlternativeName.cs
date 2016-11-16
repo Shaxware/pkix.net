@@ -26,9 +26,6 @@ namespace System.Security.Cryptography.X509Certificates {
 		///  <param name="value">
 		/// 	Specifies the alternative name value. For acceptable value types see <strong>Remarks</strong> section.
 		///  </param>
-		/// <exception cref="ArgumentNullException">
-		///		<strong>value</strong> parameter is null reference.
-		/// </exception>
 		/// <exception cref="InvalidOperationException">
 		/// 	The constructor cannot be used for <strong>OtherName</strong> type.
 		/// </exception>
@@ -106,9 +103,14 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// 		</description>
 		///		</item>
 		/// </list>
+		/// <pare>
+		/// For compatibility with Name Constraints extension, null value can be passed for any name type except
+		/// IPAddress name type. For IPAddress name type, global IP subnet must be used instead of empty value.
+		/// For example, "0.0.0.0/0".
+		/// </pare>
 		/// </remarks>
 		public X509AlternativeName(X509AlternativeNamesEnum type, Object value) {
-			if (value == null) { throw new ArgumentNullException(nameof(value)); }
+			//if (value == null) { throw new ArgumentNullException(nameof(value)); }
 			if (type == X509AlternativeNamesEnum.OtherName) { throw new InvalidOperationException("Invalid constructor."); }
 			m_initialize(type, value);
 		}
@@ -138,13 +140,16 @@ namespace System.Security.Cryptography.X509Certificates {
 		///   <exception cref="ArgumentException">
 		///  		The value does not fall within the expected type.
 		///   </exception>
+		/// <remarks>
+		/// For compatibility with Name Constraints extension, null value can be passed for any name type
+		/// supported by this constructor.
+		/// </remarks>
 		public X509AlternativeName(X509AlternativeNamesEnum type, Object value, Oid oid) {
 			if (
 				type != X509AlternativeNamesEnum.OtherName &&
 				type != X509AlternativeNamesEnum.Guid &&
 				type != X509AlternativeNamesEnum.UserPrincipalName
 				) { throw new InvalidOperationException("Invalid constructor."); }
-			if (value == null) { throw new ArgumentNullException(nameof(value)); }
 			if (String.IsNullOrEmpty(oid?.Value)) { throw new ArgumentNullException(nameof(oid)); }
 			encodeOtherName(value, oid);
 		}
@@ -189,10 +194,10 @@ namespace System.Security.Cryptography.X509Certificates {
 		void encodeFromValue(Object value) {
 			switch (Type) {
 				case X509AlternativeNamesEnum.Rfc822Name:
-					encodeEmailName((String)value);
+					encodeEmailName(value as String);
 					break;
 				case X509AlternativeNamesEnum.DnsName:
-					encodeDnsName((String)value);
+					encodeDnsName(value as String);
 					break;
 				case X509AlternativeNamesEnum.DirectoryName:
 					encodeDirectoryName(value);
@@ -210,12 +215,12 @@ namespace System.Security.Cryptography.X509Certificates {
 					encodeGuid(value);
 					break;
 				case X509AlternativeNamesEnum.UserPrincipalName:
-					encodeUPN((String)value);
+					encodeUPN(value as String);
 					break;
 				default: throw new ArgumentException();
 			}
 		}
-		// encoders
+		// specific name types encoders
 		void encodeOtherName(Object value, Oid oid) {
 			Byte[] rawBytes;
 			if (value as String != null) {
@@ -223,7 +228,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			} else if (value as Byte[] != null) {
 				rawBytes = (Byte[])value;
 			} else {
-				throw new ArgumentException("Input data must be either string or byte array.");
+				rawBytes = new Byte[0];
 			}
 			Asn1Type tag;
 			switch (oid.Value) {
@@ -259,120 +264,151 @@ namespace System.Security.Cryptography.X509Certificates {
 			RawData = Asn1Utils.Encode(tempBytes.ToArray(), 160);
 		}
 		void encodeEmailName(String value) {
-			try {
-				//MailAddress address = new MailAddress(value);
-				Value = value;
-				RawData = Asn1Utils.Encode(Encoding.UTF8.GetBytes(Value), 129);
-			} catch { throw new ArgumentException("The string is not valid Rfc822 name."); }
+			if (value == null) {
+				RawData = new Byte[] { 129, 0 };
+			} else {
+				try {
+					//MailAddress address = new MailAddress(value);
+					Value = value;
+					RawData = Asn1Utils.Encode(Encoding.UTF8.GetBytes(Value), 129);
+				} catch { throw new ArgumentException("The string is not valid Rfc822 name."); }
+			}
 		}
 		void encodeDnsName(String value) {
-			try {
-				Value = value;
-				RawData = Asn1Utils.Encode(Encoding.UTF8.GetBytes(Value), 130);
-			} catch { throw new ArgumentException("The string is not valid DNS name"); }
+			if (value == null) {
+				RawData = new Byte[] { 130, 0 };
+			} else {
+				try {
+					Value = value;
+					RawData = Asn1Utils.Encode(Encoding.UTF8.GetBytes(Value), 130);
+				} catch { throw new ArgumentException("The string is not valid DNS name"); }
+			}
 		}
 		void encodeDirectoryName(Object value) {
-			X500DistinguishedName name;
-			if (value as String != null) {
-				try {
-					name = new X500DistinguishedName((String)value);
-				} catch { throw new ArgumentException("The string is not valid X.500 name."); }
+			if (value == null) {
+				RawData = new Byte[] { 164, 2, 48, 0 };
 			} else {
-				try {
-					name = new X500DistinguishedName((X500DistinguishedName)value);
-				} catch { throw new ArgumentException("The string is not valid X500DistinguishedName object."); }
+				X500DistinguishedName name;
+				if (value as String != null) {
+					try {
+						name = new X500DistinguishedName((String)value);
+					} catch { throw new ArgumentException("The string is not valid X.500 name."); }
+				} else {
+					try {
+						name = new X500DistinguishedName((X500DistinguishedName)value);
+					} catch { throw new ArgumentException("The string is not valid X500DistinguishedName object."); }
+				}
+				Value = name.Name;
+				RawData = Asn1Utils.Encode(name.RawData, 164);
 			}
-			Value = name.Name;
-			RawData = Asn1Utils.Encode(name.RawData, 164);
 		}
 		void encodeUrl(Object value) {
-			Uri url;
-			if (value as String != null) {
-				try {
-					url = new Uri((String)value);
-				} catch { throw new ArgumentException("The string is not valid URL."); }
+			if (value == null) {
+				RawData = new Byte[] { 134, 0 };
 			} else {
-				try {
-					url = (Uri)value;
-				} catch { throw new ArgumentException("The string is not valid Uri object."); }
+				Uri url;
+				if (value as String != null) {
+					try {
+						url = new Uri((String)value);
+					} catch { throw new ArgumentException("The string is not valid URL."); }
+				} else {
+					try {
+						url = (Uri)value;
+					} catch { throw new ArgumentException("The string is not valid Uri object."); }
+				}
+				Value = url.AbsoluteUri;
+				RawData = Asn1Utils.Encode(Encoding.UTF8.GetBytes(Value), 134);
 			}
-			Value = url.AbsoluteUri;
-			RawData = Asn1Utils.Encode(Encoding.UTF8.GetBytes(Value), 134);
 		}
 		void encodeIpAddress(String value) {
-            Boolean ipv4 = value.Contains('.');
-			List<Byte> bytes = new List<Byte>();
-            String[] tokens = value.Split('/');
-            value = tokens[0];
-            String netMask = String.Empty;
-			try {
-                bytes.AddRange(IPAddress.Parse(value).GetAddressBytes());
-			} catch {
-				throw new ArgumentException("The specified value is not valid IPv4 or IPv6 address.");
+			if (value == null) {
+				RawData = new Byte[] { 135, 0 };
+			} else {
+				Boolean ipv4 = value.Contains('.');
+				List<Byte> bytes = new List<Byte>();
+				String[] tokens = value.Split('/');
+				value = tokens[0];
+				String netMask = String.Empty;
+				try {
+					bytes.AddRange(IPAddress.Parse(value).GetAddressBytes());
+				} catch {
+					throw new ArgumentException("The specified value is not valid IPv4 or IPv6 address.");
+				}
+				if (tokens.Length == 2) {
+					netMask = "/" + tokens[1];
+					var maskLength = Convert.ToByte(tokens[1]);
+					if (ipv4 && maskLength > 32) {
+						throw new ArgumentException("The IPv4 netmask value is invalid.");
+					}
+					if (!ipv4 && maskLength > 128) {
+						throw new ArgumentException("The IPv6 netmask value is invalid.");
+					}
+					if (ipv4) {
+						Int32 bits = 32 - maskLength;
+						Int32 mask = ~(0 | ((Int32)Math.Pow(2, bits) - 1));
+						bytes.AddRange(BitConverter.GetBytes(mask).Reverse());
+					} else {
+						// ipv6
+						Int32 maskBits = maskLength;
+						Int32 shiftBits = 128 - maskBits;
+						BigInteger mask = ((BigInteger)Math.Pow(2, maskBits) - 1) << shiftBits;
+						bytes.AddRange(mask.ToLittleEndianByteArray().Skip(1).Take(16).ToArray());
+					}
+				}
+				Value = IPAddress.Parse(value) + netMask;
+				RawData = Asn1Utils.Encode(bytes.ToArray(), 135);
 			}
-            if (tokens.Length == 2) {
-                netMask = "/" + tokens[1];
-                var maskLength = Convert.ToByte(tokens[1]);
-                if (ipv4 && maskLength > 32) {
-                    throw new ArgumentException("The IPv4 netmask value is invalid.");
-                }
-                if (!ipv4 && maskLength > 128) {
-                    throw new ArgumentException("The IPv6 netmask value is invalid.");
-                }
-                if (ipv4) {
-                    Int32 bits = 32 - maskLength;
-                    Int32 mask = ~(0 | ((Int32)Math.Pow(2, bits) - 1));
-                    bytes.AddRange(BitConverter.GetBytes(mask).Reverse());
-                } else {
-                    // ipv6
-                    Int32 maskBits = maskLength;
-                    Int32 shiftBits = 128 - maskBits;
-                    BigInteger mask = ((BigInteger)Math.Pow(2, maskBits) - 1) << shiftBits;
-                    bytes.AddRange(mask.ToLittleEndianByteArray().Skip(1).Take(16).ToArray());
-                }
-            }
-            Value = IPAddress.Parse(value) + netMask;
-			RawData = Asn1Utils.Encode(bytes.ToArray(), 135);
 		}
 		void encodeRegisteredId(Object value) {
-			Asn1Reader asn;
-			switch (value.GetType().FullName) {
-				case "System.String":
-					Value = (String)value;
-					Oid oid = new Oid((String)value);
-					asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier(oid));
-					Value = oid.Value;
-					break;
-				case "System.Security.Oid":
-					asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier((Oid)value));
-					Value = ((Oid)value).Value;
-					break;
-				case "System.Security.Oid2":
-					asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier(new Oid(((Oid2)value).Value)));
-					Value = ((Oid2)value).Value;
-					break;
-				default: throw new ArgumentException("The input data is not valid registered ID.");
+			if (value == null) {
+				RawData = new Byte[] { 136, 0 };
+			} else {
+				Asn1Reader asn;
+				switch (value.GetType().FullName) {
+					case "System.String":
+						Value = (String)value;
+						Oid oid = new Oid((String)value);
+						asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier(oid));
+						Value = oid.Value;
+						break;
+					case "System.Security.Oid":
+						asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier((Oid)value));
+						Value = ((Oid)value).Value;
+						break;
+					case "System.Security.Oid2":
+						asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier(new Oid(((Oid2)value).Value)));
+						Value = ((Oid2)value).Value;
+						break;
+					default: throw new ArgumentException("The input data is not valid registered ID.");
+				}
+				RawData = Asn1Utils.Encode(asn.GetPayload(), 136);
 			}
-			RawData = Asn1Utils.Encode(asn.GetPayload(), 136);
 		}
 		void encodeGuid(Object value) {
-			Guid guid;
-			if (value.GetType().FullName == "System.Guid") {
-				guid = (Guid)value;
+			if (value == null) {
+				encodeOtherName(null, new Oid("1.3.6.1.4.1.311.25.1"));
 			} else {
-				try {
-					guid = new Guid((String)value);
-					Value = new Guid(RawData).ToString();
-				} catch { throw new ArgumentException("Input string is not valid Guid string."); }
+				Guid guid;
+				if (value.GetType().FullName == "System.Guid") {
+					guid = (Guid)value;
+				} else {
+					try {
+						guid = new Guid((String)value);
+						Value = new Guid(RawData).ToString();
+					} catch { throw new ArgumentException("Input string is not valid Guid string."); }
+				}
+				encodeOtherName(guid.ToByteArray(), new Oid("1.3.6.1.4.1.311.25.1"));
 			}
-			encodeOtherName(guid.ToByteArray(), new Oid("1.3.6.1.4.1.311.25.1"));
 		}
 		void encodeUPN(String value) {
-			try {
-				//MailAddress address = new MailAddress(value);
-				Value = value;
-				encodeOtherName(Encoding.UTF8.GetBytes(value), new Oid("1.3.6.1.4.1.311.20.2.3"));
-			} catch { throw new ArgumentException("The string is not valid user principal name."); }
+			if (value == null) {
+				encodeOtherName(null, new Oid("1.3.6.1.4.1.311.20.2.3"));
+			} else {
+				try {
+					Value = value;
+					encodeOtherName(Encoding.UTF8.GetBytes(value), new Oid("1.3.6.1.4.1.311.20.2.3"));
+				} catch { throw new ArgumentException("The string is not valid user principal name."); }
+			}
 		}
 
 		// main decoder
@@ -409,9 +445,11 @@ namespace System.Security.Cryptography.X509Certificates {
 					// UPN
 					case "1.3.6.1.4.1.311.20.2.3":
 						Type = X509AlternativeNamesEnum.UserPrincipalName;
+						if (asn.PayloadLength == 0) { return; }
 						Value = Encoding.UTF8.GetString(asn.GetPayload()); break;
 					// GUID
 					case "1.3.6.1.4.1.311.25.1":
+						if (asn.PayloadLength == 0) { return; }
 						Guid guid = new Guid(asn.GetPayload());
 						Type = X509AlternativeNamesEnum.Guid;
 						Value = guid.ToString();
@@ -431,6 +469,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			Type = X509AlternativeNamesEnum.Rfc822Name;
 			try {
 				Asn1Reader asn = new Asn1Reader(RawData);
+				if (asn.PayloadLength == 0) { return; }
 				Value = Encoding.UTF8.GetString(asn.GetPayload());
 			} catch { throw new ArgumentException("Input data is not valid Rfc822 name."); }
 		}
@@ -438,6 +477,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			Type = X509AlternativeNamesEnum.DnsName;
 			try {
 				Asn1Reader asn = new Asn1Reader(RawData);
+				if (asn.PayloadLength == 0) { return; }
 				Value = Encoding.UTF8.GetString(asn.GetPayload());
 			} catch { throw new ArgumentException("Input data is not valid DNS name."); }
 		}
@@ -445,13 +485,15 @@ namespace System.Security.Cryptography.X509Certificates {
 			Type = X509AlternativeNamesEnum.DirectoryName;
 			try {
 				Asn1Reader asn = new Asn1Reader(RawData);
+				if (asn.PayloadLength == 2) { return; }
 				Value = new X500DistinguishedName(asn.GetPayload()).Name;
 			} catch { throw new ArgumentException("Input data is not valid X.500 distinguished name."); }
 		}
 		void decodeUrl() {
 			Type = X509AlternativeNamesEnum.URL;
             Asn1Reader asn = new Asn1Reader(RawData);
-            try {
+			if (asn.PayloadLength == 0) { return; }
+			try {
                 Value = new Uri(Encoding.UTF8.GetString(asn.GetPayload())).AbsoluteUri;
 			} catch {
                 Value = Encoding.UTF8.GetString(asn.GetPayload());
@@ -461,7 +503,10 @@ namespace System.Security.Cryptography.X509Certificates {
 			Type = X509AlternativeNamesEnum.IpAddress;
 			try {
 				Asn1Reader asn = new Asn1Reader(RawData);
-                Int32 takeBytes;
+				// as per RFC5280 §4.2.1.10 and §4.2.1.10, empty value is not allowed. Either, 8 or 32 bytes
+				// IP address should be provided. However, Microsoft uses empty value. Needs some clarification.
+				if (asn.PayloadLength == 0) { return; }
+				Int32 takeBytes;
                 Boolean maskPresented = false;
 			    switch (asn.PayloadLength) {
                     case 4: takeBytes = 4; break;
@@ -483,6 +528,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			Type = X509AlternativeNamesEnum.RegisteredId;
 			try {
 				Asn1Reader asn = new Asn1Reader(RawData);
+				if (asn.PayloadLength == 0) { return; }
 				Oid oid = Asn1Utils.DecodeObjectIdentifier(Asn1Utils.Encode(asn.GetPayload(), (Byte)Asn1Type.OBJECT_IDENTIFIER));
 				Value = oid.Value;
 			} catch { throw new ArgumentException("Input data is not valid registered ID."); }
