@@ -240,8 +240,7 @@ namespace PKI.ManagedAPI {
 			Asn1Reader asn = new Asn1Reader(rawData);
 			if (asn.Tag != 48) { throw new InvalidDataException(); }
 			X509ExtensionCollection exts = new X509ExtensionCollection();
-			if (!asn.MoveNext()) { throw new Asn1InvalidTagException(); }
-			if (asn.NextOffset == 0) { return exts; }
+			if (!asn.MoveNext() || asn.NextOffset == 0) { return exts; }
 			do {
 				exts.Add(DecodeX509Extension(asn.GetTagRawData()));
 			} while (asn.MoveNextCurrentLevel());
