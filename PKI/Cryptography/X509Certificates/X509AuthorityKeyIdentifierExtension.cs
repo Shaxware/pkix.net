@@ -99,13 +99,14 @@ namespace System.Security.Cryptography.X509Certificates {
                 rawData.AddRange(Asn1Utils.Encode(issuer.GetSerialNumber().Reverse().ToArray(), 0x82));
                 IncludedComponents |= AuthorityKeyIdentifierFlags.SerialNumber;
             }
+			RawData = Asn1Utils.Encode(rawData.ToArray(), 48);
         }
         void initializeFromKeyId(String keyId, Boolean critical) {
             Oid = _oid;
             Critical = critical;
             IncludedComponents = AuthorityKeyIdentifierFlags.KeyIdentifier;
 
-            var keyIdBytes = AsnFormatter.StringToBinary(keyId);
+            Byte[] keyIdBytes = AsnFormatter.StringToBinary(keyId);
             KeyIdentifier = AsnFormatter.BinaryToString(keyIdBytes, EncodingType.HexRaw, EncodingFormat.NOCRLF);
             RawData = Asn1Utils.Encode(AsnFormatter.StringToBinary(keyId, EncodingType.Hex), 0x80);
             RawData = Asn1Utils.Encode(RawData, 48);
