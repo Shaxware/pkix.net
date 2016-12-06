@@ -96,7 +96,7 @@ namespace PKI.Utils {
 			}
 			StringBuilder sb = new StringBuilder(rawData.Length / 2);
 			for (Int32 index = 0; index < rawData.Length; index += 2) {
-				sb.Append((Int16)rawBytes[index + 1] << 8 | rawBytes[index]);
+				sb.Append(rawBytes[index + 1] << 8 | rawBytes[index]);
 			}
 			return sb.ToString();
 		}
