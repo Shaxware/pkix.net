@@ -7,21 +7,21 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace PKI.Utils {
-    static class CryptographyUtils {
+	public static class CryptographyUtils {
 		public static X509Extension ConvertExtension(X509Extension extension) {
 			AsnEncodedData asndata = new AsnEncodedData(extension.Oid, extension.RawData);
 			switch (extension.Oid.Value) {
 				case "1.3.6.1.4.1.311.21.4":
 					return new X509NextCRLPublishExtension(asndata, extension.Critical);
-                case "1.3.6.1.4.1.311.21.7":
+				case "1.3.6.1.4.1.311.21.7":
 					return new X509CertificateTemplateExtension(asndata, extension.Critical);
 				case "1.3.6.1.4.1.311.21.10":
 					return new X509ApplicationPoliciesExtension(asndata, extension.Critical);
-                case "1.3.6.1.4.1.311.21.11":
-                    return new X509ApplicationPolicyMappingsExtension(asndata);
-                case "1.3.6.1.4.1.311.21.12":
-                    return new X509ApplicationPolicyConstraintsExtension(asndata);
-                case "1.3.6.1.5.5.7.1.1":
+				case "1.3.6.1.4.1.311.21.11":
+					return new X509ApplicationPolicyMappingsExtension(asndata);
+				case "1.3.6.1.4.1.311.21.12":
+					return new X509ApplicationPolicyConstraintsExtension(asndata);
+				case "1.3.6.1.5.5.7.1.1":
 					return new X509AuthorityInformationAccessExtension(asndata, extension.Critical);
 				case "1.3.6.1.5.5.7.48.1.2":
 					return new X509NonceExtension(asndata, extension.Critical);
@@ -43,19 +43,19 @@ namespace PKI.Utils {
 					return new X509BasicConstraintsExtension(asndata, extension.Critical);
 				case "2.5.29.20":
 					return new X509CRLNumberExtension(asndata, extension.Critical);
-                case "2.5.29.30":
-                    return new X509NameConstraintsExtension(asndata);
-                case "2.5.29.31":
+				case "2.5.29.30":
+					return new X509NameConstraintsExtension(asndata);
+				case "2.5.29.31":
 					return new X509CRLDistributionPointsExtension(asndata, extension.Critical);
 				case "2.5.29.32":
 					return new X509CertificatePoliciesExtension(asndata, extension.Critical);
-                case "2.5.29.33":
-                    return new X509CertificatePolicyMappingsExtension(asndata);
-                case "2.5.29.35":
-                    return new X509AuthorityKeyIdentifierExtension(asndata, extension.Critical);
-                case "2.5.29.36":
-                    return new X509CertificatePolicyConstraintsExtension(asndata);
-                case "2.5.29.37":
+				case "2.5.29.33":
+					return new X509CertificatePolicyMappingsExtension(asndata);
+				case "2.5.29.35":
+					return new X509AuthorityKeyIdentifierExtension(asndata, extension.Critical);
+				case "2.5.29.36":
+					return new X509CertificatePolicyConstraintsExtension(asndata);
+				case "2.5.29.37":
 					return new X509EnhancedKeyUsageExtension(asndata, extension.Critical);
 				case "2.5.29.46":
 					return new X509FreshestCRLExtension(asndata, extension.Critical);
@@ -78,23 +78,27 @@ namespace PKI.Utils {
 			Marshal.FinalReleaseComObject(ComObject);
 		}
 		public static Byte[] DecodeDerString(String str) {
-            if (String.IsNullOrEmpty(str)) {
-                throw new ArgumentNullException(nameof(str));
-            }
-            return Encoding.Unicode.GetBytes(str);
+			if (String.IsNullOrEmpty(str)) {
+				throw new ArgumentNullException(nameof(str));
+			}
+			return Encoding.Unicode.GetBytes(str);
 		}
 		public static String EncodeDerString(Byte[] rawData) {
 			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
-            if (rawData.Length == 0) { throw new ArgumentException("The vlue is empty"); }
-            List<Byte> rawBytes;
-            if (rawData.Length % 2 > 0) {
-                rawBytes = new List<Byte>(rawData.Length + 1);
-                rawBytes.AddRange(rawData);
-                rawBytes.Add(0);
-            } else {
-                rawBytes = new List<Byte>(rawData);
-            }
-            return Encoding.Unicode.GetString(rawBytes.ToArray());
+			if (rawData.Length == 0) { throw new ArgumentException("The vlue is empty"); }
+			List<Byte> rawBytes;
+			if (rawData.Length % 2 > 0) {
+				rawBytes = new List<Byte>(rawData.Length + 1);
+				rawBytes.AddRange(rawData);
+				rawBytes.Add(0);
+			} else {
+				rawBytes = new List<Byte>(rawData);
+			}
+			StringBuilder sb = new StringBuilder(rawData.Length / 2);
+			for (Int32 index = 0; index < rawData.Length; index += 2) {
+				sb.Append((Int16)rawBytes[index + 1] << 8 | rawBytes[index]);
+			}
+			return sb.ToString();
 		}
 		public static IEnumerable<X509Extension> DecodeX509ExtensionCollection2(Wincrypt.CERT_EXTENSIONS extstruct) {
 			return decode_extstruct(extstruct).ToArray();
