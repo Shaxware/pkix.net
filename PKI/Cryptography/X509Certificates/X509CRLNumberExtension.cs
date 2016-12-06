@@ -44,7 +44,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			CRLNumber = new Asn1Integer(rawData).Value;
 		}
 		void m_encode(BigInteger crlNumber) {
-			CRLNumber = CRLNumber;
+			CRLNumber = crlNumber;
 			RawData = Asn1Utils.Encode(crlNumber.ToLittleEndianByteArray(), (Byte)Asn1Type.INTEGER);
 		}
 	}
