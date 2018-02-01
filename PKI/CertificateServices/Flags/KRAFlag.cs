@@ -74,7 +74,7 @@ namespace PKI.CertificateServices.Flags {
 			}
 			foreach (Int32 item in newf) {
 				if (!EnumFlags.Contains(existing, item)) {
-					KRAFlags = (KRAFlagEnum)((Int32)KRAFlags + item);
+					KRAFlags |= (KRAFlagEnum)item;
 					IsModified = true;
 				}
 			}
@@ -101,14 +101,7 @@ namespace PKI.CertificateServices.Flags {
 		/// </summary>
 		/// <remarks>By default no Key Recovery Agent flags are set.</remarks>
 		public void Restore() {
-			switch (Version) {
-				case "2000": KRAFlags = 0; break;
-				case "2003": KRAFlags =  0; break;
-				case "2008": KRAFlags = 0; break;
-				case "2008R2": KRAFlags = 0; break;
-				case "2012": KRAFlags = 0; break;
-				default: KRAFlags = 0; break;
-			}
+			KRAFlags = 0;
 			IsModified = true;
 		}
 		/// <summary>

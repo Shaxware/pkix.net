@@ -253,6 +253,11 @@ namespace PKI.CertificateServices {
 					case "6.1": Version = "2008R2"; break;
 					case "6.2": Version = "2012"; break;
 					case "6.3": Version = "2012R2"; break;
+					default:
+						Version = vers[0].StartsWith("10.0")
+							? "2016"
+							: "Unknown";
+						break;
 				}
 				SetupStatus = SetupStatusEnum.Unknown;
 			}

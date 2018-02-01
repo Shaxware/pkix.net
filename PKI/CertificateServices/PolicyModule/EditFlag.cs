@@ -148,9 +148,24 @@ namespace PKI.CertificateServices.PolicyModule {
 		/// </remarks>
 		public void Restore() {
 			if (IsEnterprise) {
-				EditFlags = (PolicyModuleFlagEnum)0x11014e;
+				EditFlags = PolicyModuleFlagEnum.RequestExtensionList |
+				            PolicyModuleFlagEnum.DisableExtensionList |
+				            PolicyModuleFlagEnum.AddOldKeyUsage |
+				            PolicyModuleFlagEnum.AttributeEndDate |
+				            PolicyModuleFlagEnum.BasicConstraintsCritical |
+				            PolicyModuleFlagEnum.BasicConstraintsCA |
+				            PolicyModuleFlagEnum.EnableAKIKeyID |
+				            PolicyModuleFlagEnum.AttributeCA |
+				            PolicyModuleFlagEnum.AttributeEKU;
+
 			} else {
-				EditFlags = (PolicyModuleFlagEnum)0x83ee;
+				EditFlags = PolicyModuleFlagEnum.RequestExtensionList |
+				            PolicyModuleFlagEnum.DisableExtensionList |
+				            PolicyModuleFlagEnum.AddOldKeyUsage |
+				            PolicyModuleFlagEnum.BasicConstraintsCritical |
+				            PolicyModuleFlagEnum.EnableAKIKeyID |
+				            PolicyModuleFlagEnum.EnableDefaultSMIME |
+				            PolicyModuleFlagEnum.EnableChaseClientDC;
 			}
 			IsModified = true;
 		}

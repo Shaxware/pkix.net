@@ -112,6 +112,8 @@ namespace PKI.CertificateServices.Flags {
 		/// <item>
 		/// <term><list type="bullet">
 		/// <item>Windows Server 2012 Foundation, Essentials, Standard, Datacenter editions</item>
+		/// <item>Windows Server 2012 R2 Foundation, Essentials, Standard, Datacenter editions</item>
+		/// <item>Windows Server 2016 Essentials, Standard, Datacenter editions</item>
 		/// </list></term>
 		/// <description><list type="bullet">
 		/// <item><strong>LockICertRequest</strong></item>
@@ -129,7 +131,14 @@ namespace PKI.CertificateServices.Flags {
 				case "2003": InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup; break;
 				case "2008": InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup; break;
 				case "2008R2": InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup; break;
-				case "2012": InterfaceFlags = (InterfaceFlagEnum)0x641; break;
+				case "2012":
+				case "2016":
+					InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup |
+					                 InterfaceFlagEnum.EnforceEncryptICertAdmin |
+					                 InterfaceFlagEnum.EnforceEncryptICertRequest |
+					                 InterfaceFlagEnum.LockICertRequest;
+
+					break;
 				default: InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup; break;
 			}
 			IsModified = true;

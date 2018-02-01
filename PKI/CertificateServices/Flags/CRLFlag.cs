@@ -115,6 +115,8 @@ namespace PKI.CertificateServices.Flags {
 		/// 			<item>Windows Server 2008, Standard, Enterprise, Datacenter editions</item>
 		/// 			<item>Windows Server 2008 R2, Standard, Enterprise, Datacenter editions</item>
 		/// 			<item>Windows Server 2012 Foundation, Essentials, Standard, Datacenter editions</item>
+		///				<item>Windows Server 2012 R2 Foundation, Essentials, Standard, Datacenter editions</item>
+		///				<item>Windows Server 2016 Essentials, Standard, Datacenter editions</item>
 		/// 		</list>
 		/// 	</term>
 		///		<description>
@@ -126,14 +128,8 @@ namespace PKI.CertificateServices.Flags {
 		/// </list>
 		/// </remarks>
 		public void Restore() {
-			switch (Version) {
-				case "2000": CRLFlags = (CRLFlagEnum)2; break;
-				case "2003": CRLFlags =  (CRLFlagEnum)2; break;
-				case "2008": CRLFlags = (CRLFlagEnum)2; break;
-				case "2008R2": CRLFlags = (CRLFlagEnum)2; break;
-				case "2012": CRLFlags = (CRLFlagEnum)2; break;
-				default: CRLFlags = (CRLFlagEnum)2; break;
-			}
+			// currently only DeleteExpiredCRLs is enabled by default in every ADCS version.
+			CRLFlags = CRLFlagEnum.DeleteExpiredCRLs;
 			IsModified = true;
 		}
 
