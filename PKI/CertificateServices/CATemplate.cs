@@ -60,7 +60,7 @@ namespace PKI.CertificateServices {
 			ConfigString = certificateAuthority.ConfigString;
 
 			CCertAdmin CertAdmin = new CCertAdmin();
-			String templates = (String)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConst.CrPropTemplates, 0, CertAdmConst.ProptypeString, 0);
+			String templates = (String)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConstants.CrPropTemplates, 0, CertAdmConstants.ProptypeString, 0);
 			List<CertificateTemplate> tobeadded = new List<CertificateTemplate>();
 			if (templates != String.Empty) {
 				String[] SplitString = { "\n" };
@@ -225,7 +225,7 @@ namespace PKI.CertificateServices {
 				}
 			}
 			try {
-				CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropTemplates, 0, CertAdmConst.ProptypeString, SB.ToString());
+				CertAdmin.SetCAProperty(ConfigString, CertAdmConstants.CrPropTemplates, 0, CertAdmConstants.ProptypeString, SB.ToString());
 			} catch (Exception e) {
 				throw Error.ComExceptionHandler(e);
 			}

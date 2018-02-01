@@ -244,7 +244,7 @@ namespace PKI.CertificateServices {
 				}
 				SetupStatus = (SetupStatusEnum)CryptoRegistry.GetRReg("SetupStatus", String.Empty, ComputerName);
 			} else {
-				String ver = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropProductversion, 0, 4, 0);
+				String ver = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropProductversion, 0, 4, 0);
 				String[] vers = ver.Split(new [] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 				switch (vers[0]) {
 					case "5.0": Version = "2000"; break;
@@ -269,20 +269,20 @@ namespace PKI.CertificateServices {
 		}
 		void getCaProperty() {
 			if (!IsAccessible) { return; }
-			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcertcount, 0, 1, 0);
+			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcertcount, 0, 1, 0);
 			Certificate = new X509Certificate2(
 				Convert.FromBase64String(
-					(String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcert, count - 1, 3, 1)
+					(String)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcert, count - 1, 3, 1)
 					)
 				);
 			// loop over cert index from higher index to lower. Get first entry where CRL appears
 			for (Int32 index = count - 1; index >= 0; index--) {
 				try {
-					String crl = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropBasecrl, index, 3, 1);
+					String crl = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropBasecrl, index, 3, 1);
 					if (crl != String.Empty) {
 						BaseCRL = new X509CRL2(Convert.FromBase64String(crl));
 						try {
-							String crl2 = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropDeltacrl, index, 3, 1);
+							String crl2 = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropDeltacrl, index, 3, 1);
 							if (crl2 != String.Empty) { DeltaCRL = new X509CRL2(Convert.FromBase64String(crl2)); }
 						} catch { }
 						break;
@@ -339,11 +339,11 @@ namespace PKI.CertificateServices {
 		}
 		void buildKeyMap() {
 			if (!IsAccessible) { return; }
-			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcertcount, 0, 1, 0);
+			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcertcount, 0, 1, 0);
 			keyMap = new Boolean[count];
 			for (Int32 index = count - 1; index >= 0; index--) {
 				try {
-					CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropBasecrl, index, CertAdmConst.ProptypeBinary, 0);
+					CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropBasecrl, index, CertAdmConstants.ProptypeBinary, 0);
 					keyMap[index] = true;
 				} catch {
 					keyMap[index] = false;
@@ -441,9 +441,9 @@ namespace PKI.CertificateServices {
 			}
 			CertAdmin = new CCertAdmin();
 			X509Certificate2Collection certs = new X509Certificate2Collection();
-			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcertcount, 0, 1, 0);
+			Int32 count = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcertcount, 0, 1, 0);
 			for (Int32 index = 0; index < count; index++) {
-				certs.Add(new X509Certificate(Convert.FromBase64String((String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCasigcert, index, 3, 1))));
+				certs.Add(new X509Certificate(Convert.FromBase64String((String)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcert, index, 3, 1))));
 			}
 			CryptographyUtils.ReleaseCom(CertAdmin);
 			return certs;
@@ -467,9 +467,9 @@ namespace PKI.CertificateServices {
 			}
 			CertAdmin = new CCertAdmin();
 			try {
-				Int32 index = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCaxchgcertcount, 0, 1, 0) - 1;
+				Int32 index = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropCaxchgcertcount, 0, 1, 0) - 1;
 				if (index >= 0) {
-					String Base64 = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropCaxchgcert, index, 3, 1);
+					String Base64 = (String)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropCaxchgcert, index, 3, 1);
 					return new X509Certificate2(Convert.FromBase64String(Base64));
 				}
 				throw new Exception(String.Format(Error.E_XCHGUNAVAILABLE, DisplayName));

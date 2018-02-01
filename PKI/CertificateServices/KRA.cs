@@ -66,10 +66,10 @@ namespace PKI.CertificateServices {
 			ConfigString = certificateAuthority.ConfigString;
 
 			CCertAdmin CertAdmin = new CCertAdmin();
-			Int32 KRACount = (Int32)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConst.CrPropKracertcount, 0, CertAdmConst.ProptypeLong, 0);
+			Int32 KRACount = (Int32)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConstants.CrPropKracertcount, 0, CertAdmConstants.ProptypeLong, 0);
 			if (KRACount > 0) {
 				for (Int32 index = 0; index < KRACount; index++) {
-					String Base64 = (String)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConst.CrPropKracert, index, CertAdmConst.ProptypeBinary, 1);
+					String Base64 = (String)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConstants.CrPropKracert, index, CertAdmConstants.ProptypeBinary, 1);
 					_certs.Add(new X509Certificate2(Convert.FromBase64String(Base64)));
 				}
 			}
@@ -167,16 +167,16 @@ namespace PKI.CertificateServices {
 				CCertAdmin CertAdmin = new CCertAdmin();
 				try {
 					if (_certs.Count > 0) {
-						Int32 kracount = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConst.CrPropKracertcount, 0, CertAdmConst.ProptypeLong, 0);
-						if (kracount > 0) { CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracertcount, 0, CertAdmConst.ProptypeLong, 0); }
+						Int32 kracount = (Int32)CertAdmin.GetCAProperty(ConfigString, CertAdmConstants.CrPropKracertcount, 0, CertAdmConstants.ProptypeLong, 0);
+						if (kracount > 0) { CertAdmin.SetCAProperty(ConfigString, CertAdmConstants.CrPropKracertcount, 0, CertAdmConstants.ProptypeLong, 0); }
 						for (Int32 index = 0; index < _certs.Count; index++) {
 							String der = CryptographyUtils.EncodeDerString(_certs[index].RawData);
-							CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracert, index, CertAdmConst.ProptypeBinary, der);
+							CertAdmin.SetCAProperty(ConfigString, CertAdmConstants.CrPropKracert, index, CertAdmConstants.ProptypeBinary, der);
 						}
-						CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracertusedcount, 0, CertAdmConst.ProptypeLong, _certs.Count);
+						CertAdmin.SetCAProperty(ConfigString, CertAdmConstants.CrPropKracertusedcount, 0, CertAdmConstants.ProptypeLong, _certs.Count);
 					} else {
-						CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracertcount, 0, CertAdmConst.ProptypeLong, 0);
-						CertAdmin.SetCAProperty(ConfigString, CertAdmConst.CrPropKracertusedcount, 0, CertAdmConst.ProptypeLong, 0);
+						CertAdmin.SetCAProperty(ConfigString, CertAdmConstants.CrPropKracertcount, 0, CertAdmConstants.ProptypeLong, 0);
+						CertAdmin.SetCAProperty(ConfigString, CertAdmConstants.CrPropKracertusedcount, 0, CertAdmConstants.ProptypeLong, 0);
 					}
 				} catch (Exception e) {
 					throw Error.ComExceptionHandler(e);
