@@ -1,7 +1,7 @@
-﻿using PKI.ManagedAPI;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Linq;
 using System.Text;
+using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -10,7 +10,7 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// This class cannot be inherited.
 	/// </summary>
 	public sealed class X509NonceExtension : X509Extension {
-		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.48.1.2", "OCSP Nonce");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509OcspNonce, "OCSP Nonce");
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509NonceExtension</strong> class.
 		/// </summary>
@@ -20,7 +20,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <param name="nonceValue">The encoded data to use to create the extension.</param>
 		/// <param name="critical"><strong>True</strong> if the extension is critical; otherwise, <strong>False</strong>.</param>
 		public X509NonceExtension(AsnEncodedData nonceValue, Boolean critical)
-            : base(new Oid("1.3.6.1.5.5.7.48.1.2", "OCSP Nonce") , nonceValue.RawData, critical) {
+            : base(new Oid(X509CertExtensions.X509OcspNonce, "OCSP Nonce") , nonceValue.RawData, critical) {
 			Asn1Reader asn = new Asn1Reader(nonceValue.RawData);
 			Value = AsnFormatter.BinaryToString(asn.GetPayload(), EncodingType.Hex);
 		}

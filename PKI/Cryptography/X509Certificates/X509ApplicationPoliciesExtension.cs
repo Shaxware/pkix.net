@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
+using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -8,11 +9,11 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// implementation of <strong>Enhanced Key Usage</strong> extension.
 	/// </summary>
 	public sealed class X509ApplicationPoliciesExtension : X509Extension {
-		readonly Oid _oid = new Oid("1.3.6.1.4.1.311.21.10");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509ApplicationPolicies);
 		readonly List<Oid> _oids = new List<Oid>();
 
 		internal X509ApplicationPoliciesExtension(Byte[] rawData, Boolean critical)
-            : base("1.3.6.1.4.1.311.21.10", rawData, critical) {
+            : base(X509CertExtensions.X509ApplicationPolicies, rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}

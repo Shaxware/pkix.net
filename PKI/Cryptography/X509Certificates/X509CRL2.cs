@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Text;
+using PKI.Structs;
 using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
@@ -241,15 +242,12 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 		void genExts(X509Certificate2 issuer) {
 			if (Extensions == null) { Extensions = new X509ExtensionCollection();}
-			Extensions.Remove("2.5.29.35");
-			Extensions.Remove("1.3.6.1.4.1.311.21.1");
+			Extensions.Remove(X509CertExtensions.X509AuthorityKeyIdentifier);
+			Extensions.Remove(X509CertExtensions.X509CAVersion);
 			// AKI generation
-			SHA1 hasher = SHA1.Create();
-			Byte[] hash = hasher.ComputeHash(issuer.GetPublicKey());
-			hash = Asn1Utils.Encode(Asn1Utils.Encode(hash, 128), 48);
-			Extensions.Add(new X509Extension("2.5.29.35", hash, false));
+			Extensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, AuthorityKeyIdentifierFlags.KeyIdentifier, false));
 			// CA Version copy
-			X509Extension e = issuer.Extensions["1.3.6.1.4.1.311.21.1"];
+			X509Extension e = issuer.Extensions[X509CertExtensions.X509CAVersion];
 			if (e != null) {
 				Extensions.Add(e);
 			}
@@ -536,7 +534,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <exception cref="UninitializedObjectException">An object is not initialized.</exception>
 		public BigInteger GetCRLNumber() {
 			if (RawData == null) { throw new UninitializedObjectException(); }
-			X509Extension e = Extensions["2.5.29.20"];
+			X509Extension e = Extensions[X509CertExtensions.X509CRLNumber];
 			return ((X509CRLNumberExtension) e)?.CRLNumber ?? 0;
 		}
 		/// <summary>
@@ -548,7 +546,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		public DateTime? GetNextPublish() {
 			if (RawData == null) { throw new UninitializedObjectException(); }
 			if (Extensions == null) { return NextUpdate; }
-			X509Extension e = Extensions["1.3.6.1.4.1.311.21.4"];
+			X509Extension e = Extensions[X509CertExtensions.X509NextCRLPublish];
 			return e == null ? NextUpdate : Asn1Utils.DecodeDateTime(e.RawData);
 		}
 		/// <summary>
@@ -559,7 +557,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <exception cref="UninitializedObjectException">An object is not initialized.</exception>
 		public Boolean HasDelta() {
 			if (RawData == null) { throw new UninitializedObjectException(); }
-			return Type != DeltaCRL && Extensions["2.5.29.46"] != null;
+			return Type != DeltaCRL && Extensions[X509CertExtensions.X509FreshestCRL] != null;
 		}
 		/// <summary>
 		/// Releases the handle of the current object.
@@ -613,8 +611,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		///  </remarks>
 		public void ImportCRLEntries(X509CRLEntryCollection entries) {
 			if (isReadOnly) { throw new InvalidOperationException(); }
-			if (entries == null) { throw new ArgumentNullException(nameof(entries)); }
-			RevokedCertificates = entries;
+			RevokedCertificates = entries ?? throw new ArgumentNullException(nameof(entries));
 			RevokedCertificates.Close();
 		}
 		/// <summary>
@@ -666,7 +663,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			if (extensions.Count < 1) { return; }
 			Version = 2;
 			Extensions = extensions;
-			foreach (X509Extension ext in Extensions.Cast<X509Extension>().Where(ext => ext.Oid.Value == "2.5.29.27")) {
+			if (Extensions[X509CertExtensions.X509DeltaCRLIndicator] != null) {
 				Type = DeltaCRL;
 			}
 		}

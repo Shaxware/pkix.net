@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using CERTENROLLLib;
+using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using EncodingType = CERTENROLLLib.EncodingType;
@@ -68,7 +69,7 @@ namespace PKI.CertificateTemplates {
 		/// <summary>
 		/// Gets or sets a list of OIDs that represent extended key usages (sertificate purposes).
 		/// </summary>
-		public OidCollection EnhancedKeyUsage => ((X509EnhancedKeyUsageExtension)Extensions?["2.5.29.37"])?.EnhancedKeyUsages;
+		public OidCollection EnhancedKeyUsage => ((X509EnhancedKeyUsageExtension)Extensions?[X509CertExtensions.X509EnhancedKeyUsage])?.EnhancedKeyUsages;
 
 		/// <summary>
 		/// Gets issuance policies designated to the template.
@@ -261,22 +262,22 @@ namespace PKI.CertificateTemplates {
 		void get_extensions() {
 			schemaVersion = (Int32)_entry[ActiveDirectory.PropPkiSchemaVersion];
 			foreach (String oid in new [] {
-				"2.5.29.15",
-				"2.5.29.37",
-				"2.5.29.32",
-				"1.3.6.1.4.1.311.20.2",
-				"2.5.29.19",
-				"1.3.6.1.5.5.7.48.1.5"}) {
+				X509CertExtensions.X509KeyUsage,
+				X509CertExtensions.X509EnhancedKeyUsage,
+				X509CertExtensions.X509CertificatePolicies,
+				X509CertExtensions.X509CertTemplateInfoV2,
+				X509CertExtensions.X509BasicConstraints,
+				X509CertExtensions.X509OcspRevNoCheck}) {
 				switch (oid) {
-					case "2.5.29.15":
-						_exts.Add(new X509KeyUsageExtension(Cryptography.KeyUsage, test_critical("2.5.29.15")));
+					case X509CertExtensions.X509KeyUsage:
+						_exts.Add(new X509KeyUsageExtension(Cryptography.KeyUsage, test_critical(X509CertExtensions.X509KeyUsage)));
 						break;
-					case "2.5.29.37":
+					case X509CertExtensions.X509EnhancedKeyUsage:
 						if (_ekus.Count == 0) { break; }
-						_exts.Add(new X509EnhancedKeyUsageExtension(_ekus, test_critical("2.5.29.37")));
-						_exts.Add(new X509ApplicationPoliciesExtension(_ekus, test_critical("1.3.6.1.4.1.311.21.10")));
+						_exts.Add(new X509EnhancedKeyUsageExtension(_ekus, test_critical(X509CertExtensions.X509EnhancedKeyUsage)));
+						_exts.Add(new X509ApplicationPoliciesExtension(_ekus, test_critical(X509CertExtensions.X509ApplicationPolicies)));
 						break;
-					case "2.5.29.32":
+					case X509CertExtensions.X509CertificatePolicies:
 						if (CertificatePolicies.Count > 0) {
 							X509CertificatePolicyCollection policies = new X509CertificatePolicyCollection();
 							foreach (Oid poloid in CertificatePolicies) {
@@ -287,21 +288,23 @@ namespace PKI.CertificateTemplates {
 								} catch { }
 								policies.Add(policy);
 							}
-							_exts.Add(new X509CertificatePoliciesExtension(policies, test_critical("2.5.29.32")));
+							_exts.Add(new X509CertificatePoliciesExtension(policies, test_critical(
+								X509CertExtensions.X509CertificatePolicies)));
 						}
 						break;
-					case "1.3.6.1.4.1.311.20.2":
+					case X509CertExtensions.X509CertTemplateInfoV2:
 						if (schemaVersion == 1) {
-							_exts.Add(new X509Extension(new Oid("1.3.6.1.4.1.311.20.2"), Asn1Utils.EncodeBMPString((String)_entry[ActiveDirectory.PropCN]), test_critical("1.3.6.1.4.1.311.20.2")));
+							_exts.Add(new X509Extension(new Oid(X509CertExtensions.X509CertTemplateInfoV2), Asn1Utils.EncodeBMPString((String)_entry[ActiveDirectory.PropCN]), test_critical(
+								X509CertExtensions.X509CertTemplateInfoV2)));
 						} else {
 							Int32 major = (Int32)_entry[ActiveDirectory.PropPkiTemplateMajorVersion];
 							Int32 minor = (Int32)_entry[ActiveDirectory.PropPkiTemplateMinorVersion];
 							Oid tempoid = new Oid((String)_entry[ActiveDirectory.PropCertTemplateOid]);
 							_exts.Add(new X509CertificateTemplateExtension(tempoid, major, minor));
-							_exts[_exts.Count - 1].Critical = test_critical("1.3.6.1.4.1.311.21.7");
+							_exts[_exts.Count - 1].Critical = test_critical(X509CertExtensions.X509CertificateTemplate);
 						}
 						break;
-					case "2.5.29.19":
+					case X509CertExtensions.X509BasicConstraints:
 						if (
 							SubjectType == CertTemplateSubjectType.CA ||
 							SubjectType == CertTemplateSubjectType.CrossCA ||
@@ -314,12 +317,14 @@ namespace PKI.CertificateTemplates {
 								isCA = false;
 							}
 							Boolean hasConstraints = GetPathLengthConstraint() != -1;
-							_exts.Add(new X509BasicConstraintsExtension(isCA, hasConstraints, GetPathLengthConstraint(), test_critical("2.5.29.19")));
+							_exts.Add(new X509BasicConstraintsExtension(isCA, hasConstraints, GetPathLengthConstraint(), test_critical(
+								X509CertExtensions.X509BasicConstraints)));
 						}
 						break;
-					case "1.3.6.1.5.5.7.48.1.5":
+					case X509CertExtensions.X509OcspRevNoCheck:
 						if ((EnrollmentOptions & (Int32)CertificateTemplateEnrollmentFlags.IncludeOcspRevNoCheck) != 0) {
-							_exts.Add(new X509Extension("1.3.6.1.5.5.7.48.1.5", new Byte[] { 5, 0 }, test_critical("1.3.6.1.5.5.7.48.1.5")));
+							_exts.Add(new X509Extension(X509CertExtensions.X509OcspRevNoCheck, new Byte[] { 5, 0 }, test_critical(
+								X509CertExtensions.X509OcspRevNoCheck)));
 						}
 						break;
 				}

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -10,10 +11,10 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// Online Certificate Status Protocol (OCSP).
 	/// </summary>
 	public sealed class X509AuthorityInformationAccessExtension : X509Extension {
-		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.1.1");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509AuthorityInformationAccess);
 		
 		internal X509AuthorityInformationAccessExtension(Byte[] rawData, Boolean critical)
-            : base("1.3.6.1.5.5.7.1.1", rawData, critical) {
+            : base(X509CertExtensions.X509AuthorityInformationAccess, rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}

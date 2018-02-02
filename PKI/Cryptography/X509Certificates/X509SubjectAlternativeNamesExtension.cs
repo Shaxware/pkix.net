@@ -1,4 +1,6 @@
-﻿namespace System.Security.Cryptography.X509Certificates {
+﻿using PKI.Structs;
+
+namespace System.Security.Cryptography.X509Certificates {
 	/// <summary>
 	///		<strong>X509SubjectAlternativeNamesExtension</strong> represents a X.509 alternative names extension.
 	///		The subject alternative name extension allows identities to be bound to the subject of the certificate.
@@ -6,11 +8,11 @@
 	///		the certificate.
 	/// </summary>
 	public sealed class X509SubjectAlternativeNamesExtension : X509Extension {
-		readonly Oid _oid = new Oid("2.5.29.17");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509SubjectAlternativeNames);
 		X509AlternativeNameCollection alternativeNames = new X509AlternativeNameCollection();
 
 		internal X509SubjectAlternativeNamesExtension(Byte[] rawData, Boolean critical)
-            : base("2.5.29.17", rawData, critical) {
+            : base(X509CertExtensions.X509SubjectAlternativeNames, rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}

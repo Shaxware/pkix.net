@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using PKI.Structs;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
@@ -9,7 +10,7 @@ namespace System.Security.Cryptography.X509Certificates {
     /// identifying the public key corresponding to the private key used to sign a certificate.
     /// </summary>
     public sealed class X509AuthorityKeyIdentifierExtension : X509Extension {
-        readonly Oid _oid = new Oid("2.5.29.35");
+        readonly Oid _oid = new Oid(X509CertExtensions.X509AuthorityKeyIdentifier);
 
         /// <summary>
         /// Intitializes a new instance of <strong>X509AuthorityKeyIdentifierExtension</strong> class from
@@ -21,7 +22,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <strong>aki</strong> parameter is null;
         /// </exception>
         public X509AuthorityKeyIdentifierExtension(AsnEncodedData aki, Boolean critical)
-            : base("2.5.29.35", aki.RawData, critical) {
+            : base(X509CertExtensions.X509AuthorityKeyIdentifier, aki.RawData, critical) {
             if (aki == null) { throw new ArgumentNullException(nameof(aki)); }
             m_decode(aki.RawData);
         }
@@ -60,7 +61,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </remarks>
         public X509AuthorityKeyIdentifierExtension(X509Certificate2 issuer, AuthorityKeyIdentifierFlags flags, Boolean critical) {
             if (issuer == null || IntPtr.Zero.Equals(issuer.Handle)) { throw new ArgumentNullException(nameof(issuer)); }
-            if (flags == AuthorityKeyIdentifierFlags.AlternativeNames && issuer.Extensions["2.5.29.17"] == null) {
+            if (flags == AuthorityKeyIdentifierFlags.AlternativeNames && issuer.Extensions[X509CertExtensions.X509SubjectAlternativeNames] == null) {
                 flags = AuthorityKeyIdentifierFlags.KeyIdentifier;
             }
             if (flags == AuthorityKeyIdentifierFlags.None) {
@@ -84,7 +85,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 IncludedComponents |= AuthorityKeyIdentifierFlags.KeyIdentifier;
             }
             if ((flags & AuthorityKeyIdentifierFlags.AlternativeNames) > 0) {
-                X509Extension san = issuer.Extensions["2.5.29.17"];
+                X509Extension san = issuer.Extensions[X509CertExtensions.X509SubjectAlternativeNames];
                 Debug.Assert(san != null, "san != null");
                 AsnEncodedData encoded = new AsnEncodedData(san.RawData);
                 var sanExt = new X509SubjectAlternativeNamesExtension(encoded, false);

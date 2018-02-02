@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -17,7 +18,7 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </para>
 	/// </remarks>
 	public class X509ArchiveCutoffExtension : X509Extension {
-		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.48.1.6", "Archive Cutoff");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509ArchiveCutoff, "Archive Cutoff");
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509ArchiveCutoffExtension</strong> class.
 		/// </summary>
@@ -34,7 +35,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// The data in the <strong>value</strong> parameter is not valid extension value.
 		/// </exception>
 		public X509ArchiveCutoffExtension(AsnEncodedData value, Boolean critical)
-            : base(new Oid("1.3.6.1.5.5.7.48.1.6", "Archive Cutoff"), value.RawData, critical) {
+            : base(new Oid(X509CertExtensions.X509OcspCRLReference, "Archive Cutoff"), value.RawData, critical) {
 			m_decode(value.RawData);
 		}
 		/// <summary>

@@ -1,27 +1,28 @@
-﻿using System.Linq;
-using PKI.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI.ManagedAPI;
 using PKI.ManagedAPI.StructClasses;
+using PKI.Structs;
+using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 
 namespace PKI.OCSP {
-#region Oids
-//id-kp-OCSPSigning				OBJECT IDENTIFIER ::= { id-kp 9 }
-//id-pkix-ocsp					OBJECT IDENTIFIER ::= { id-ad-ocsp }
-//id-pkix-ocsp-basic			OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.1 }
-//id-pkix-ocsp-nonce			OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.2 }
-//id-pkix-ocsp-crl				OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.3 }
-//id-pkix-ocsp-response			OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.4 }
-//id-pkix-ocsp-nocheck			OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.5 }
-//id-pkix-ocsp-archive-cutoff	OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.6 }
-//id-pkix-ocsp-service-locator	OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.7 }
-#endregion
+	#region Oids
+	//id-kp-OCSPSigning				OBJECT IDENTIFIER ::= { id-kp 9 }
+	//id-pkix-ocsp					OBJECT IDENTIFIER ::= { id-ad-ocsp }
+	//id-pkix-ocsp-basic			OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.1 }
+	//id-pkix-ocsp-nonce			OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.2 }
+	//id-pkix-ocsp-crl				OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.3 }
+	//id-pkix-ocsp-response			OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.4 }
+	//id-pkix-ocsp-nocheck			OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.5 }
+	//id-pkix-ocsp-archive-cutoff	OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.6 }
+	//id-pkix-ocsp-service-locator	OBJECT IDENTIFIER ::= { 1.3.6.1.5.5.7.48.1.7 }
+	#endregion
 	/// <summary>
 	/// Represents an OCSP response received from OCSP responder against previously submitted OCSP Request.
 	/// </summary>
@@ -264,7 +265,7 @@ namespace PKI.OCSP {
 					X509ExtensionCollection exts = Crypt32Managed.DecodeX509Extensions(tbsResponseData.GetPayload());
 					foreach (X509Extension item in exts) {
 						_listExtensions.Add(CryptographyUtils.ConvertExtension(item));
-						if (_listExtensions[_listExtensions.Count - 1].Oid.Value == "1.3.6.1.5.5.7.48.1.2") { 
+						if (_listExtensions[_listExtensions.Count - 1].Oid.Value == X509CertExtensions.X509OcspNonce) { 
 							NonceReceived = true;
 							NonceValue = _listExtensions[_listExtensions.Count - 1].Format(false);
 						}
@@ -345,12 +346,12 @@ namespace PKI.OCSP {
 				SignerCertificateIsValid = false;
 			}
 			if (excplicitcert) {
-				X509Extension ocspnocheck = cert.Extensions["1.3.6.1.5.5.7.48.1.5"];
+				X509Extension ocspnocheck = cert.Extensions[X509CertExtensions.X509OcspRevNoCheck];
 				if (ocspnocheck == null) {
 					ResponseErrorInformation += (Int32)OCSPResponseComplianceError.MissingOCSPRevNoCheck;
 					SignerCertificateIsValid = false;
 				}
-				X509Extension eku = cert.Extensions["2.5.29.37"];
+				X509Extension eku = cert.Extensions[X509CertExtensions.X509EnhancedKeyUsage];
 				if (eku == null) {
 					ResponseErrorInformation += (Int32)OCSPResponseComplianceError.MissingOCSPSigningEKU;
 					SignerCertificateIsValid = false;

@@ -5,6 +5,7 @@ using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using PKI.Exceptions;
+using PKI.Structs;
 
 namespace PKI.Web {
 	/// <summary>
@@ -113,7 +114,7 @@ namespace PKI.Web {
 						Issuer = Certificate.IssuerName;
 						if (Certificate.Extensions.Count > 0) {
 							foreach (X509Extension item in Certificate.Extensions) {
-								if (item.Oid.Value == "2.5.29.17") {
+								if (item.Oid.Value == X509CertExtensions.X509SubjectAlternativeNames) {
 									san.AddRange(item.Format(false).Split(new [] { ", " }, StringSplitOptions.RemoveEmptyEntries));
 								}
 							}

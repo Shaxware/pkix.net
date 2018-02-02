@@ -1,4 +1,6 @@
-﻿namespace System.Security.Cryptography.X509Certificates {
+﻿using PKI.Structs;
+
+namespace System.Security.Cryptography.X509Certificates {
 	sealed class X509CAVersionExtension : X509Extension {
 
 		public X509CAVersionExtension() { }
@@ -14,7 +16,7 @@
 		public UInt32 CAKeyVersion { get; private set; }
 
 		void m_initialize(UInt32 caVersion, UInt32 keyVersion) {
-			Oid = new Oid("1.3.6.1.4.1.311.21.1");
+			Oid = new Oid(X509CertExtensions.X509CAVersion);
 			CACertificateVersion = caVersion;
 			CAKeyVersion = keyVersion;
 			Critical = false;
@@ -31,7 +33,7 @@
 			}
 		}
 		void m_decode(Byte[] rawData) {
-			Oid = new Oid("1.3.6.1.4.1.311.21.1");
+			Oid = new Oid(X509CertExtensions.X509CAVersion);
 			RawData = rawData;
 		}
 	}

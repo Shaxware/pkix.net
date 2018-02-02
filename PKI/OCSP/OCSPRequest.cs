@@ -13,6 +13,7 @@ using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using PKI.Structs;
 
 namespace PKI.OCSP {
 	/// <summary>
@@ -262,7 +263,7 @@ namespace PKI.OCSP {
 				if (cert.Handle.Equals(IntPtr.Zero)) { continue; }
 				X509Extension aiaExtension = cert.Extensions
 					.Cast<X509Extension>()
-					.FirstOrDefault(x => x.Oid.Value == "1.3.6.1.5.5.7.1.1");
+					.FirstOrDefault(x => x.Oid.Value == X509CertExtensions.X509AuthorityInformationAccess);
 				if (aiaExtension == null) { continue; }
 				X509AuthorityInformationAccessExtension aia = new X509AuthorityInformationAccessExtension(aiaExtension.RawData, false);
 				if (aia.OnlineCertificateStatusProtocol == null || aia.OnlineCertificateStatusProtocol.Length == 0) {

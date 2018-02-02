@@ -1,14 +1,16 @@
-﻿namespace System.Security.Cryptography.X509Certificates {
+﻿using PKI.Structs;
+
+namespace System.Security.Cryptography.X509Certificates {
 	/// <summary>
 	///		<strong>X509CertificatePoliciesExtension</strong> represents a X.509 Certificate Policies extension.
 	///		The certificate policies extension contains a sequence of one or more policy information terms, each
 	///		of which consists of an object identifier (OID) and optional qualifiers.
 	/// </summary>
 	public sealed class X509CertificatePoliciesExtension : X509Extension {
-		readonly Oid _oid = new Oid("2.5.29.32");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509CertificatePolicies);
 
 		internal X509CertificatePoliciesExtension(Byte[] rawData, Boolean critical)
-            : base("2.5.29.32", rawData, critical) {
+            : base(X509CertExtensions.X509CertificatePolicies, rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}

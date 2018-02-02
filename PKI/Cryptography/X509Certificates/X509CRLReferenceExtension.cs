@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using System.Text;
+using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -9,10 +10,10 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </summary>
 	/// <remarks>The class do not expose public constructors.</remarks>
 	public sealed class X509CRLReferenceExtension : X509Extension {
-		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.48.1.3", "OCSP CRL Reference");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509OcspCRLReference, "OCSP CRL Reference");
 
 		internal X509CRLReferenceExtension(Byte[] rawData, Boolean critical)
-            : base(new Oid("1.3.6.1.5.5.7.48.1.3", "OCSP CRL Reference"), rawData, critical) {
+            : base(new Oid(X509CertExtensions.X509OcspCRLReference, "OCSP CRL Reference"), rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}

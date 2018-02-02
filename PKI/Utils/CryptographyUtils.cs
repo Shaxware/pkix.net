@@ -1,63 +1,63 @@
-﻿using PKI.Structs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using PKI.Structs;
 
 namespace PKI.Utils {
 	public static class CryptographyUtils {
 		public static X509Extension ConvertExtension(X509Extension extension) {
 			AsnEncodedData asndata = new AsnEncodedData(extension.Oid, extension.RawData);
 			switch (extension.Oid.Value) {
-				case "1.3.6.1.4.1.311.21.4":
+				case X509CertExtensions.X509NextCRLPublish:
 					return new X509NextCRLPublishExtension(asndata, extension.Critical);
-				case "1.3.6.1.4.1.311.21.7":
+				case X509CertExtensions.X509CertificateTemplate:
 					return new X509CertificateTemplateExtension(asndata, extension.Critical);
-				case "1.3.6.1.4.1.311.21.10":
+				case X509CertExtensions.X509ApplicationPolicies:
 					return new X509ApplicationPoliciesExtension(asndata, extension.Critical);
-				case "1.3.6.1.4.1.311.21.11":
+				case X509CertExtensions.X509ApplicationPolicyMappings:
 					return new X509ApplicationPolicyMappingsExtension(asndata);
-				case "1.3.6.1.4.1.311.21.12":
+				case X509CertExtensions.X509ApplicationPolicyConstraints:
 					return new X509ApplicationPolicyConstraintsExtension(asndata);
-				case "1.3.6.1.5.5.7.1.1":
+				case X509CertExtensions.X509AuthorityInformationAccess:
 					return new X509AuthorityInformationAccessExtension(asndata, extension.Critical);
-				case "1.3.6.1.5.5.7.48.1.2":
+				case X509CertExtensions.X509OcspNonce:
 					return new X509NonceExtension(asndata, extension.Critical);
-				case "1.3.6.1.5.5.7.48.1.3":
+				case X509CertExtensions.X509OcspCRLReference:
 					return new X509CRLReferenceExtension(asndata, extension.Critical);
-				case "1.3.6.1.5.5.7.48.1.6":
+				case X509CertExtensions.X509ArchiveCutoff:
 					return new X509ArchiveCutoffExtension(asndata, extension.Critical);
-				case "1.3.6.1.5.5.7.48.1.7":
+				case X509CertExtensions.X509ServiceLocator:
 					return new X509ServiceLocatorExtension(asndata, extension.Critical);
-				case "2.5.29.14":
+				case X509CertExtensions.X509SubjectKeyIdentifier:
 					return new X509SubjectKeyIdentifierExtension(asndata, extension.Critical);
-				case "2.5.29.15":
+				case X509CertExtensions.X509KeyUsage:
 					return new X509KeyUsageExtension(asndata, extension.Critical);
-				case "2.5.29.17":
+				case X509CertExtensions.X509SubjectAlternativeNames:
 					return new X509SubjectAlternativeNamesExtension(asndata, extension.Critical);
-				case "2.5.29.18":
+				case X509CertExtensions.X509IssuerAlternativeNames:
 					return new X509IssuerAlternativeNamesExtension(asndata, extension.Critical);
-				case "2.5.29.19":
+				case X509CertExtensions.X509BasicConstraints:
 					return new X509BasicConstraintsExtension(asndata, extension.Critical);
-				case "2.5.29.20":
+				case X509CertExtensions.X509CRLNumber:
 					return new X509CRLNumberExtension(asndata, extension.Critical);
-				case "2.5.29.30":
+				case X509CertExtensions.X509NameConstraints:
 					return new X509NameConstraintsExtension(asndata);
-				case "2.5.29.31":
+				case X509CertExtensions.X509CRLDistributionPoints:
 					return new X509CRLDistributionPointsExtension(asndata, extension.Critical);
-				case "2.5.29.32":
+				case X509CertExtensions.X509CertificatePolicies:
 					return new X509CertificatePoliciesExtension(asndata, extension.Critical);
-				case "2.5.29.33":
+				case X509CertExtensions.X509CertificatePolicyMappings:
 					return new X509CertificatePolicyMappingsExtension(asndata);
-				case "2.5.29.35":
+				case X509CertExtensions.X509AuthorityKeyIdentifier:
 					return new X509AuthorityKeyIdentifierExtension(asndata, extension.Critical);
-				case "2.5.29.36":
+				case X509CertExtensions.X509CertificatePolicyConstraints:
 					return new X509CertificatePolicyConstraintsExtension(asndata);
-				case "2.5.29.37":
+				case X509CertExtensions.X509EnhancedKeyUsage:
 					return new X509EnhancedKeyUsageExtension(asndata, extension.Critical);
-				case "2.5.29.46":
+				case X509CertExtensions.X509FreshestCRL:
 					return new X509FreshestCRLExtension(asndata, extension.Critical);
 				default:
 					return extension;

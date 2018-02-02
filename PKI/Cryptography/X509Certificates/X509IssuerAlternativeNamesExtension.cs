@@ -1,4 +1,6 @@
-﻿namespace System.Security.Cryptography.X509Certificates {
+﻿using PKI.Structs;
+
+namespace System.Security.Cryptography.X509Certificates {
 	/// <summary>
 	///		<strong>X509IssuerAlternativeNamesExtension</strong> represents a X.509 issuer alternative names extension.
 	///		The issuer alternative name extension allows identities to be bound to the issuer of the certificate.
@@ -6,11 +8,11 @@
 	///		That is, issuer alternative names are not used in name chaining and name constraints are not enforced.
 	/// </summary>
 	public sealed class X509IssuerAlternativeNamesExtension : X509Extension {
-		readonly Oid _oid = new Oid("2.5.29.18");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509IssuerAlternativeNames);
 		X509AlternativeNameCollection alternativeNames = new X509AlternativeNameCollection();
 
 		internal X509IssuerAlternativeNamesExtension(Byte[] rawData, Boolean critical)
-            : base("2.5.29.18", rawData, critical) {
+            : base(X509CertExtensions.X509IssuerAlternativeNames, rawData, critical) {
 			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}

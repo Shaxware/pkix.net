@@ -1,18 +1,19 @@
-﻿using PKI.Utils.CLRExtensions;
-using SysadminsLV.Asn1Parser;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using PKI.Structs;
+using PKI.Utils.CLRExtensions;
+using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
-    /// <summary>
-    /// Represents the X.509 Certificate Policy Constraints certificate extension. The policy constraints
-    /// extension can be used in certificates issued to CAs.The policy constraints extension constrains
-    /// path validation in two ways.  It can be used to prohibit policy mapping or require that each certificate
-    /// in a path contain an acceptable policy identifier.
-    /// </summary>
-    public sealed class X509CertificatePolicyConstraintsExtension : X509Extension {
-        readonly Oid _oid = new Oid("2.5.29.36");
+	/// <summary>
+	/// Represents the X.509 Certificate Policy Constraints certificate extension. The policy constraints
+	/// extension can be used in certificates issued to CAs.The policy constraints extension constrains
+	/// path validation in two ways.  It can be used to prohibit policy mapping or require that each certificate
+	/// in a path contain an acceptable policy identifier.
+	/// </summary>
+	public sealed class X509CertificatePolicyConstraintsExtension : X509Extension {
+        readonly Oid _oid = new Oid(X509CertExtensions.X509CertificatePolicyConstraints);
         /// <summary>
         /// Initializes a new instance of the <strong>X509CertificatePolicyConstraintsExtension</strong> class from
         /// an <see cref="AsnEncodedData"/> object.
@@ -20,7 +21,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <param name="constraints"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public X509CertificatePolicyConstraintsExtension(AsnEncodedData constraints)
-            : base("2.5.29.36", constraints.RawData, true){
+            : base(X509CertExtensions.X509CertificatePolicyConstraints, constraints.RawData, true){
             if (constraints == null) { throw new ArgumentNullException(nameof(constraints)); }
             m_decode(constraints.RawData);
         }

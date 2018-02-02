@@ -1,6 +1,7 @@
 ﻿using SysadminsLV.Asn1Parser;
 using System.Collections.Generic;
 using System.Linq;
+using PKI.Structs;
 
 namespace System.Security.Cryptography.X509Certificates {
 	/// <summary>
@@ -8,7 +9,7 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </summary>
 	/// <remarks><see cref="X509Extension.Critical"/> member is always set to <strong>True</strong>.</remarks>
 	public sealed class X509ApplicationPolicyMappingsExtension : X509Extension {
-        readonly Oid _oid = new Oid("1.3.6.1.4.1.311.21.11");
+        readonly Oid _oid = new Oid(X509CertExtensions.X509ApplicationPolicyMappings);
 
         /// <summary>
         /// Initializes a new instance of the <strong>X509ApplicationPolicyMappingsExtension</strong> class from
@@ -18,7 +19,8 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="ArgumentNullException">
         /// <strong>mappings</strong> parameter is null.
         /// </exception>
-        public X509ApplicationPolicyMappingsExtension(AsnEncodedData mappings) : base("1.3.6.1.4.1.311.21.11", mappings.RawData, true) {
+        public X509ApplicationPolicyMappingsExtension(AsnEncodedData mappings) : base(
+	        X509CertExtensions.X509ApplicationPolicyMappings, mappings.RawData, true) {
             if (mappings == null) { throw new ArgumentNullException(nameof(mappings)); }
             m_decode(mappings.RawData);
         }

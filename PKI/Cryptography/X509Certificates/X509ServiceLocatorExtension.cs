@@ -5,6 +5,7 @@ using PKI.Utils;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -14,7 +15,7 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </summary>
 	public sealed class X509ServiceLocatorExtension : X509Extension {
 		Byte[] AIARaw;
-		readonly Oid _oid = new Oid("1.3.6.1.5.5.7.48.1.7", "OCSP Service Locator");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509ServiceLocator, "OCSP Service Locator");
 		
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509ServiceLocatorExtension</strong> class.
@@ -29,7 +30,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		/// <param name="value">The encoded data to use to create the extension.</param>
 		/// <param name="critical"><strong>True</strong> if the extension is critical; otherwise, <strong>False</strong>.</param>
 		public X509ServiceLocatorExtension(AsnEncodedData value, Boolean critical)
-            : base(new Oid("1.3.6.1.5.5.7.48.1.7", "OCSP Service Locator"), value.RawData, critical) {
+            : base(new Oid(X509CertExtensions.X509ServiceLocator, "OCSP Service Locator"), value.RawData, critical) {
 			m_decode(value.RawData);
 		}
 
@@ -47,7 +48,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			List<Byte> rawData = new List<Byte>();
 			rawData.AddRange(cert.IssuerName.RawData);
 			if (cert.Extensions.Count > 0) {
-				foreach (X509Extension item in cert.Extensions.Cast<X509Extension>().Where(item => item.Oid.Value == "1.3.6.1.5.5.7.1.1")) {
+				foreach (X509Extension item in cert.Extensions.Cast<X509Extension>().Where(item => item.Oid.Value == X509CertExtensions.X509AuthorityInformationAccess)) {
 					AIARaw = item.RawData;
 					rawData.AddRange(item.RawData);
 					m_extracturls(cert);
@@ -100,7 +101,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			if (multiLine) { SB.Append(Environment.NewLine); }
 			if (AIARaw.Length > 1) {
 				if (!multiLine) { SB.Append(", "); }
-				X509Extension aia = new X509Extension(new Oid("1.3.6.1.5.5.7.1.1"), AIARaw, false);
+				X509Extension aia = new X509Extension(new Oid(X509CertExtensions.X509AuthorityInformationAccess), AIARaw, false);
 				SB.Append(aia.Format(multiLine));
 			}
 			return SB.ToString();

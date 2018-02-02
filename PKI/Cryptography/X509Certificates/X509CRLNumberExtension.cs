@@ -1,6 +1,7 @@
-﻿using PKI.Utils.CLRExtensions;
-using System.IO;
+﻿using System.IO;
 using System.Numerics;
+using PKI.Structs;
+using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
@@ -9,7 +10,7 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// Represents a <strong>CRL Number</strong> certificate revocation list extension.
 	/// </summary>
 	public sealed class X509CRLNumberExtension : X509Extension {
-		readonly Oid _oid = new Oid("2.5.29.20");
+		readonly Oid _oid = new Oid(X509CertExtensions.X509CRLNumber);
 
 		//public X509CRLNumberExtension() { Oid = _oid; }
 		/// <summary>
