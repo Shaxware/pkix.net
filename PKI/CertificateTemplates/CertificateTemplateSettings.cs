@@ -45,18 +45,19 @@ namespace PKI.CertificateTemplates {
 		/// </summary>
 		public String RenewalPeriod { get; private set; }
 		/// <summary>
-		/// Gets or sets certificate's subject type. Can be either: Computer, User, Certification Authority or Cross-Certification
-		/// Authority.
+		/// Gets or sets certificate's subject type. Can be either: Computer, User, CA or CrossCA.
 		/// </summary>
-		public String SubjectType {
+		public CertTemplateSubjectType SubjectType {
 			get {
 				if ((GeneralFlags & (Int32) CertificateTemplateFlags.IsCA) > 0) {
-					return "Certification Authority";
+					return CertTemplateSubjectType.CA;
 				}
 				if ((GeneralFlags & (Int32) CertificateTemplateFlags.MachineType) > 0) {
-					return "Computer";
+					return CertTemplateSubjectType.Computer;
 				}
-				return (GeneralFlags & (Int32)CertificateTemplateFlags.IsCrossCA) > 0 ? "Cross Certification Authority" : "User";
+				return (GeneralFlags & (Int32)CertificateTemplateFlags.IsCrossCA) > 0
+					? CertTemplateSubjectType.CrossCA
+					: CertTemplateSubjectType.User;
 			}
 		}
 		/// <summary>
@@ -304,12 +305,16 @@ namespace PKI.CertificateTemplates {
 						break;
 					case "2.5.29.19":
 						if (
-							SubjectType == "Certification Authority" ||
-							SubjectType == "Cross Certification Authority" ||
+							SubjectType == CertTemplateSubjectType.CA ||
+							SubjectType == CertTemplateSubjectType.CrossCA ||
 							(EnrollmentOptions & (Int32)CertificateTemplateEnrollmentFlags.BasicConstraintsInEndEntityCerts) != 0
 						) {
 							Boolean isCA;
-							if (SubjectType == "Certification Authority" || SubjectType == "Cross Certification Authority") { isCA = true; } else { isCA = false; }
+							if (SubjectType == CertTemplateSubjectType.CA || SubjectType == CertTemplateSubjectType.CrossCA) {
+								isCA = true;
+							} else {
+								isCA = false;
+							}
 							Boolean hasConstraints = GetPathLengthConstraint() != -1;
 							_exts.Add(new X509BasicConstraintsExtension(isCA, hasConstraints, GetPathLengthConstraint(), test_critical("2.5.29.19")));
 						}
