@@ -1,13 +1,12 @@
-﻿using System.Linq;
-using CERTENROLLLib;
-using PKI.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
+using CERTENROLLLib;
+using PKI.Utils;
 using PKI.Utils.CLRExtensions;
 using X509KeyUsageFlags = System.Security.Cryptography.X509Certificates.X509KeyUsageFlags;
 
@@ -17,12 +16,12 @@ namespace PKI.CertificateTemplates {
 	/// </summary>
 	public class CryptographyTemplateSettings {
 		Int32 pkf, schemaVersion;
-		readonly DirectoryEntry _entry;
+		readonly IDictionary<String, Object> _entry;
 
 		internal CryptographyTemplateSettings(IX509CertificateTemplate template) {
 			InitializeCom(template);
 		}
-		internal CryptographyTemplateSettings(DirectoryEntry Entry) {
+		internal CryptographyTemplateSettings(IDictionary<String, Object> Entry) {
 			_entry = Entry;
 			InitializeDs();
 		}
@@ -78,24 +77,24 @@ namespace PKI.CertificateTemplates {
 		public String PrivateKeySecuritySDDL { get; private set; }
 
 		void InitializeDs() {
-			schemaVersion = (Int32)_entry.Properties["msPKI-Template-Schema-Version"].Value;
+			schemaVersion = (Int32)_entry[ActiveDirectory.PropPkiSchemaVersion];
 			KeyAlgorithm = new Oid("RSA");
 			HashAlgorithm = new Oid("SHA1");
-			MinimalKeyLength = (Int32)_entry.Properties["msPKI-Minimal-Key-Size"].Value;
-			pkf = (Int32)_entry.Properties["msPKI-Private-Key-Flag"].Value;
-			KeySpec = (X509KeySpecFlags)(Int32)_entry.Properties["pKIDefaultKeySpec"].Value;
+			MinimalKeyLength = (Int32)_entry[ActiveDirectory.PropPkiKeySize];
+			pkf = (Int32)_entry[ActiveDirectory.PropPkiPKeyFlags];
+			KeySpec = (X509KeySpecFlags)(Int32)_entry[ActiveDirectory.PropPkiKeySpec];
 			get_csp();
 			get_keyusages();
-			String ap = (String)_entry.Properties["msPKI-RA-Application-Policies"].Value;
+			String ap = (String)_entry[ActiveDirectory.PropPkiRaAppPolicy];
 			if (ap != null && ap.Contains("`")) {
-				String[] splitstring = new [] { "`" };
+				String[] splitstring = { "`" };
 				String[] strings = ap.Split(splitstring, StringSplitOptions.RemoveEmptyEntries);
 				for (Int32 index = 0; index < strings.Length; index += 3) {
 					switch (strings[index]) {
-						case "msPKI-Key-Security-Descriptor": PrivateKeySecuritySDDL = strings[index + 2]; break;
-						case "msPKI-Asymmetric-Algorithm": KeyAlgorithm = new Oid(strings[index + 2]); break;
-						case "msPKI-Hash-Algorithm": HashAlgorithm = new Oid(strings[index + 2]); break;
-						case "msPKI-Key-Usage": CNGKeyUsage = (X509CNGKeyUsages)Convert.ToInt32(strings[index + 2]); break;
+						case ActiveDirectory.PropPkiKeySddl: PrivateKeySecuritySDDL = strings[index + 2]; break;
+						case ActiveDirectory.PropPkiAsymAlgo: KeyAlgorithm = new Oid(strings[index + 2]); break;
+						case ActiveDirectory.PropPkiHashAlgo: HashAlgorithm = new Oid(strings[index + 2]); break;
+						case ActiveDirectory.PropPkiKeyUsageCng: CNGKeyUsage = (X509CNGKeyUsages)Convert.ToInt32(strings[index + 2]); break;
 					}
 				}
 			}
@@ -105,18 +104,18 @@ namespace PKI.CertificateTemplates {
 			List<String> csplist = new List<String>();
 
 			try {
-				Object[] CSPObject = (Object[])_entry.Properties["pKIDefaultCSPs"].Value;
+				Object[] CSPObject = (Object[])_entry[ActiveDirectory.PropPkiKeyCsp];
 				if (CSPObject != null) {
 					csplist.AddRange(CSPObject.Select(csp => Regex.Replace(csp.ToString(), "^\\d+,", String.Empty)));
 				}
 			} catch {
-				String cspString = (String)_entry.Properties["pKIDefaultCSPs"].Value;
+				String cspString = (String)_entry[ActiveDirectory.PropPkiKeyCsp];
 				csplist.Add(Regex.Replace(cspString, "^\\d+,", String.Empty));
 			}
 			CSPList = csplist.ToArray();
 		}
 		void get_keyusages() {
-			Byte[] ku = (Byte[])_entry.Properties["pKIKeyUsage"].Value;
+			Byte[] ku = (Byte[])_entry[ActiveDirectory.PropPkiKeyUsage];
 			if (ku == null) {
 				KeyUsage = 0;
 			} else {

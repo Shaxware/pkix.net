@@ -1,18 +1,18 @@
-﻿using CERTENROLLLib;
-using PKI.Utils;
-using System;
-using System.DirectoryServices;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
+using CERTENROLLLib;
+using PKI.Utils;
 
 namespace PKI.CertificateTemplates {
 	/// <summary>
 	/// Represents certificate template key archival settings.
 	/// </summary>
 	public class KeyArchivalOptions {
-		readonly DirectoryEntry _entry;
+		readonly IDictionary<String, Object> _entry;
 
-		internal KeyArchivalOptions(DirectoryEntry Entry) {
+		internal KeyArchivalOptions(IDictionary<String, Object> Entry) {
 			_entry = Entry;
 			InitializeDs();
 		}
@@ -34,16 +34,16 @@ namespace PKI.CertificateTemplates {
 		public Int32 KeyLength { get; private set; }
 
 		void InitializeDs() {
-			if (((Int32)_entry.Properties["msPKI-Private-Key-Flag"].Value & (Int32)PrivateKeyFlags.RequireKeyArchival) > 0) {
+			if (((Int32)_entry[ActiveDirectory.PropPkiPKeyFlags] & (Int32)PrivateKeyFlags.RequireKeyArchival) > 0) {
 				KeyArchival = true;
-				String ap = (String)_entry.Properties["msPKI-RA-Application-Policies"].Value;
+				String ap = (String)_entry[ActiveDirectory.PropPkiRaAppPolicy];
 				if (ap != null && ap.Contains("`")) {
 					String[] splitstring = { "`" };
 					String[] strings = ap.Split(splitstring, StringSplitOptions.RemoveEmptyEntries);
 					for (Int32 index = 0; index < strings.Length; index += 3) {
 						switch (strings[index]) {
-							case "msPKI-Symmetric-Algorithm": EncryptionAlgorithm = new Oid(strings[index + 2]); break;
-							case "msPKI-Symmetric-Key-Length": KeyLength = Convert.ToInt32(strings[index + 2]); break;
+							case ActiveDirectory.PropPkiSymAlgo: EncryptionAlgorithm = new Oid(strings[index + 2]); break;
+							case ActiveDirectory.PropPkiSymLength: KeyLength = Convert.ToInt32(strings[index + 2]); break;
 						}
 					}
 				}

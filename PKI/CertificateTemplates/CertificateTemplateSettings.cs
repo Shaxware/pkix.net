@@ -1,11 +1,10 @@
-﻿using System.Linq;
-using CERTENROLLLib;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using CERTENROLLLib;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using EncodingType = CERTENROLLLib.EncodingType;
@@ -16,7 +15,7 @@ namespace PKI.CertificateTemplates {
 	/// This class represents certificate template extended settings.
 	/// </summary>
 	public class CertificateTemplateSettings {
-		readonly DirectoryEntry _entry;
+		readonly IDictionary<String, Object> _entry;
 		readonly List<X509Extension> _exts = new List<X509Extension>();
 		readonly OidCollection _ekus = new OidCollection();
 		Int32 pathLength, pkf, schemaVersion, subjectFlags;
@@ -28,7 +27,7 @@ namespace PKI.CertificateTemplates {
 			CriticalExtensions = new OidCollection();
 			KeyArchivalSettings = new KeyArchivalOptions(template);
 		}
-		internal CertificateTemplateSettings(DirectoryEntry Entry) {
+		internal CertificateTemplateSettings(IDictionary<String, Object> Entry) {
 			_entry = Entry;
 			Cryptography = new CryptographyTemplateSettings(_entry);
 			RegistrationAuthority = new IssuanceRequirements(_entry);
@@ -51,8 +50,12 @@ namespace PKI.CertificateTemplates {
 		/// </summary>
 		public String SubjectType {
 			get {
-				if ((GeneralFlags & (Int32)CertificateTemplateFlags.IsCA) > 0) { return "Certification Authority"; }
-				if ((GeneralFlags & (Int32)CertificateTemplateFlags.MachineType) > 0) { return "Computer"; }
+				if ((GeneralFlags & (Int32) CertificateTemplateFlags.IsCA) > 0) {
+					return "Certification Authority";
+				}
+				if ((GeneralFlags & (Int32) CertificateTemplateFlags.MachineType) > 0) {
+					return "Computer";
+				}
 				return (GeneralFlags & (Int32)CertificateTemplateFlags.IsCrossCA) > 0 ? "Cross Certification Authority" : "User";
 			}
 		}
@@ -133,7 +136,7 @@ namespace PKI.CertificateTemplates {
 		/// Gets registration authority requirements. These are number of authorized signatures and authorized certificate application and/or issuance
 		/// policy requirements.
 		/// </summary>
-		public IssuanceRequirements RegistrationAuthority { get; private set; }
+		public IssuanceRequirements RegistrationAuthority { get; }
 		/// <summary>
 		/// Gets a collection of critical extensions.
 		/// </summary>
@@ -141,7 +144,7 @@ namespace PKI.CertificateTemplates {
 		/// <summary>
 		/// Gets certificate template key archival encryption settings.
 		/// </summary>
-		public KeyArchivalOptions KeyArchivalSettings { get; private set; }
+		public KeyArchivalOptions KeyArchivalSettings { get; }
 
 		/// <summary>
 		/// Stub.
@@ -154,13 +157,13 @@ namespace PKI.CertificateTemplates {
 		public Int32 GeneralFlags { get; private set; }
 
 		void m_initialize() {
-			GeneralFlags = (Int32)_entry.Properties["flags"].Value;
-			subjectFlags = (Int32)_entry.Properties["msPKI-Certificate-Name-Flag"].Value;
-			EnrollmentOptions = (Int32)_entry.Properties["msPKI-Enrollment-Flag"].Value;
-			pkf = (Int32)_entry.Properties["msPKI-Private-Key-Flag"].Value;
-			ValidityPeriod = get_validity((Byte[])_entry.Properties["pKIExpirationPeriod"].Value);
-			RenewalPeriod = get_validity((Byte[])_entry.Properties["pKIOverlapPeriod"].Value);
-			pathLength = (Int32)_entry.Properties["pKIMaxIssuingDepth"].Value;
+			GeneralFlags = (Int32)_entry[ActiveDirectory.PropFlags];
+			subjectFlags = (Int32)_entry[ActiveDirectory.PropPkiSubjectFlags];
+			EnrollmentOptions = (Int32)_entry[ActiveDirectory.PropPkiEnrollFlags];
+			pkf = (Int32)_entry[ActiveDirectory.PropPkiPKeyFlags];
+			ValidityPeriod = get_validity((Byte[])_entry[ActiveDirectory.PropPkiNotAfter]);
+			RenewalPeriod = get_validity((Byte[])_entry[ActiveDirectory.PropPkiRenewalPeriod]);
+			pathLength = (Int32)_entry[ActiveDirectory.PropPkiPathLength];
 			if ((EnrollmentOptions & 2) > 0) { CAManagerApproval = true; }
 			get_eku();
 			get_certpolicies();
@@ -210,55 +213,61 @@ namespace PKI.CertificateTemplates {
 		}
 		void get_eku() {
 			try {
-				Object[] EkuObject = (Object[])_entry.Properties["pKIExtendedKeyUsage"].Value;
+				Object[] EkuObject = (Object[])_entry[ActiveDirectory.PropCertTemplateEKU];
 				if (EkuObject != null) {
 					foreach (Object item in EkuObject) {
 						_ekus.Add(new Oid(item.ToString()));
 					}
 				}
 			} catch {
-				String EkuString = (String)_entry.Properties["pKIExtendedKeyUsage"].Value;
+				String EkuString = (String)_entry[ActiveDirectory.PropCertTemplateEKU];
 				_ekus.Add(new Oid(EkuString));
 			}
 		}
 		void get_certpolicies() {
 			CertificatePolicies = new OidCollection();
 			try {
-				Object[] oids = (Object[])_entry.Properties["msPKI-Certificate-Policy"].Value;
+				Object[] oids = (Object[])_entry[ActiveDirectory.PropPkiCertPolicy];
 				if (oids == null) { return; }
 				foreach (Object oid in oids) {
 					CertificatePolicies.Add(new Oid((String)oid));
 				}
 			} catch {
-				CertificatePolicies.Add(new Oid((String)_entry.Properties["msPKI-Certificate-Policy"].Value));
+				CertificatePolicies.Add(new Oid((String)_entry[ActiveDirectory.PropPkiCertPolicy]));
 			}
 		}
 		void get_criticals() {
 			try {
-				Object[] oids = (Object[])_entry.Properties["pKICriticalExtensions"].Value;
+				Object[] oids = (Object[])_entry[ActiveDirectory.PropPkiCriticalExt];
 				if (oids == null) { return; }
 				foreach (Object oid in oids) {
 					CriticalExtensions.Add(new Oid((String)oid));
 				}
 			} catch {
-				CriticalExtensions.Add(new Oid((String)_entry.Properties["pKICriticalExtensions"].Value));
+				CriticalExtensions.Add(new Oid((String)_entry[ActiveDirectory.PropPkiCriticalExt]));
 			}
 		}
 		void get_superseded() {
 			List<String> temps = new List<String>();
 			try {
-				Object[] templates = (Object[])_entry.Properties["msPKI-Supersede-Templates"].Value;
+				Object[] templates = (Object[])_entry[ActiveDirectory.PropPkiSupersede];
 				if (templates != null) {
 					foreach (Object temp in templates) { temps.Add((String)temp); }
 				}
 			} catch {
-				temps.Add((String)_entry.Properties["msPKI-Supersede-Templates"].Value);
+				temps.Add((String)_entry[ActiveDirectory.PropPkiSupersede]);
 			}
 			SupersededTemplates = temps.ToArray();
 		}
 		void get_extensions() {
-			schemaVersion = (Int32)_entry.Properties["msPKI-Template-Schema-Version"].Value;
-			foreach (String oid in new []{"2.5.29.15","2.5.29.37","2.5.29.32","1.3.6.1.4.1.311.20.2","2.5.29.19","1.3.6.1.5.5.7.48.1.5"}) {
+			schemaVersion = (Int32)_entry[ActiveDirectory.PropPkiSchemaVersion];
+			foreach (String oid in new [] {
+				"2.5.29.15",
+				"2.5.29.37",
+				"2.5.29.32",
+				"1.3.6.1.4.1.311.20.2",
+				"2.5.29.19",
+				"1.3.6.1.5.5.7.48.1.5"}) {
 				switch (oid) {
 					case "2.5.29.15":
 						_exts.Add(new X509KeyUsageExtension(Cryptography.KeyUsage, test_critical("2.5.29.15")));
@@ -284,11 +293,11 @@ namespace PKI.CertificateTemplates {
 						break;
 					case "1.3.6.1.4.1.311.20.2":
 						if (schemaVersion == 1) {
-							_exts.Add(new X509Extension(new Oid("1.3.6.1.4.1.311.20.2"), Asn1Utils.EncodeBMPString((String)_entry.Properties["cn"].Value), test_critical("1.3.6.1.4.1.311.20.2")));
+							_exts.Add(new X509Extension(new Oid("1.3.6.1.4.1.311.20.2"), Asn1Utils.EncodeBMPString((String)_entry[ActiveDirectory.PropCN]), test_critical("1.3.6.1.4.1.311.20.2")));
 						} else {
-							Int32 major = (Int32)_entry.Properties["Revision"].Value;
-							Int32 minor = (Int32)_entry.Properties["msPKI-Template-Minor-Revision"].Value;
-							Oid tempoid = new Oid((String)_entry.Properties["msPKI-Cert-Template-OID"].Value);
+							Int32 major = (Int32)_entry[ActiveDirectory.PropPkiTemplateMajorVersion];
+							Int32 minor = (Int32)_entry[ActiveDirectory.PropPkiTemplateMinorVersion];
+							Oid tempoid = new Oid((String)_entry[ActiveDirectory.PropCertTemplateOid]);
 							_exts.Add(new X509CertificateTemplateExtension(tempoid, major, minor));
 							_exts[_exts.Count - 1].Critical = test_critical("1.3.6.1.4.1.311.21.7");
 						}

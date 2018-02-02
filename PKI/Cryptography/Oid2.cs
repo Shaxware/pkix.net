@@ -1,14 +1,13 @@
-﻿using PKI;
-using PKI.Structs;
-using PKI.Utils;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.DirectoryServices;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using PKI;
+using PKI.Structs;
+using PKI.Utils;
 
 namespace System.Security.Cryptography {
 	/// <summary>
@@ -16,6 +15,8 @@ namespace System.Security.Cryptography {
 	/// and OID registration/unregistration capabilites.
 	/// </summary>
 	public sealed class Oid2 {
+		static readonly String _baseDsPath =
+			$"CN=OID, CN=Public Key Services, CN=Services,{ActiveDirectory.ConfigContext}";
 		readonly Boolean _cng;
 		readonly String _searchBy;
 		String[] urls;
@@ -109,40 +110,47 @@ namespace System.Security.Cryptography {
 				oidvalue = oidobj.Value;
 			}
 			String cn = computeOidHash(oidvalue);
-			DirectoryEntry entry = new DirectoryEntry("LDAP://" + "CN=" + cn + ",CN=OID,CN=Public Key Services,CN=Services," + ActiveDirectory.ConfigContext);
+			String ldapPath = $"CN={cn},{_baseDsPath}";
 			try {
-				if (String.IsNullOrEmpty(entry.Path)) { return; }
-				if ((String)entry.Properties["cn"].Value == cn) {
-					found = true;
-					DistinguishedName = (String)entry.Properties["distinguishedName"].Value;
-					flags = (Int32)entry.Properties["flags"].Value;
-					FriendlyName = (String)entry.Properties["displayName"].Value;
-					Value = oidvalue;
-					switch (flags) {
-						case 1:
-							if (group != OidGroupEnum.AllGroups && group != OidGroupEnum.CertificateTemplate) {
-								throw new Exception("Oid type mismatch.");
-							}
-							OidGroup = OidGroupEnum.CertificateTemplate; break;
-						case 2:
-							if (group != OidGroupEnum.AllGroups && group != OidGroupEnum.IssuancePolicy) {
-								throw new Exception("Oid type mismatch.");
-							}
-							OidGroup = OidGroupEnum.IssuancePolicy;
-							if (entry.Properties["msPKI-OID-CPS"].Value == null) { break; }
-							try {
-								Object[] cps = (Object[])entry.Properties["msPKI-OID-CPS"].Value;
-								urls = cps.Cast<String>().ToArray();
-							} catch {
-								urls = new[] { (String)entry.Properties["msPKI-OID-CPS"].Value };
-							}
+				IDictionary<String, Object> oidInDs = ActiveDirectory.GetEntryProperties(
+					ldapPath,
+					ActiveDirectory.PropFlags,
+					ActiveDirectory.PropDN,
+					ActiveDirectory.PropDisplayName,
+					ActiveDirectory.PropCpsOid);
+				found = true;
+				DistinguishedName = (String)oidInDs[ActiveDirectory.PropDN];
+				flags = (Int32)oidInDs[ActiveDirectory.PropFlags];
+				FriendlyName = (String) oidInDs[ActiveDirectory.PropDisplayName];
+				switch (flags) {
+					case 1:
+						if (group != OidGroupEnum.AllGroups && group != OidGroupEnum.CertificateTemplate) {
+							throw new Exception("Oid type mismatch.");
+						}
+						OidGroup = OidGroupEnum.CertificateTemplate;
+						break;
+					case 2:
+						if (group != OidGroupEnum.AllGroups && group != OidGroupEnum.IssuancePolicy) {
+							throw new Exception("Oid type mismatch.");
+						}
+						OidGroup = OidGroupEnum.IssuancePolicy;
+						if (oidInDs[ActiveDirectory.PropCpsOid] == null) {
 							break;
-						case 3:
-							if (group != OidGroupEnum.AllGroups && group != OidGroupEnum.ApplicationPolicy) {
-								throw new Exception("Oid type mismatch.");
-							}
-							OidGroup = OidGroupEnum.ApplicationPolicy; break;
-					}
+						}
+						try {
+							Object[] cps = (Object[]) oidInDs[ActiveDirectory.PropCpsOid];
+							urls = cps.Cast<String>().ToArray();
+						}
+						catch {
+							urls = new[] {(String)oidInDs[ActiveDirectory.PropCpsOid]};
+						}
+						break;
+					case 3:
+						if (group != OidGroupEnum.AllGroups && group != OidGroupEnum.ApplicationPolicy) {
+							throw new Exception("Oid type mismatch.");
+						}
+						OidGroup = OidGroupEnum.ApplicationPolicy;
+						break;
 				}
 			} catch {
 				FriendlyName = String.Empty;
@@ -153,7 +161,9 @@ namespace System.Security.Cryptography {
 			if (!found) { initializeLocal(oid, group); }
 		}
 		Boolean Equals(Oid2 other) {
-			return String.Equals(Value, other.Value) && OidGroup == other.OidGroup && String.Equals(FriendlyName, other.FriendlyName);
+			return String.Equals(Value, other.Value)
+				&& OidGroup == other.OidGroup
+				&& String.Equals(FriendlyName, other.FriendlyName);
 		}
 
 		static void registerLocal(Oid oid, OidGroupEnum group) {
@@ -166,26 +176,28 @@ namespace System.Security.Cryptography {
 		}
 		static void registerDS(Oid oid, OidGroupEnum group, CultureInfo localeId, String cpsUrl) {
 			String cn = computeOidHash(oid.Value);
-			DirectoryEntry entry = new DirectoryEntry("LDAP://CN=OID,CN=Public Key Services,CN=Services," + ActiveDirectory.ConfigContext);
-			entry = entry.Children.Add("CN=" + cn, "msPKI-Enterprise-Oid");
+			String entryDN =
+				ActiveDirectory.AddEntry(
+					_baseDsPath,
+					$"CN={cn}",
+					ActiveDirectory.SchemaObjectIdentifier);
 			switch (group) {
 				case OidGroupEnum.ApplicationPolicy:
-					entry.Properties["flags"].Value = 3;
+					ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropFlags, 3);
 					break;
 				case OidGroupEnum.IssuancePolicy:
-					entry.Properties["flags"].Value = 2;
+					ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropFlags, 2);
 					if (!String.IsNullOrEmpty(cpsUrl)) {
-						entry.Properties["msPKI-OID-CPS"].Value = cpsUrl;
+						ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropCpsOid, cpsUrl);
 					}
 					break;
 			}
-			entry.Properties["msPKI-Cert-Template-OID"].Value = oid.Value;
+			ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropCertTemplateOid, oid.Value);
 			if (localeId == null) {
-				entry.Properties["displayName"].Value = oid.FriendlyName;
+				ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropDisplayName, oid.FriendlyName);
 			} else {
-				entry.Properties["msPKI-OIDLocalizedName"].Value = localeId.LCID + "," + oid.FriendlyName;
+				ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropLocalizedOid, $"{localeId.LCID},{oid.FriendlyName}");
 			}
-			entry.CommitChanges();
 		}
 		static void registerLegacy(Oid oid, OidGroupEnum group) {
 			Wincrypt.CRYPT_OID_INFO_Win2k3 oidinfo = new Wincrypt.CRYPT_OID_INFO_Win2k3 {
@@ -219,23 +231,22 @@ namespace System.Security.Cryptography {
 			}
 			return true;
 		}
-		static bool unregisterDS(string oid, OidGroupEnum group) {
+		static Boolean unregisterDS(String oid, OidGroupEnum group) {
 			String cn = computeOidHash(oid);
-			DirectoryEntry child = new DirectoryEntry("LDAP://CN=" + cn + ",CN=OID,CN=Public Key Services,CN=Services," + ActiveDirectory.ConfigContext);
+			String ldapPath = $"CN={cn},{_baseDsPath}";
+			Int32 flags = (Int32)ActiveDirectory.GetEntryProperty(ldapPath, ActiveDirectory.PropFlags);
 			switch (group) {
 				case OidGroupEnum.ApplicationPolicy:
-					if ((Int32)child.Properties["flags"].Value != 3) { return false; }
+					if (flags != 3) { return false; }
 					break;
 				case OidGroupEnum.IssuancePolicy:
-					if ((Int32)child.Properties["flags"].Value != 2) { return false; }
+					if (flags != 2) { return false; }
 					break;
 				case OidGroupEnum.CertificateTemplate:
-					if ((Int32)child.Properties["flags"].Value != 1) { return false; }
+					if (flags != 1) { return false; }
 					break;
 			}
-			DirectoryEntry entry = new DirectoryEntry("LDAP://CN=OID,CN=Public Key Services,CN=Services," + ActiveDirectory.ConfigContext);
-			entry.Children.Remove(child);
-			entry.CommitChanges();
+			ActiveDirectory.RemoveEntry(ldapPath);
 			return true;
 		}
 		static void unregisterLegacy(IEnumerable<Oid2> oid) {

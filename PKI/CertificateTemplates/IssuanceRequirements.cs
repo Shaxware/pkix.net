@@ -1,9 +1,9 @@
-﻿using CERTENROLLLib;
-using PKI.Utils;
-using System;
-using System.DirectoryServices;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
+using CERTENROLLLib;
+using PKI.Utils;
 
 namespace PKI.CertificateTemplates {
 	/// <summary>
@@ -11,13 +11,13 @@ namespace PKI.CertificateTemplates {
 	/// policy requirements.
 	/// </summary>
 	public class IssuanceRequirements {
-		readonly DirectoryEntry _entry;
+		readonly IDictionary<String, Object> _entry;
 		Int32 enrollmentFlags;
 
 		internal IssuanceRequirements(IX509CertificateTemplate template) {
 			InitializeCom(template);
 		}
-		internal IssuanceRequirements(DirectoryEntry Entry) {
+		internal IssuanceRequirements(IDictionary<String, Object> Entry) {
 			_entry = Entry;
 			InitializeDs();
 		}
@@ -42,17 +42,17 @@ namespace PKI.CertificateTemplates {
 		public Boolean ExistingCertForRenewal => (enrollmentFlags & (Int32)CertificateTemplateEnrollmentFlags.ReenrollExistingCert) > 0;
 
 		void InitializeDs() {
-			enrollmentFlags = (Int32)_entry.Properties["msPKI-Enrollment-Flag"].Value;
-			SignatureCount = (Int32)_entry.Properties["msPKI-RA-Signature"].Value;
+			enrollmentFlags = (Int32)_entry[ActiveDirectory.PropPkiEnrollFlags];
+			SignatureCount = (Int32)_entry[ActiveDirectory.PropPkiRaSignature];
 			if (SignatureCount > 0) {
-				String ap = (String)_entry.Properties["msPKI-RA-Application-Policies"].Value;
+				String ap = (String)_entry[ActiveDirectory.PropPkiRaAppPolicy];
 				if (ap == null) { return; }
 				if (ap.Contains("`")) {
 					String[] splitstring = { "`" };
 					String[] strings = ap.Split(splitstring, StringSplitOptions.RemoveEmptyEntries);
 					for (Int32 index = 0; index < strings.Length; index += 3) {
 						switch (strings[index]) {
-							case "msPKI-RA-Application-Policies": ApplicationPolicy = new Oid(strings[index + 2]); break;
+							case ActiveDirectory.PropPkiRaAppPolicy: ApplicationPolicy = new Oid(strings[index + 2]); break;
 						}
 					}
 				} else { ApplicationPolicy = new Oid(ap); }
@@ -62,14 +62,14 @@ namespace PKI.CertificateTemplates {
 		void get_rapolicies() {
 			OidCollection oids = new OidCollection();
 			try {
-				Object[] RaObject = (Object[])_entry.Properties["msPKI-RA-Policies"].Value;
+				Object[] RaObject = (Object[])_entry[ActiveDirectory.PropPkiRaCertPolicy];
 				if (RaObject != null) {
 					foreach (Object obj in RaObject) {
 						oids.Add(new Oid(obj.ToString()));
 					}
 				}
 			} catch {
-				String RaString = (String)_entry.Properties["msPKI-RA-Policies"].Value;
+				String RaString = (String)_entry[ActiveDirectory.PropPkiRaCertPolicy];
 				oids.Add(new Oid(RaString));
 			}
 			CertificatePolicies = oids;
