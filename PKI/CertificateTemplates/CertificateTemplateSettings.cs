@@ -68,9 +68,7 @@ namespace PKI.CertificateTemplates {
 		/// <summary>
 		/// Gets or sets a list of OIDs that represent extended key usages (sertificate purposes).
 		/// </summary>
-		public OidCollection EnhancedKeyUsage => Extensions == null
-			? null
-			: (from X509Extension item in Extensions where item.Oid.Value == "2.5.29.37" select ((X509EnhancedKeyUsageExtension) item).EnhancedKeyUsages).FirstOrDefault();
+		public OidCollection EnhancedKeyUsage => ((X509EnhancedKeyUsageExtension)Extensions?["2.5.29.37"])?.EnhancedKeyUsages;
 
 		/// <summary>
 		/// Gets issuance policies designated to the template.
