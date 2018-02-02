@@ -1,4 +1,11 @@
-﻿using CERTADMINLib;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Management;
+using System.Security.Cryptography.X509Certificates;
+using System.ServiceProcess;
+using System.Text.RegularExpressions;
+using CERTADMINLib;
 using CERTCLILib;
 using PKI.CertificateServices.DB;
 using PKI.Exceptions;
@@ -6,16 +13,6 @@ using PKI.Security;
 using PKI.Security.AccessControl;
 using PKI.Structs;
 using PKI.Utils;
-using System;
-using System.Collections.Generic;
-using System.DirectoryServices;
-using System.DirectoryServices.ActiveDirectory;
-using System.Linq;
-using System.Management;
-using System.Security.AccessControl;
-using System.Security.Cryptography.X509Certificates;
-using System.ServiceProcess;
-using System.Text.RegularExpressions;
 
 namespace PKI.CertificateServices {
 	/// <summary>
@@ -159,11 +156,11 @@ namespace PKI.CertificateServices {
 
 		void lookInDs(String computerName) {
 			if (!ActiveDirectory.Ping()) { return; }
-			if (!computerName.Contains(".")) { computerName = computerName + "." + Domain.GetCurrentDomain().Name; }
+			if (!computerName.Contains(".")) { computerName = computerName + "." + ActiveDirectory.GetCurrentDomainName(); }
 			_certConfig.Reset(0); //TODO
 			while (_certConfig.Next() >= 0) {
-                Int32 flags = Convert.ToInt32(_certConfig.GetField("Flags"));
-                Boolean serverNameMatch = String.Equals(_certConfig.GetField("Server"), computerName, StringComparison.InvariantCultureIgnoreCase);
+                Int32 flags = Convert.ToInt32(_certConfig.GetField(CertConfigConstants.FieldFlags));
+                Boolean serverNameMatch = String.Equals(_certConfig.GetField(CertConfigConstants.FieldServer), computerName, StringComparison.InvariantCultureIgnoreCase);
                 if (serverNameMatch && (flags & 1) > 0) {
 					foundInDs = true;
 					return;
@@ -307,15 +304,14 @@ namespace PKI.CertificateServices {
 		}
 		void getInfoFromDs() {
 			if (IsEnterprise && ActiveDirectory.Ping()) {
-				if (_certConfig.GetField("CommonName") == Name) {
-					String cn = "CN=" + _certConfig.GetField("SanitizedShortName") +
+				if (_certConfig.GetField(CertConfigConstants.FieldCommonName) == Name) {
+					String cn = "CN=" + _certConfig.GetField(CertConfigConstants.FieldSanitizedShortName) +
 						",CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,DC=" +
-						Domain.GetCurrentDomain().Forest.Name.Replace(".", ",DC=");
-					DirectoryEntry entry = new DirectoryEntry("LDAP://" + cn);
-					DistinguishedName = (String)entry.Properties["distinguishedName"].Value;
-					DisplayName = _certConfig.GetField("CommonName");
+						ActiveDirectory.GetForestName().Replace(".", ",DC=");
+					DistinguishedName = (String)ActiveDirectory.GetEntryProperty(cn, ActiveDirectory.PropDN);
+					DisplayName = _certConfig.GetField(CertConfigConstants.FieldCommonName);
 					try {
-						String wes = _certConfig.GetField("WebEnrollmentServers");
+						String wes = _certConfig.GetField(CertConfigConstants.FieldEnrollmentServers);
 						if (!String.IsNullOrEmpty(wes)) {
 							getCesUri(wes);
 						}
@@ -332,10 +328,10 @@ namespace PKI.CertificateServices {
 		}
 		void buildFromCertConfigOnly() {
 			IsEnterprise = true;
-			Name = _certConfig.GetField("SanitizedName");
-			DisplayName = _certConfig.GetField("CommonName");
-			ComputerName = _certConfig.GetField("Server");
-			ConfigString = _certConfig.GetField("Config");
+			Name = _certConfig.GetField(CertConfigConstants.FieldSanitizedName);
+			DisplayName = _certConfig.GetField(CertConfigConstants.FieldCommonName);
+			ComputerName = _certConfig.GetField(CertConfigConstants.FieldServer);
+			ConfigString = _certConfig.GetField(CertConfigConstants.FieldConfig);
 			getInfoFromDs();
 		}
 		void releaseCom() {
@@ -583,21 +579,20 @@ namespace PKI.CertificateServices {
 		/// Updates Enrollment Services URLs in the Active Directory.
 		/// </summary>
 		public void UpdateEnrollmentServiceUri() {
-			if (String.IsNullOrEmpty(DistinguishedName)) { throw new NotSupportedException("Enrollment Service URLs are not supported for Standalone CAs."); }
-			DirectoryEntry entry = new DirectoryEntry("LDAP://" + DistinguishedName);
-			if (EnrollmentServiceURI == null || EnrollmentServiceURI.Length == 0) {
-				entry.Properties["msPKI-Enrollment-Servers"].Value = null;
-			} else {
+			if (String.IsNullOrEmpty(DistinguishedName)) {
+				throw new NotSupportedException("Enrollment Service URLs are not supported for Standalone CAs.");
+			}
+			Object value = null;
+			if (EnrollmentServiceURI != null && EnrollmentServiceURI.Length > 0) {
 				List<String> uris = new List<String>();
 				foreach (CESUri uri in EnrollmentServiceURI) {
 					uri.DisplayName = DisplayName;
-					uris.Add(uri.Priority + "\n" + (Int32)uri.Authentication + "\n" + Convert.ToInt32(uri.RenewalOnly) + "\n" + uri.Uri.AbsoluteUri);
+					uris.Add(uri.Priority + "\n" + (Int32) uri.Authentication + "\n" + Convert.ToInt32(uri.RenewalOnly) + "\n" +
+					         uri.Uri.AbsoluteUri);
 				}
-				entry.Properties["msPKI-Enrollment-Servers"].Value = uris.ToArray();
+				value = uris.ToArray();
 			}
-			try {
-				entry.CommitChanges();
-			} finally { entry.Close(); }
+			ActiveDirectory.SetEntryProperty(DistinguishedName, ActiveDirectory.PropPkiEnrollmentServers, value);
 		}
 		/// <summary>
 		/// Gets the access control list (<strong>ACL</strong>) for the current Certification Authority.
