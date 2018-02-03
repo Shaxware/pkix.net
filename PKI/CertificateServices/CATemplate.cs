@@ -13,7 +13,7 @@ namespace PKI.CertificateServices {
 	/// Represents Certification Authority object with assigned certificate templates.
 	/// </summary>
 	public class CATemplate {
-		String Version, ConfigString;
+		String version, sku, configString;
 
 		/// <param name="certificateAuthority">Specifies an existing <see cref="CertificateServices"/> object.</param>
 		/// <exception cref="UninitializedObjectException">An object in the <strong>certificateAuthority</strong> parameter is not initialized.</exception>
@@ -47,7 +47,9 @@ namespace PKI.CertificateServices {
 		public Boolean IsModified { get; private set; }
 
 		void m_initialize(CertificateAuthority certificateAuthority) {
-			if (!certificateAuthority.IsEnterprise) { throw new PlatformNotSupportedException(); }
+			if (!certificateAuthority.IsEnterprise) {
+				throw new PlatformNotSupportedException();
+			}
 			if (!certificateAuthority.Ping()) {
 				ServerUnavailableException e = new ServerUnavailableException(certificateAuthority.DisplayName);
 				e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
@@ -56,8 +58,9 @@ namespace PKI.CertificateServices {
 			Name = certificateAuthority.Name;
 			DisplayName = certificateAuthority.DisplayName;
 			ComputerName = certificateAuthority.ComputerName;
-			Version = certificateAuthority.Version;
-			ConfigString = certificateAuthority.ConfigString;
+			version = certificateAuthority.Version;
+			sku = certificateAuthority.Sku;
+			configString = certificateAuthority.ConfigString;
 
 			CCertAdmin CertAdmin = new CCertAdmin();
 			String templates = (String)CertAdmin.GetCAProperty(certificateAuthority.ConfigString, CertAdmConstants.CrPropTemplates, 0, CertAdmConstants.ProptypeString, 0);
@@ -74,32 +77,26 @@ namespace PKI.CertificateServices {
 			}
 		}
 		Boolean IsSupported(Int32 schemaVersion) {
-			switch (Version) {
+			switch (version) {
 				case "2003":
 					switch (schemaVersion) {
 						case 1: return true;
 						case 2:
-							if (Version == "Enterprise" || Version == "Datacenter") { return true; }
-							break;
+							return sku == "Enterprise" || sku == "Datacenter";
+						default: return false;
 					}
-					break;
 				case "2008":
 					switch (schemaVersion) {
 						case 1: return true;
 						case 2:
-							if (Version == "Enterprise" || Version == "Datacenter") { return true; }
-							break;
 						case 3:
-							if (Version == "Enterprise" || Version == "Datacenter") { return true; }
-							break;
+							return sku == "Enterprise" || sku == "Datacenter";
+						default: return false;
 					}
-					break;
 				case "2008R2" :
-					if (schemaVersion < 4) { return true; }
-					break;
+					return schemaVersion < 4;
 				default: return true;
 			}
-			return false;
 		}
 
 		/// <summary>
@@ -225,7 +222,7 @@ namespace PKI.CertificateServices {
 				}
 			}
 			try {
-				CertAdmin.SetCAProperty(ConfigString, CertAdmConstants.CrPropTemplates, 0, CertAdmConstants.ProptypeString, SB.ToString());
+				CertAdmin.SetCAProperty(configString, CertAdmConstants.CrPropTemplates, 0, CertAdmConstants.ProptypeString, SB.ToString());
 			} catch (Exception e) {
 				throw Error.ComExceptionHandler(e);
 			}
