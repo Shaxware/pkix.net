@@ -16,10 +16,10 @@
 //		readonly X509AlternativeNameCollection _san = new X509AlternativeNameCollection();
 //		X509Chain tempChain;
 //		Boolean redirected;
-		
+
 
 //		SslTransaction(ServerCertificateValidationObject obj) {
-			
+
 //		}
 //		/// <summary>
 //		/// Gets the URL associated with the current transaction.
@@ -94,7 +94,7 @@
 //			GrabInternalChain(currentItem, chain);
 //		}
 //		void processSAN() {
-//			foreach (X509Extension item in Certificate.Extensions.Cast<X509Extension>().Where(item => item.Oid.Value == "2.5.29.17")) {
+//			foreach (X509Extension item in Certificate.Extensions.Cast<X509Extension>().Where(item => item.Oid.Value == X509CertExtensions.X509SubjectAlternativeNames)) {
 //				Debug.WriteLine("Found Subject Alternative Names extension in the certificate.");
 //				Debug.WriteLine("Fetching SAN values:");
 //				Debug.WriteLine(item.Format(true));
@@ -129,7 +129,7 @@
 //			}
 //		}
 //		static Boolean HasValidEKU(X509Certificate2 cert) {
-//			return (from X509Extension extension in cert.Extensions where extension.Oid.Value == "2.5.29.37" select new AsnEncodedData(extension.RawData)).
+//			return (from X509Extension extension in cert.Extensions where extension.Oid.Value == X509CertExtensions.X509EnhancedKeyUsage select new AsnEncodedData(extension.RawData)).
 //				Any(asn => (new X509EnhancedKeyUsageExtension(asn, false)).
 //					EnhancedKeyUsages.Cast<Oid>().Any(oid => oid.Value == "1.3.6.1.5.5.7.3.1"));
 //		}

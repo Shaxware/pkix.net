@@ -77,8 +77,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvAPI.cs" />
+    <Compile Include="CertificateServices\DB\AdcsDbManager.cs" />
+    <Compile Include="CertificateServices\DB\AdcsDbValue.cs" />
     <Compile Include="CertificateServices\UrlProtocolSchemes.cs" />
+    <Compile Include="CertificateTemplates\CertTemplateSubjectType.cs" />
     <Compile Include="Cryptography\OidMapping.cs" />
+    <Compile Include="Cryptography\Pkcs\IPkcsPrivateKey.cs" />
     <Compile Include="Cryptography\Pkcs\KeyType.cs" />
     <Compile Include="Cryptography\Pkcs\Pkcs1Key.cs" />
     <Compile Include="Cryptography\Pkcs\Pkcs8Key.cs" />
@@ -101,6 +105,8 @@
     <Compile Include="Cryptography\X509Certificates\X509RevocationReasons.cs" />
     <Compile Include="ManagedAPI\StructClasses\AlgorithmIdentifier.cs" />
     <Compile Include="ManagedAPI\StructClasses\SignedContentBlob.cs" />
+    <Compile Include="Structs\CertConfigConstants.cs" />
+    <Compile Include="Structs\X509CertExtensions.cs" />
     <Compile Include="Utils\CLRExtensions\OidExtensions.cs" />
     <Compile Include="Utils\CLRExtensions\X509Certificate2Extensions.cs" />
     <Compile Include="Utils\ErrorSeverity.cs" />
@@ -230,7 +236,7 @@
     <Compile Include="ServiceProviders\CspLegacy.cs" />
     <Compile Include="ServiceProviders\Csp.cs" />
     <Compile Include="ServiceProviders\CspObject.cs" />
-    <Compile Include="Structs\CertAdmConst.cs" />
+    <Compile Include="Structs\CertAdmConstants.cs" />
     <Compile Include="Structs\Certbcli.cs" />
     <Compile Include="Structs\nCrypt2.cs" />
     <Compile Include="Structs\Wincrypt.cs" />

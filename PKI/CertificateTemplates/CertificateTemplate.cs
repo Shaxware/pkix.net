@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using CERTENROLLLib;
 using PKI.Utils;
+using PKI.Utils.CLRExtensions;
 
 namespace PKI.CertificateTemplates {
 	/// <summary>
@@ -264,15 +265,15 @@ namespace PKI.CertificateTemplates {
 		/// Two objects are considered equal if they are <strong>CertificateTemplate</strong> objects and they have the same
 		/// name and OID values.
 		/// </remarks>
-		protected bool Equals(CertificateTemplate other) {
-			return String.Equals(Name, other.Name) && OID.Equals(other.OID);
+		protected Boolean Equals(CertificateTemplate other) {
+			return String.Equals(Name, other.Name) && OID.Equals2(other.OID);
 		}
 		/// <summary>
 		/// Serves as a hash function for a particular type.
 		/// </summary>
 		/// <returns>The hash code for the certificate template as an integer.</returns>
 		public override Int32 GetHashCode() {
-			unchecked { return (Name.GetHashCode() * 397) ^ OID.GetHashCode(); }
+			unchecked { return (Name.GetHashCode() * 397) ^ OID.GetHashCode2(); }
 		}
 		/// <summary>
 		/// Gets certificate template textual representation.

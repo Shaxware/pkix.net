@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace PKI.CertificateServices.DB {
 	/// <summary>
@@ -25,5 +26,10 @@ namespace PKI.CertificateServices.DB {
 		/// Gets or sets database table name.
 		/// </summary>
 		public TableList Table { get; set; }
+		/// <summary>
+		/// Gets a collection of properties associated with the current row object.
+		/// </summary>
+		IDictionary<String, AdcsDbValue> Properties { get; } = new Dictionary<String, AdcsDbValue>();
+		
 	}
 }
