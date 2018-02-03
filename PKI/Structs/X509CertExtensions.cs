@@ -27,6 +27,7 @@ namespace PKI.Structs {
 		public const String X509IssuerAlternativeNames			= "2.5.29.18";
 		public const String X509BasicConstraints				= "2.5.29.19";
 		public const String X509CRLNumber						= "2.5.29.20";
+		public const String X509CRLReasonCode					= "2.5.29.21";
 		public const String X509DeltaCRLIndicator				= "2.5.29.27";
 		public const String X509NameConstraints					= "2.5.29.30";
 		public const String X509CRLDistributionPoints			= "2.5.29.31";

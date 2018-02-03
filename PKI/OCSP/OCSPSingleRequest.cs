@@ -98,7 +98,8 @@ namespace PKI.OCSP {
 
 			sext.AddRange(cert.IssuerName.RawData);
 			if (cert.Extensions.Count > 0) {
-				foreach (X509Extension ext in cert.Extensions.Cast<X509Extension>().Where(ext => ext.Oid.Value == X509CertExtensions.X509AuthorityInformationAccess)) {
+				X509Extension ext = cert.Extensions[X509CertExtensions.X509AuthorityInformationAccess];
+				if (ext != null) {
 					sext.AddRange(ext.RawData);
 				}
 			}

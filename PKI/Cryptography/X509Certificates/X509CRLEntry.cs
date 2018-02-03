@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using PKI.ManagedAPI;
+using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -129,7 +130,7 @@ namespace System.Security.Cryptography.X509Certificates {
 			if (reasonCode < 0 || reasonCode > 10) {
 				throw new ArgumentException("Revocation reason code is incorrect.");
 			}
-			if (serialNumber.Length%2 == 1) {
+			if (serialNumber.Length % 2 == 1) {
 				serialNumber = "0" + serialNumber;
 			}
 			SerialNumber = serialNumber.Replace(" ", null).ToLower();
@@ -149,8 +150,9 @@ namespace System.Security.Cryptography.X509Certificates {
 			if (asn.Tag == (Byte)Asn1Type.UTCTime) { RevocationDate = Asn1Utils.DecodeUTCTime(asn.GetTagRawData()); }
 			if (asn.Tag == (Byte)Asn1Type.Generalizedtime) { RevocationDate = Asn1Utils.DecodeGeneralizedTime(asn.GetTagRawData()); }
 			if (asn.MoveNext()) {
-				foreach (X509Extension item in Crypt32Managed.DecodeX509Extensions(asn.GetTagRawData()).Cast<X509Extension>().Where(item => item.Oid.Value == "2.5.29.21")) {
-					ReasonCode = item.RawData[2];
+				X509Extension ext = Crypt32Managed.DecodeX509Extensions(asn.GetTagRawData())[X509CertExtensions.X509CRLReasonCode];
+				if (ext != null) {
+					ReasonCode = ext.RawData[2];
 				}
 			}
 			RawData = rawData;

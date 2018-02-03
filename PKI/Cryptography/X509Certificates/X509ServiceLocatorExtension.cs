@@ -48,9 +48,10 @@ namespace System.Security.Cryptography.X509Certificates {
 			List<Byte> rawData = new List<Byte>();
 			rawData.AddRange(cert.IssuerName.RawData);
 			if (cert.Extensions.Count > 0) {
-				foreach (X509Extension item in cert.Extensions.Cast<X509Extension>().Where(item => item.Oid.Value == X509CertExtensions.X509AuthorityInformationAccess)) {
-					AIARaw = item.RawData;
-					rawData.AddRange(item.RawData);
+				X509Extension ext = cert.Extensions[X509CertExtensions.X509AuthorityInformationAccess];
+				if (ext != null) {
+					AIARaw = ext.RawData;
+					rawData.AddRange(ext.RawData);
 					m_extracturls(cert);
 				}
 			}

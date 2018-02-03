@@ -224,7 +224,7 @@ namespace System.Security.Cryptography.X509Certificates {
 		}
 		void getExts(Asn1Reader asn) {
 			Extensions = Crypt32Managed.DecodeX509Extensions(asn.GetPayload());
-			foreach (X509Extension ext in Extensions.Cast<X509Extension>().Where(ext => ext.Oid.Value == "2.5.29.27")) {
+			if (Extensions[X509CertExtensions.X509DeltaCRLIndicator] != null) {
 				Type = DeltaCRL;
 			}
 		}
