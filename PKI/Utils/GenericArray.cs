@@ -5,23 +5,6 @@ using System.Security.Cryptography;
 
 namespace PKI.Utils {
 	static class GenericArray {
-		public static Boolean CompareArray<T>(T[] array1, T[] array2) {
-			if (ReferenceEquals(array1, array2)) { return true; }
-			if (array1 == null || array2 == null) { return false; }
-			if (array1.Length != array2.Length) { return false; }
-			EqualityComparer<T> comparer = EqualityComparer<T>.Default;
-			for (Int64 index = 0; index < array1.Length; index++) {
-				if (!comparer.Equals(array1[index], array2[index])) { return false; }
-			}
-			return true;
-		}
-		public static T[] GetUniques<T>(IEnumerable<T> source) {
-			List<T> uniques = new List<T>();
-			foreach (T item in source.Where(item => !uniques.Contains(item))) {
-				uniques.Add(item);
-			}
-			return uniques.ToArray();
-		}
 		public static Boolean OidContains(Oid[] source, Oid oid) {
 			if (source.Length == 0) { return false; }
 			foreach (Oid item in source) {

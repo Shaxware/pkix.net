@@ -273,16 +273,14 @@ namespace PKI.OCSP {
 		}
 		static Boolean verifycerts(X509Certificate2Collection certs) {
 			if (certs.Count > 0) {
-				String[] issuers = new String[certs.Count];
-				for (Int32 index = 0; index < certs.Count; index++) {
-					if (certs[index].Handle.Equals(IntPtr.Zero)) {
+				HashSet<String> issuers = new HashSet<String>();
+				foreach (X509Certificate2 cert in certs) {
+					if (cert.Handle.Equals(IntPtr.Zero)) {
 						return false;
 					}
-					issuers[index] = certs[index].Issuer;
+					issuers.Add(cert.Issuer.ToLower());
 				}
-				if (GenericArray.GetUniques(issuers).Length == 1) {
-					return true;
-				}
+				if (issuers.Count == 1) { return true; }
 			}
 			return false;
 		}
