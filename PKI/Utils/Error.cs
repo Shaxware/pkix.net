@@ -13,16 +13,13 @@ namespace PKI.Utils {
 		/// </summary>
 		/// <param name="errorCode">An error numeric value. A value can be passed as signed, unsigned integer or as a HEX string.</param>
 		/// <remarks>When error code is passed as HEX, the string must be prepended with '0x' prefix.</remarks>
-		/// <exception cref="Exception"></exception>
 		/// <returns>Text representation of the error code.</returns>
-		/// <exception cref="ArgumentNullException"/>
 		public static String GetMessage(Int32 errorCode) {
 			UInt32 dwChars;
 
 			const Int32 startBase = 12000;
 			const Int32 endBase = 12176;
 			String errorHex = errorCode.ToString("x8");
-			//Int32 highBytes = Convert.ToInt32(ErrorHex.Substring(0, 4), 16);
 			Int32 lowBytes = Convert.ToInt32(errorHex.Substring(4, 4), 16);
 			IntPtr lpMsgBuf = IntPtr.Zero;
 			if (lowBytes > startBase & lowBytes < endBase) {
@@ -33,7 +30,7 @@ namespace PKI.Utils {
 				dwChars = Kernel32.FormatMessage(0x1300, IntPtr.Zero, errorCode, 0, ref lpMsgBuf, 0, IntPtr.Zero);
 			}
 			if (dwChars != 0) {
-				String message = String.Empty;
+				String message = $"Error: 0x{errorCode:x2}";
 				String ptrToStringAnsi = Marshal.PtrToStringAnsi(lpMsgBuf);
 				if (ptrToStringAnsi != null) {
 					message = ptrToStringAnsi.Trim();
@@ -41,7 +38,7 @@ namespace PKI.Utils {
 				Kernel32.LocalFree(lpMsgBuf);
 				return message;
 			}
-			throw new Exception($"No error messages are assoicated with error code: {errorCode} Operation failed.");
+			return $"Error: 0x{errorCode:x2}";
 		}
 
 		internal static Exception ComExceptionHandler(Exception e) {
