@@ -22,13 +22,8 @@ namespace PKI.Utils.CLRExtensions {
 			if (asn.NextCurrentLevelOffset == 0) { return null; }
 			var retValue = new X500RdnAttributeCollection();
 			do {
-				Asn1Reader asn2 = new Asn1Reader(asn.GetPayload());
-				asn2.MoveNext();
-				Oid oid = Asn1Utils.DecodeObjectIdentifier(asn2.GetTagRawData());
-				asn2.MoveNext();
-				String value = Asn1Utils.DecodeAnyString(asn2.GetTagRawData(), null);
-				retValue.Add(new X500RdnAttribute(oid, value));
-
+				if (asn.Tag != 49) { throw new ArgumentException("The data is invalid"); }
+				retValue.Add(new X500RdnAttribute(asn.GetPayload()));
 			} while (asn.MoveNextCurrentLevel());
 			return retValue;
 		}
