@@ -2,29 +2,53 @@
 using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
-	sealed class X500RdnAttribute : AsnEncodedData {
+	/// <summary>
+	/// Represents X.500 Distinguished Name relative attribute.
+	/// </summary>
+	public sealed class X500RdnAttribute : AsnEncodedData {
 		Asn1Type encodingTag;
-		public X500RdnAttribute(Oid oid, String value) {
+		/// <summary>
+		/// Initializes a new instance of the <strong>X500RdnAttribute</strong> class from attribute
+		/// object identifier (OID) and RDN attribute value.
+		/// </summary>
+		/// <param name="oid">RDN attribute object identifier.</param>
+		/// <param name="value">RDN attribute value.</param>
+		internal X500RdnAttribute(Oid oid, String value) {
 			Oid = oid;
 			Value = value;
 			encodingTag = Asn1Type.PrintableString;
 		}
-		public X500RdnAttribute(Oid oid, String value, Asn1Type encodingTag) {
+		/// <summary>
+		/// Initializes a new instance of the <strong>X500RdnAttribute</strong> class from attribute
+		/// object identifier (OID), RDN attribute value and ASN encoding type to use for encoding.
+		/// </summary>
+		/// <param name="oid">RDN attribute object identifier.</param>
+		/// <param name="value">RDN attribute value.</param>
+		/// <param name="encodingTag">ASN string type used to encode RDN attribute.</param>
+		X500RdnAttribute(Oid oid, String value, Asn1Type encodingTag) : this(oid, value) {
 			Oid = oid;
 			Value = value;
 		}
+		/// <summary>
+		/// Initializes a new instance of the <strong>X500RdnAttribute</strong> class from encoded byte array.
+		/// </summary>
+		/// <param name="rawData">ASN.1-encoded byte array.</param>
+		/// <exception cref="ArgumentNullException"><strong>rawData</strong> parameter is null.</exception>
 		public X500RdnAttribute(Byte[] rawData) {
 			if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 			m_decode(rawData);
 		}
 
+		/// <summary>
+		/// Gets a value of RDN attribute.
+		/// </summary>
 		public String Value { get; private set; }
 
+		// TODO
 		void m_initizlie(Oid oid, String value, Asn1Type tag) {
 			// dc -- IA5 String only
 			// E -- IA5String only
 			switch (oid.Value) {
-
 			}
 		}
 		void m_decode(Byte[] rawData) {
@@ -34,7 +58,17 @@ namespace System.Security.Cryptography.X509Certificates {
 			if (asn.Tag != 6) { throw new Exception(); }
 			Oid = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
 			asn.MoveNext();
-			Value = Asn1Utils.DecodeAnyString(asn.GetTagRawData(), null);
+			Asn1Type[] types = {
+								  Asn1Type.IA5String,
+								  Asn1Type.PrintableString,
+								  Asn1Type.VisibleString,
+								  Asn1Type.UTF8String,
+								  Asn1Type.UniversalString,
+								  Asn1Type.BMPString,
+								  Asn1Type.TeletexString
+							  };
+			encodingTag = (Asn1Type)asn.Tag;
+			Value = Asn1Utils.DecodeAnyString(asn.GetTagRawData(), types);
 			RawData = rawData;
 		}
 		void validateTag(Oid oid, Asn1Type tag) {
@@ -50,9 +84,10 @@ namespace System.Security.Cryptography.X509Certificates {
 			encodingTag = tag;
 		}
 
+		/// <inheritdoc/>
 		public override String Format(Boolean multiLine) {
 			if (RawData == null || RawData.Length == 0) {
-				return base.Format(multiLine);	
+				return base.Format(multiLine);
 			}
 			String retValue = String.IsNullOrEmpty(Oid.FriendlyName)
 				? Oid.Value
