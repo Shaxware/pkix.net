@@ -9,10 +9,11 @@ namespace PKI.Utils.CLRExtensions {
 	/// </summary>
 	public static class X500DistinguishedNameExtensions {
 		/// <summary>
-		/// 
+		/// Converts an <see cref="X500DistinguishedName"/> instance in to a collection of individual
+		/// RDN attributes.
 		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
+		/// <param name="name">Existing instance of <strong>X500DistinguishedName</strong>.</param>
+		/// <returns>A collection of RDN attributes.</returns>
 		public static X500RdnAttributeCollection GetRdnAttributes(this X500DistinguishedName name) {
 			if (name == null) { throw new ArgumentNullException(nameof(name)); }
 			if (name.RawData == null || name.RawData.Length == 0) { return null; }
