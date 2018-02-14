@@ -17,14 +17,8 @@ namespace PKI.Utils.CLRExtensions {
 		public static X500RdnAttributeCollection GetRdnAttributes(this X500DistinguishedName name) {
 			if (name == null) { throw new ArgumentNullException(nameof(name)); }
 			if (name.RawData == null || name.RawData.Length == 0) { return null; }
-			Asn1Reader asn = new Asn1Reader(name.RawData);
-			if (!asn.MoveNext()) { return null; }
-			if (asn.NextCurrentLevelOffset == 0) { return null; }
 			var retValue = new X500RdnAttributeCollection();
-			do {
-				if (asn.Tag != 49) { throw new ArgumentException("The data is invalid"); }
-				retValue.Add(new X500RdnAttribute(asn.GetPayload()));
-			} while (asn.MoveNextCurrentLevel());
+			retValue.Decode(name.RawData);
 			return retValue;
 		}
 	}
