@@ -1,25 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2011
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PKI", "PKI\PKI.csproj", "{5AD7D76A-09A4-4E4F-AFA7-7798E0E9CD89}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PKI.Test", "PKI.Test\PKI.Test.csproj", "{359ED8C6-47B5-4321-9B60-62E0F53A5384}"
 EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://pspkix.visualstudio.com/defaultcollection
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = PKI\\PKI.csproj
-		SccProjectName1 = PKI
-		SccLocalPath1 = PKI
-		SccProjectUniqueName2 = PKI.Test\\PKI.Test.csproj
-		SccProjectName2 = PKI.Test
-		SccLocalPath2 = PKI.Test
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -36,5 +24,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EF346D1C-27DC-44CE-81BA-E03D528ADE83}
 	EndGlobalSection
 EndGlobal
