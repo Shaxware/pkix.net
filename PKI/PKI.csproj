@@ -88,6 +88,7 @@
     <Compile Include="Cryptography\Pkcs\Pkcs8Key.cs" />
     <Compile Include="Cryptography\X509Certificates\AuthorityKeyIdentifierFlags.cs" />
     <Compile Include="Cryptography\X509Certificates\CertificateStoreObjectAccessStateEnum.cs" />
+    <Compile Include="Cryptography\X509Certificates\X500RdnAttributeCollection.cs" />
     <Compile Include="Cryptography\X509Certificates\X509ApplicationPolicyConstraintsExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509ApplicationPolicyMappingsExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509AuthorityKeyIdentifierExtension.cs" />
