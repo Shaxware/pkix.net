@@ -109,6 +109,7 @@
     <Compile Include="ManagedAPI\StructClasses\SignedContentBlob.cs" />
     <Compile Include="Structs\CertConfigConstants.cs" />
     <Compile Include="Structs\X509CertExtensions.cs" />
+    <Compile Include="Utils\MessageSigner.cs" />
     <Compile Include="Utils\ServiceOperationResult.cs" />
     <Compile Include="Utils\IServiceOperationResult.cs" />
     <Compile Include="Utils\CLRExtensions\OidExtensions.cs" />
@@ -254,6 +255,7 @@
     <Compile Include="Utils\EnumFlags.cs" />
     <Compile Include="Utils\Networking.cs" />
     <Compile Include="Utils\CryptoRegistry.cs" />
+    <Compile Include="Utils\SignaturePadding.cs" />
     <Compile Include="Utils\Wildcard.cs" />
     <Compile Include="Utils\WMI.cs" />
     <Compile Include="Utils\PSErrorSourceEnum.cs" />

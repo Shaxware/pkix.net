@@ -211,41 +211,5 @@ namespace PKI.Utils {
             RSACryptoServiceProvider key = (RSACryptoServiceProvider)certificate.PrivateKey;
             return key.SignData(message, hashAlgorithm.Value);
         }
-        public static Byte[] SignMessage(ECDsa key, Byte[] message, Oid hashAlgorithm) {
-            if (key == null) {
-                throw new ArgumentNullException(nameof(key));
-            }
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-            if (hashAlgorithm == null) {
-                throw new ArgumentNullException(nameof(hashAlgorithm));
-            }
-            return key.SignHash(calculateHash(message, hashAlgorithm.FriendlyName, false));
-        }
-        public static Byte[] SignMessage(RSACryptoServiceProvider key, Byte[] message, Oid hashAlgorithm) {
-            if (key == null) {
-                throw new ArgumentNullException(nameof(key));
-            }
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-            if (hashAlgorithm == null) {
-                throw new ArgumentNullException(nameof(hashAlgorithm));
-            }
-            return key.SignHash(calculateHash(message, hashAlgorithm.FriendlyName, false), hashAlgorithm.Value);
-        }
-        public static Byte[] SignMessage(DSA key, Byte[] message, Oid hashAlgorithm) {
-            if (key == null) {
-                throw new ArgumentNullException(nameof(key));
-            }
-            if (message == null) {
-                throw new ArgumentNullException(nameof(message));
-            }
-            if (hashAlgorithm == null) {
-                throw new ArgumentNullException(nameof(hashAlgorithm));
-            }
-            return key.CreateSignature(calculateHash(message, hashAlgorithm.FriendlyName, false));
-        }
     }
 }
