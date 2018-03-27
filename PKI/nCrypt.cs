@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace PKI {
     static class nCrypt {
@@ -42,6 +43,18 @@ namespace PKI {
             UInt32 dwFlags
         );
         [DllImport("ncrypt.dll", SetLastError = true)]
+        public static extern Int32 NCryptImportKey(
+            [In] IntPtr hProvider,
+            [In, Optional] IntPtr hImportKey,
+            [In] String pszBlobType,
+            [In, Optional] IntPtr pParameterList,
+            [Out] out SafeNCryptKeyHandle phKey,
+            [In] Byte[] pbData,
+            [In] Int32 cbData,
+            [In] UInt32 dwFlags
+        );
+
+        [DllImport("ncrypt.dll", SetLastError = true)]
         public static extern Int32 NCryptOpenKey(
             [In]            IntPtr hProvider,
             [In, Out] ref IntPtr phKey,
@@ -57,7 +70,7 @@ namespace PKI {
             [MarshalAs(UnmanagedType.LPWStr)]
             [In]            String pszBlobType,
             [In, Optional]  IntPtr pParameterList,
-            [In, Out] ref Byte[] pbOutput,
+            [In, Out]   ref Byte[] pbOutput,
             [In]            UInt32 cbOutput,
             [In]            UInt32 pcbResult,
             [In]            UInt32 dwFlags
@@ -72,8 +85,20 @@ namespace PKI {
             [MarshalAs(UnmanagedType.LPArray)]
             Byte[]          pbSignature,
             UInt32 cbSignature,
-            [Out]out uint pcbResult,
+            [Out]out UInt32 pcbResult,
             UInt32 dwFlags
+        );
+        [DllImport("ncrypt.dll", SetLastError = true)]
+        public static extern Int32 NCryptVerifySignature(
+            [In] SafeNCryptKeyHandle hKey,
+            [In, Optional] IntPtr pPaddingInfo,
+            [MarshalAs(UnmanagedType.LPArray)]
+            [In] Byte[] pbHashValue,
+            [In] Int32 cbHashValue,
+            [MarshalAs(UnmanagedType.LPArray)]
+            [In] Byte[] pbSignature,
+            [In] Int32 cbSignature,
+            [In] UInt32 dwFlags
         );
     }
 }

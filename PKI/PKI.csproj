@@ -109,6 +109,7 @@
     <Compile Include="ManagedAPI\StructClasses\SignedContentBlob.cs" />
     <Compile Include="Structs\CertConfigConstants.cs" />
     <Compile Include="Structs\X509CertExtensions.cs" />
+    <Compile Include="Utils\CLRExtensions\PublicKeyExtensions.cs" />
     <Compile Include="Utils\MessageSigner.cs" />
     <Compile Include="Utils\ServiceOperationResult.cs" />
     <Compile Include="Utils\IServiceOperationResult.cs" />

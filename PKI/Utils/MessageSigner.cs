@@ -19,7 +19,10 @@ namespace PKI.Utils {
     public class MessageSigner : IDisposable {
         Boolean disposed;
         String pubKeyAlgorithm;
+        // although, not really used, leave it for future support for RsaCng and DsaCng .NET classes
+        // when .NET version is upgraded
         SafeNCryptKeyHandle phCryptProv = new SafeNCryptKeyHandle();
+        SafeNCryptKeyHandle phPubKey = new SafeNCryptKeyHandle();
         KeyType keyType;
         AsymmetricAlgorithm key;
         SignaturePadding padding = SignaturePadding.PKCS1;
@@ -76,7 +79,6 @@ namespace PKI.Utils {
             }
             SignerCertificate = signer;
             HashingAlgorithm = hashAlgorithm;
-            getPrivateKey();
         }
 
         /// <summary>
@@ -93,12 +95,21 @@ namespace PKI.Utils {
         /// </summary>
         public Oid SignatureAlgorithm { get; private set; }
 
+        #region signature validation
+        void getPublicKey() {
+            nCrypt.NCryptOpenStorageProvider(out IntPtr phProvider, "Microsoft Software Key Storage Provider", 0);
+
+        }
+        #endregion
+        #region signature creation
         void getPrivateKey() {
             if (disposed) {
                 throw new ObjectDisposedException(nameof(SignerCertificate));
             }
-            if (key != null) { return; }
+            // the key is already acquired, so skip key retrieval
+            if (!IntPtr.Zero.Equals(phCryptProv.DangerousGetHandle())) { return; }
 
+            // the key is not acquired, so attempt to get it
             UInt32 pdwKeySpec = 0;
             Boolean pfCallerFreeProv = false;
             if (!Crypt32.CryptAcquireCertificatePrivateKey(SignerCertificate.Handle,
@@ -107,15 +118,15 @@ namespace PKI.Utils {
                 throw new CryptographicException(Marshal.GetLastWin32Error());
             }
             if (pdwKeySpec == UInt32.MaxValue) {
-                getCngKey();
+                getCngPrivateKey();
             } else {
-                getLegacyKey();
+                getLegacyPrivateKey();
             }
         }
-        void getCngKey() {
+        void getCngPrivateKey() {
+            // this project is compiled against .NET 4.0, so RsaCng and DsaCng unavailable.
+            // as the result, phCryptProv handle is used for signing and signature validation operations
             keyType = KeyType.Cng;
-            CngKey cngKey = CngKey.Open(phCryptProv, CngKeyHandleOpenOptions.None);
-            key = new ECDsaCng(cngKey);
             switch (SignerCertificate.PublicKey.Oid.Value) {
                 case "1.2.840.10045.2.1": pubKeyAlgorithm = "ECDSA"; break;
                 case "1.2.840.113549.1.1.1": pubKeyAlgorithm = "RSA"; break;
@@ -123,7 +134,7 @@ namespace PKI.Utils {
                 default: throw new NotSupportedException("Public key algorithm is not supported");
             }
         }
-        void getLegacyKey() {
+        void getLegacyPrivateKey() {
             switch (SignerCertificate.PublicKey.Oid.Value) {
                 // RSA
                 case "1.2.840.113549.1.1.1":
@@ -136,6 +147,8 @@ namespace PKI.Utils {
                     break;
                 default: throw new NotSupportedException("Public key algorithm is not supported");
             }
+            // if we reach this far, then the key is presented and legacy. So X509Certificate2.PrivateKey
+            // member is not null and contains private key.
             key = SignerCertificate.PrivateKey;
         }
         Byte[] calculateHash(Byte[] message) {
@@ -152,29 +165,54 @@ namespace PKI.Utils {
                 case "ECDSA":
                     if (keyType == KeyType.Cng) {
                         SignatureAlgorithm = padding == SignaturePadding.PSS
-                            ? new Oid("1.2.840.10045.4.3")                                      // specifiedECDSA
-                            : new Oid($"{HashingAlgorithm}{pubKeyAlgorithm}");                  // ECDSA
+                            ? new Oid("1.2.840.10045.4.3")                     // specifiedECDSA
+                            : new Oid($"{HashingAlgorithm}{pubKeyAlgorithm}"); // ECDSA
                     } else {
-                        SignatureAlgorithm = new Oid($"{HashingAlgorithm}{pubKeyAlgorithm}");   // ECDSA
+                        SignatureAlgorithm = new Oid($"{HashingAlgorithm}{pubKeyAlgorithm}"); // ECDSA
                     }
                     break;
                 case "RSA":
                     if (keyType == KeyType.Cng) {
                         SignatureAlgorithm = padding == SignaturePadding.PSS
-                            ? new Oid("1.2.840.113549.1.1.10")                                  // RSASSA-PSS
-                            : new Oid($"{HashingAlgorithm}{pubKeyAlgorithm}");                  // RSA
+                            ? new Oid("1.2.840.113549.1.1.10")                 // RSASSA-PSS
+                            : new Oid($"{HashingAlgorithm}{pubKeyAlgorithm}"); // RSA
                     } else {
-                        SignatureAlgorithm = new Oid($"{HashingAlgorithm}{pubKeyAlgorithm}");   // RSA
+                        SignatureAlgorithm = new Oid($"{HashingAlgorithm}{pubKeyAlgorithm}"); // RSA
                     }
                     break;
                 case "DSA":
                     // DSA doesn't support PSS padding and hashing algorithm other than SHA1
-                    SignatureAlgorithm = new Oid("1.2.840.10040.4.3");                          // sha1DSA
+                    SignatureAlgorithm = new Oid("1.2.840.10040.4.3"); // sha1DSA
                     break;
             }
         }
         Byte[] signHashCng(Byte[] hash) {
-            return ((ECDsa)key).SignHash(hash);
+            // although it is possible to use ECDsaCng for ECDSA keys, we can't use appropriate classes for
+            // DSA and RSA keys in CNG storage, therefore use unmanaged function to sign the data for any
+            // type of CNG key (ECDSA, RSA, DSA).
+            Int32 hresult = nCrypt.NCryptSignHash(
+                phCryptProv.DangerousGetHandle(),
+                IntPtr.Zero,
+                hash,
+                (UInt32)hash.Length,
+                null,
+                0,
+                out UInt32 pcbResult,
+                0);
+            if (hresult != 0) { throw new CryptographicException(hresult); }
+
+            Byte[] pbSignature = new Byte[pcbResult];
+            hresult = nCrypt.NCryptSignHash(
+                phCryptProv.DangerousGetHandle(),
+                IntPtr.Zero, hash,
+                (UInt32)hash.Length,
+                pbSignature,
+                (UInt32)pbSignature.Length,
+                out pcbResult,
+                0);
+            if (hresult != 0) { throw new CryptographicException(hresult); }
+
+            return pbSignature;
         }
         Byte[] signHashRsa(Byte[] hash) {
             return ((RSACryptoServiceProvider)key).SignHash(hash, HashingAlgorithm.FriendlyName);
@@ -182,6 +220,7 @@ namespace PKI.Utils {
         Byte[] signHashDsa(Byte[] hash) {
             return ((DSACryptoServiceProvider)key).SignHash(hash, "sha1");
         }
+        #endregion
 
         public Byte[] SignData(Byte[] message) {
             if (message == null) { throw new ArgumentNullException(nameof(message)); }
@@ -189,6 +228,7 @@ namespace PKI.Utils {
         }
         public Byte[] SignHash(Byte[] hash) {
             if (hash == null) { throw new ArgumentNullException(nameof(hash)); }
+            getPrivateKey();
             Byte[] signature;
             switch (keyType) {
                 case KeyType.Cng: signature = signHashCng(hash); break;
@@ -203,7 +243,7 @@ namespace PKI.Utils {
 
         #region IDisposable implementation
         void releaseUnmanagedResources() {
-            key.Dispose();
+            key?.Dispose();
             key = null;
             Crypt32.CertFreeCertificateContext(SignerCertificate.Handle);
             SignerCertificate = null;

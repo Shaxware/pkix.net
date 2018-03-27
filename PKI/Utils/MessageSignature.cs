@@ -68,13 +68,14 @@ namespace PKI.Utils {
                 case "1.3.132.0.34":
                     header.AddRange(new Byte[] { 69, 67, 83, 51, 48, 0, 0, 0 });
                     break;
-                // ECDH_P521/ECDSA_P251
+                // ECDH_P521/ECDSA_P521
                 case "1.3.132.0.35":
                     header.AddRange(new Byte[] { 69, 67, 83, 53, 66, 0, 0, 0 });
                     break;
                 default:
                     throw new CryptographicException("Specified ellyptic curve is not supported.");
             }
+            // skip first byte, it is always 0X04 for ECDSA public key
             header.AddRange(pubKey.EncodedKeyValue.RawData.Skip(1));
             CngKey cngKey = CngKey.Import(header.ToArray(), CngKeyBlobFormat.GenericPublicBlob);
             return new ECDsaCng(cngKey);
