@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -7,12 +8,15 @@ using SysadminsLV.Asn1Parser;
 
 namespace PKI.Utils.CLRExtensions {
     static class PublicKeyExtensions {
+        // all magic numbers are for public keys only.
         const Int32 RSA_MAGIC        = 0x31415352;
         const Int32 DSA_V1_MAGIC     = 0x42505344; // 512-1024 bit, legacy
         const Int32 DSA_V2_MAGIC     = 0x32425044; // larger than 1024, CNG
         const Int32 ECDSA_P256_MAGIC = 0x31534345;
         const Int32 ECDSA_P384_MAGIC = 0x33534345;
         const Int32 ECDSA_P521_MAGIC = 0x35534345;
+        // non-default, some platforms may not support all of them
+
 
         public static Byte[] GetCryptBlob(this PublicKey publicKey) {
             List<Byte> blob = new List<Byte>();
@@ -38,10 +42,24 @@ namespace PKI.Utils.CLRExtensions {
                 case "1.2.840.10045.2.1":
                     readEcdsaHeader(blob, publicKey);
                     break;
+                default:
+                    throw new InvalidOperationException(new Win32Exception(Error.InvalidParameterException).Message);
             }
             return blob.ToArray();
         }
-
+        static Tuple<Byte[], Byte[]> getRsaComponents(PublicKey publicKey) {
+            var asn = new Asn1Reader(publicKey.EncodedKeyValue.RawData);
+            asn.MoveNext(); // pub key
+            Byte[] modulus = asn.GetPayload();
+            // if modulus is negative (usually) it is prepended with extra leading zero in ASN encoding.
+            // But this zero is not a part of modulus, so strip it
+            if (modulus.Length % 8 > 0) {
+                modulus = modulus.Skip(1).ToArray();
+            }
+            asn.MoveNext(); // exponent
+            Byte[] pubExponent = asn.GetPayload();
+            return new Tuple<Byte[], Byte[]>(modulus, pubExponent);
+        }
         static void readRsaHeader(List<Byte> blob, PublicKey publicKey) {
             /*
             typedef struct _BCRYPT_RSAKEY_BLOB {
@@ -53,13 +71,22 @@ namespace PKI.Utils.CLRExtensions {
               ULONG cbPrime2;       -- const 0
             } BCRYPT_RSAKEY_BLOB; -- public key only
             */
-            Int32 pubKeyLength = publicKey.Key.KeySize;
-            blob.AddRange(BitConverter.GetBytes(RSA_MAGIC));        // Magic
-            blob.AddRange(BitConverter.GetBytes(pubKeyLength));     // bitLen
-            blob.AddRange(BitConverter.GetBytes(3));                // cbPublicExp
-            blob.AddRange(BitConverter.GetBytes(pubKeyLength / 8)); // cbModulus
-            blob.AddRange(new Byte[] { 0, 0, 0, 0, 0, 0, 0, 0 });   // zero length primes
-            blob.AddRange(publicKey.EncodedKeyValue.RawData);
+            // Item1 -- modulus
+            // Item2 -- public exponent
+            Tuple<Byte[], Byte[]> rsaComponents = getRsaComponents(publicKey);
+            blob.AddRange(BitConverter.GetBytes(RSA_MAGIC));                        // Magic
+            blob.AddRange(BitConverter.GetBytes(rsaComponents.Item1.Length * 8));   // bitLen
+            blob.AddRange(BitConverter.GetBytes(rsaComponents.Item2.Length));       // cbPublicExp
+            blob.AddRange(BitConverter.GetBytes(rsaComponents.Item1.Length));       // cbModulus
+            blob.AddRange(BitConverter.GetBytes(0));                                // cbPrime1
+            blob.AddRange(BitConverter.GetBytes(0));                                // cbPrime2
+            /*
+            BCRYPT_RSAKEY_BLOB
+            PublicExponent[cbPublicExp] // Big-endian.
+            Modulus[cbModulus] // Big-endian.
+             */
+            blob.AddRange(rsaComponents.Item2);
+            blob.AddRange(rsaComponents.Item1);
         }
         static void readDsaV1Header(List<Byte> blob, PublicKey publicKey) {
             /*
@@ -165,23 +192,23 @@ namespace PKI.Utils.CLRExtensions {
             */
             // headers from bcrypt.h
             switch (Asn1Utils.DecodeObjectIdentifier(publicKey.EncodedParameters.RawData).Value) {
-                // ECDH_P256/ECDSA_P256
+                // P256
                 case "1.2.840.10045.3.1.7":
                     blob.AddRange(BitConverter.GetBytes(ECDSA_P256_MAGIC));
                     blob.AddRange(BitConverter.GetBytes(256 / 8));
                     break;
-                // ECDH_P384/ECDSA_P384
+                // P384
                 case "1.3.132.0.34":
                     blob.AddRange(BitConverter.GetBytes(ECDSA_P384_MAGIC));
                     blob.AddRange(BitConverter.GetBytes(384 / 8));
                     break;
-                // ECDH_P521/ECDSA_P521
+                // P521
                 case "1.3.132.0.35":
                     blob.AddRange(BitConverter.GetBytes(ECDSA_P521_MAGIC));
                     blob.AddRange(BitConverter.GetBytes(528 / 8));
                     break;
                 default:
-                    throw new CryptographicException("Specified ellyptic curve is not supported.");
+                    throw new CryptographicException("Specified elliptic curve is not supported.");
             }
             // skip first byte, it is always 0X04 for ECDSA public key
             blob.AddRange(publicKey.EncodedKeyValue.RawData.Skip(1));

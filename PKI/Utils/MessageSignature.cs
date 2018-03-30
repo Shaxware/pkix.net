@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.Win32.SafeHandles;
 using PKI.Exceptions;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
@@ -183,7 +184,7 @@ namespace PKI.Utils {
         /// <param name="hashAlgorithm">The name of the hash algorithm to use in the signature. For example, 'SHA256'</param>
         /// <returns>The signature for the specified data.</returns>
         public static Byte[] SignMessage(X509Certificate2 certificate, Byte[] message, Oid hashAlgorithm) {
-            IntPtr phCryptProv = IntPtr.Zero;
+            SafeNCryptKeyHandle phCryptProv = new SafeNCryptKeyHandle();
             UInt32 pdwKeySpec = 0;
             Boolean pfCallerFreeProv = false;
             if (!Crypt32.CryptAcquireCertificatePrivateKey(certificate.Handle, Wincrypt.CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG, IntPtr.Zero, ref phCryptProv, ref pdwKeySpec, ref pfCallerFreeProv)) {
@@ -193,21 +194,21 @@ namespace PKI.Utils {
             if (pdwKeySpec == UInt32.MaxValue) {
                 Byte[] hashBytes = calculateHash(message, hashAlgorithm.FriendlyName, false);
                 try {
-                    Int32 hresult = nCrypt.NCryptSignHash(phCryptProv, IntPtr.Zero, hashBytes, (UInt32)hashBytes.Length, null, 0, out UInt32 pcbResult, 0);
+                    Int32 hresult = nCrypt.NCryptSignHash(phCryptProv, IntPtr.Zero, hashBytes, hashBytes.Length, null, 0, out Int32 pcbResult, 0);
                     if (hresult != 0) {
                         throw new CryptographicException(hresult);
                     }
                     Byte[] pbSignature = new byte[pcbResult];
-                    hresult = nCrypt.NCryptSignHash(phCryptProv, IntPtr.Zero, hashBytes, (UInt32)hashBytes.Length, pbSignature, (UInt32)pbSignature.Length, out pcbResult, 0);
+                    hresult = nCrypt.NCryptSignHash(phCryptProv, IntPtr.Zero, hashBytes, hashBytes.Length, pbSignature, pbSignature.Length, out pcbResult, 0);
                     if (hresult != 0) {
                         throw new CryptographicException(hresult);
                     }
                     return pbSignature;
                 } finally {
-                    if (pfCallerFreeProv) { nCrypt.NCryptFreeObject(phCryptProv); }
+                    if (pfCallerFreeProv) { nCrypt.NCryptFreeObject(phCryptProv.DangerousGetHandle()); }
                 }
             }
-            if (pfCallerFreeProv) { AdvAPI.CryptReleaseContext(phCryptProv, 0); }
+            if (pfCallerFreeProv) { AdvAPI.CryptReleaseContext(phCryptProv.DangerousGetHandle(), 0); }
             calculateHash(message, hashAlgorithm.FriendlyName, false);
             RSACryptoServiceProvider key = (RSACryptoServiceProvider)certificate.PrivateKey;
             return key.SignData(message, hashAlgorithm.Value);

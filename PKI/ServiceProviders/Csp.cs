@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using CERTENROLLLib;
+using Microsoft.Win32.SafeHandles;
 using PKI.Structs;
 using PKI.Utils;
 
@@ -67,7 +68,7 @@ namespace PKI.ServiceProviders {
                     throw new Win32Exception(Error.InvalidDataException);
                 }
                 String name = pszProvName.ToString();
-                String pType = (String) ProvTypes[pdwProvType];
+                String pType = (String)ProvTypes[pdwProvType];
                 IntPtr phProv = IntPtr.Zero;
                 // retrieve CSP context
                 if (!AdvAPI.CryptAcquireContext(ref phProv, null, name, pdwProvType, Wincrypt.CRYPT_VERIFYCONTEXT)) {
@@ -81,7 +82,7 @@ namespace PKI.ServiceProviders {
                         IntPtr ptr = Marshal.AllocHGlobal(pbData.Length);
                         Marshal.Copy(pbData, 0, ptr, pbData.Length);
                         Wincrypt.PROV_ENUMALGS_EX AlgStructure =
-                            (Wincrypt.PROV_ENUMALGS_EX) Marshal.PtrToStructure(ptr, typeof(Wincrypt.PROV_ENUMALGS_EX));
+                            (Wincrypt.PROV_ENUMALGS_EX)Marshal.PtrToStructure(ptr, typeof(Wincrypt.PROV_ENUMALGS_EX));
                         Marshal.FreeHGlobal(ptr);
                         ALG_ID alg = get_algparams(AlgStructure);
                         algs.Add(alg);
@@ -97,7 +98,7 @@ namespace PKI.ServiceProviders {
         static CspCNGCollection m_enumcngprovs() {
             UInt32 pImplCount = 0;
             IntPtr ppImplList = IntPtr.Zero;
-            IntPtr phProvider = IntPtr.Zero;
+            SafeNCryptProviderHandle phProvider = new SafeNCryptProviderHandle();
             StringBuilder SB = new StringBuilder();
             Hashtable interfaces = get_interfaces();
             CspCNGCollection csps = new CspCNGCollection();
@@ -109,7 +110,7 @@ namespace PKI.ServiceProviders {
             IntPtr pvInput = ppImplList;
             for (Int32 index = 0; index < pImplCount; index++) {
                 nCrypt2.NCryptProviderName Name =
-                    (nCrypt2.NCryptProviderName) Marshal.PtrToStructure(ppImplList, typeof(nCrypt2.NCryptProviderName));
+                    (nCrypt2.NCryptProviderName)Marshal.PtrToStructure(ppImplList, typeof(nCrypt2.NCryptProviderName));
                 ppImplList = (IntPtr)((UInt64)ppImplList + (UInt32)Marshal.SizeOf(typeof(nCrypt2.NCryptProviderName)));
                 SB.Append(Name.pszName + ",");
             }
@@ -172,12 +173,24 @@ namespace PKI.ServiceProviders {
             List<Int16> validoptions = options.Where(dwData => (algStructure.dwProtocols & dwData) != 0).ToList();
             foreach (Int16 opt in validoptions) {
                 switch (opt) {
-                    case 1: szProtocols.Add("Private communications transport (PCT) version 1 protocol"); break;
-                    case 2: szProtocols.Add("Secure sockets layer (SSL) version 2 protocol"); break;
-                    case 4: szProtocols.Add("SSL version 3 protocol"); break;
-                    case 8: szProtocols.Add("Transport layer security (TLS) version 1 protocol"); break;
-                    case 16: szProtocols.Add("Internet protocol security (IPsec) protocol"); break;
-                    case 32: szProtocols.Add("Signing protocol"); break;
+                    case 1:
+                        szProtocols.Add("Private communications transport (PCT) version 1 protocol");
+                        break;
+                    case 2:
+                        szProtocols.Add("Secure sockets layer (SSL) version 2 protocol");
+                        break;
+                    case 4:
+                        szProtocols.Add("SSL version 3 protocol");
+                        break;
+                    case 8:
+                        szProtocols.Add("Transport layer security (TLS) version 1 protocol");
+                        break;
+                    case 16:
+                        szProtocols.Add("Internet protocol security (IPsec) protocol");
+                        break;
+                    case 32:
+                        szProtocols.Add("Signing protocol");
+                        break;
                 }
             }
             return new ALG_ID(
