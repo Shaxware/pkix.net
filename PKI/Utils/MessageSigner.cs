@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Win32.SafeHandles;
 using PKI.Exceptions;
+using PKI.ManagedAPI.StructClasses;
 using PKI.Structs;
 using PKI.Utils.CLRExtensions;
+using SysadminsLV.Asn1Parser;
+using SysadminsLV.Asn1Parser.Universal;
 
 namespace PKI.Utils {
     /// <summary>
@@ -20,12 +24,12 @@ namespace PKI.Utils {
     public class MessageSigner : IDisposable {
         const String MSFT_KSP_NAME = "Microsoft Software Key Storage Provider";
         Boolean disposed, isCng;
-        String pubKeyAlgorithm;
         SafeNCryptKeyHandle phPrivKey = new SafeNCryptKeyHandle();
         SafeNCryptKeyHandle phPubKey = new SafeNCryptKeyHandle();
         KeyType keyType;
         AsymmetricAlgorithm legacyKey;
 
+        MessageSigner() { }
         /// <summary>
         /// Initializes a new instance of the <strong>MessageSigner</strong> class from signer certificate and
         /// default hash algorithm. Default hash algorithm is SHA256.
@@ -38,7 +42,8 @@ namespace PKI.Utils {
         /// <exception cref="ArgumentNullException">
         /// <strong>signer</strong> parameter is null.
         /// </exception>
-        public MessageSigner(X509Certificate2 signer) : this(signer, new Oid2("sha256", OidGroupEnum.HashAlgorithm, false)) {
+        public MessageSigner(X509Certificate2 signer)
+            : this(signer, new Oid2(AlgorithmOids.SHA256, OidGroupEnum.HashAlgorithm, false)) {
 
         }
         /// <summary>
@@ -73,11 +78,39 @@ namespace PKI.Utils {
             if (hashAlgorithm == null) { throw new ArgumentNullException(nameof(hashAlgorithm)); }
             if (IntPtr.Zero.Equals(signer.Handle)) { throw new UninitializedObjectException(); }
 
-            if (hashAlgorithm.OidGroup != OidGroupEnum.HashAlgorithm) {
-                throw new ArgumentException("Invalid hashing algorithm is specified.");
+            if (hashAlgorithm.OidGroup == OidGroupEnum.SignatureAlgorithm) {
+                mapSignatureAlgorithmToHashAlgorithm(hashAlgorithm.Value, null);
+            } else {
+                HashingAlgorithm = hashAlgorithm;
             }
             SignerCertificate = signer;
-            HashingAlgorithm = hashAlgorithm;
+
+            switch (SignerCertificate.PublicKey.Oid.Value) {
+                case AlgorithmOids.RSA:
+                    switch (hashAlgorithm.Value) {
+                        case AlgorithmOids.MD5: // md5
+                            PssSaltByteCount = 16;
+                            break;
+                        case AlgorithmOids.SHA1: // sha1
+                            PssSaltByteCount = 20;
+                            break;
+                        case AlgorithmOids.SHA256: // sha256
+                            PssSaltByteCount = 32;
+                            break;
+                        case AlgorithmOids.SHA384: // sha384
+                            PssSaltByteCount = 48;
+                            break;
+                        case AlgorithmOids.SHA512: // sha512
+                            PssSaltByteCount = 64;
+                            break;
+                    }
+                    break;
+                case AlgorithmOids.DSA:
+                    // force SHA1 for DSA keys
+                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
+                    break;
+            }
+            acquirePublicKey(SignerCertificate.PublicKey);
         }
 
         /// <summary>
@@ -88,22 +121,22 @@ namespace PKI.Utils {
         /// Gets hashing algorithm that is used to calculate the hash during signing or signature verification
         /// processes.
         /// </summary>
-        public Oid2 HashingAlgorithm { get; }
+        public Oid2 HashingAlgorithm { get; private set; }
         /// <summary>
         /// Gets resulting signature algorithm identifier.
         /// </summary>
         public Oid SignatureAlgorithm { get; private set; }
         /// <summary>
-        /// Gets or sets signature padding scheme signature creation and validation.
-        /// Default is <strong>PKCS1</strong>. Currently, padding is implemented only for<strong>RSA</strong>
-        /// asymmetric algorithm.
+        /// Gets or sets signature padding scheme for RSA signature creation and validation.
+        /// Default is <strong>PKCS1</strong>.
         /// </summary>
         public SignaturePadding PaddingScheme { get; set; } = SignaturePadding.PKCS1;
         /// <summary>
         /// Gets or sets the size, in bytes, of the random salt to use for the PSS padding.
-        /// Default value is 32.
+        /// Default value matches the hash output length: 16 bytes for MD5, 20 bytes for SHA1, 32 bytes for
+        /// SHA256, 48 bytes for SHA384 and 64 bytes for SHA512 hashing algorithm.
         /// </summary>
-        public Int32 PssSaltByteCount { get; set; } = 32;
+        public Int32 PssSaltByteCount { get; set; }
 
         Byte[] calculateHash(Byte[] message) {
             HashAlgorithm hasher = HashAlgorithm.Create(HashingAlgorithm.FriendlyName);
@@ -115,47 +148,96 @@ namespace PKI.Utils {
             }
         }
         void getSignatureAlgorithm() {
-            switch (pubKeyAlgorithm) {
-                case "ECDSA":
-                    if (keyType == KeyType.EcDsa) {
-                        SignatureAlgorithm = PaddingScheme == SignaturePadding.PSS
-                            ? new Oid("1.2.840.10045.4.3")                                  // specifiedECDSA
-                            : new Oid($"{HashingAlgorithm.FriendlyName}{pubKeyAlgorithm}"); // ECDSA
-                    } else {
-                        SignatureAlgorithm = new Oid($"{HashingAlgorithm}{pubKeyAlgorithm}"); // ECDSA
-                    }
-
+            switch (keyType) {
+                case KeyType.EcDsa:
+                    SignatureAlgorithm = new Oid($"{HashingAlgorithm.FriendlyName}ECDSA"); // ECDSA
                     break;
-                case "RSA":
-                    if (keyType == KeyType.Rsa) {
-                        SignatureAlgorithm = PaddingScheme == SignaturePadding.PSS
-                            ? new Oid("1.2.840.113549.1.1.10")                              // RSASSA-PSS
-                            : new Oid($"{HashingAlgorithm.FriendlyName}{pubKeyAlgorithm}"); // RSA
-                    } else {
-                        SignatureAlgorithm = new Oid($"{HashingAlgorithm.FriendlyName}{pubKeyAlgorithm}"); // RSA
-                    }
-
+                case KeyType.Rsa:
+                    SignatureAlgorithm = PaddingScheme == SignaturePadding.PSS
+                        ? new Oid(AlgorithmOids.RSA_PSS)                              // RSASSA-PSS
+                        : new Oid($"{HashingAlgorithm.FriendlyName}RSA"); // RSA
                     break;
-                case "DSA":
+                case KeyType.Dsa:
                     // DSA doesn't support PSS padding and hashing algorithm other than SHA1
-                    SignatureAlgorithm = new Oid("1.2.840.10040.4.3"); // sha1DSA
+                    SignatureAlgorithm = new Oid(AlgorithmOids.SHA1_DSA); // sha1DSA
                     break;
             }
         }
-        Boolean checkKeyIsLoaded() {
-            if (isCng) {
-                return !IntPtr.Zero.Equals(phPrivKey.DangerousGetHandle());
+        void mapSignatureAlgorithmToHashAlgorithm(String signatureOid, Asn1Reader asn) {
+            switch (signatureOid) {
+                // md5
+                case AlgorithmOids.MD5_RSA:
+                    HashingAlgorithm = new Oid2(AlgorithmOids.MD5, false);
+                    break;
+                // sha1
+                case AlgorithmOids.SHA1_ECDSA:
+                case AlgorithmOids.SHA1_RSA:
+                case AlgorithmOids.SHA1_DSA:
+                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
+                    break;
+                // sha256
+                case AlgorithmOids.SHA256_ECDSA:
+                case AlgorithmOids.SHA256_RSA:
+                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA256, false);
+                    break;
+                case AlgorithmOids.SHA384_ECDSA:
+                case AlgorithmOids.SHA384_RSA:
+                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA384, false);
+                    break;
+                case AlgorithmOids.SHA512_ECDSA:
+                case AlgorithmOids.SHA512_RSA:
+                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA512, false);
+                    break;
+                case AlgorithmOids.ECDSA_SPECIFIED:
+                    decodeEcdsaSpecified(asn);
+                    break;
+                case AlgorithmOids.RSA_PSS:
+                    decodeRsaPss(asn);
+                    break;
+                default:
+                    throw new ArgumentException("Invalid signature algorithm");
             }
+        }
+        void getConfiguration(Byte[] algIdBlob) {
+            var asn = new Asn1Reader(algIdBlob);
+            asn.MoveNext();
+            var oid = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
+            asn.MoveNext();
+            mapSignatureAlgorithmToHashAlgorithm(oid.Value, asn);
+        }
+        void decodeEcdsaSpecified(Asn1Reader asn) {
+            HashingAlgorithm = new Oid2(new AlgorithmIdentifier(asn.GetTagRawData()).AlgorithmId, false);
+        }
+        void decodeRsaPss(Asn1Reader asn) {
+            PaddingScheme = SignaturePadding.PSS;
+            asn.MoveNext();
+            HashingAlgorithm = asn.Tag == 0xa0
+                ? new Oid2(new AlgorithmIdentifier(asn.GetPayload()).AlgorithmId, false)
+                : new Oid2(AlgorithmOids.SHA1, false);
+            // feed asn reader to salt identifier
+            while (asn.MoveNextCurrentLevel() && asn.Tag != 0xa2) { }
+            PssSaltByteCount = asn.Tag == 0xa2
+                ? (Int32)Asn1Utils.DecodeInteger(asn.GetPayload())
+                : 20;
+        }
+
+        #region Key pair operations
+        Boolean checkPrivateKeyIsLoaded() {
+            if (isCng) {
+                return !phPrivKey.IsInvalid;
+            }
+
             return legacyKey != null;
         }
-
-        #region Private key operations
+        Boolean checkPublicKeyIsLoaded() {
+            return !phPubKey.IsInvalid;
+        }
         void acquirePrivateKey() {
             if (disposed) {
                 throw new ObjectDisposedException(nameof(SignerCertificate));
             }
             // the key is already acquired, so skip key retrieval
-            if (checkKeyIsLoaded()) { return; }
+            if (checkPrivateKeyIsLoaded()) { return; }
             // the key is not acquired, so attempt to get it
             UInt32 pdwKeySpec = 0;
             Boolean pfCallerFreeProv = false;
@@ -171,13 +253,29 @@ namespace PKI.Utils {
             }
             if (pdwKeySpec == UInt32.MaxValue) {
                 phPrivKey = phCryptProvOrNCryptKey;
-                buildCngPrivateKey();
+                isCng = true;
             } else {
                 // translate legacy CSP key to CNG key handle
                 getCngHandleFromLegacy(phCryptProvOrNCryptKey);
             }
         }
-        void acquirePublicKey() {
+        void acquirePublicKey(PublicKey publicKey) {
+            // do not load public key again if it is already loaded
+            if (checkPublicKeyIsLoaded()) { return; }
+            switch (publicKey.Oid.Value) {
+                case AlgorithmOids.ECC:
+                    keyType = KeyType.EcDsa;
+                    break;
+                case AlgorithmOids.RSA:
+                    keyType = KeyType.Rsa;
+                    break;
+                case AlgorithmOids.DSA:
+                    keyType = KeyType.Dsa;
+                    break;
+                default:
+                    throw new NotSupportedException("Public key algorithm is not supported");
+            }
+
             // regardless of public key algorithm and provider, load public keys to CNG provider for unification
             // and wider signature formats and padding support.
             Int32 hresult = nCrypt.NCryptOpenStorageProvider(out SafeNCryptProviderHandle phProvider, MSFT_KSP_NAME, 0);
@@ -185,7 +283,7 @@ namespace PKI.Utils {
                 throw new CryptographicException(hresult);
             }
 
-            var blob = SignerCertificate.PublicKey.GetCryptBlob();
+            Byte[] blob = publicKey.GetCryptBlob();
             hresult = nCrypt.NCryptImportKey(phProvider, IntPtr.Zero, "PUBLICBLOB", IntPtr.Zero, out phPubKey, blob,
                 blob.Length, 0);
             if (hresult != 0) {
@@ -206,53 +304,12 @@ namespace PKI.Utils {
             if (hresult == 0) {
                 // if key is successfully translated, assign new CNG key handle to phPrivKey
                 phPrivKey = cngKey;
-                buildCngPrivateKey();
+                isCng = true;
             } else {
                 // if key translation failed, then switch to legacy RSA/DSACryptoServiceProvider
-                buildLegacyPrivateKey();
+                isCng = false;
+                legacyKey = SignerCertificate.PrivateKey;
             }
-        }
-        void buildCngPrivateKey() {
-            // this project is compiled against .NET 4.0, so RsaCng and DsaCng unavailable.
-            // as the result, phCryptProv handle is used for signing and signature validation operations
-            isCng = true;
-            switch (SignerCertificate.PublicKey.Oid.Value) {
-                case "1.2.840.10045.2.1":
-                    pubKeyAlgorithm = "ECDSA";
-                    keyType = KeyType.EcDsa;
-                    break;
-                case "1.2.840.113549.1.1.1":
-                    pubKeyAlgorithm = "RSA";
-                    keyType = KeyType.Rsa;
-                    break;
-                case "1.2.840.10040.4.1":
-                    pubKeyAlgorithm = "DSA";
-                    keyType = KeyType.Dsa;
-                    break;
-                default:
-                    throw new NotSupportedException("Public key algorithm is not supported");
-            }
-        }
-        void buildLegacyPrivateKey() {
-            isCng = false;
-            legacyKey = SignerCertificate.PrivateKey;
-            switch (SignerCertificate.PublicKey.Oid.Value) {
-                // RSA
-                case "1.2.840.113549.1.1.1":
-                    keyType = KeyType.Rsa;
-                    pubKeyAlgorithm = "RSA";
-                    break;
-                // DSA
-                case "1.2.840.10040.4.1":
-                    keyType = KeyType.Dsa;
-                    break;
-                default:
-                    throw new NotSupportedException("Asymmetric key algorithm is not supported");
-            }
-
-            // if we reach this far, then the key is presented and legacy. So X509Certificate2.PrivateKey
-            // member is not null and contains private key.
-            legacyKey = SignerCertificate.PrivateKey;
         }
         #endregion
 
@@ -498,17 +555,88 @@ namespace PKI.Utils {
         public Boolean VerifyHash(Byte[] hash, Byte[] signature) {
             if (hash == null) { throw new ArgumentNullException(nameof(hash)); }
             if (signature == null) { throw new ArgumentNullException(nameof(signature)); }
-            acquirePublicKey();
-            switch (SignerCertificate.PublicKey.Oid.Value) {
-                case "1.2.840.10045.2.1":
+            switch (keyType) {
+                case KeyType.EcDsa:
                     return verifyHashEcDsa(hash, signature);
-                case "1.2.840.113549.1.1.1":
+                case KeyType.Rsa:
                     return verifyHashRsa(hash, signature);
-                case "1.2.840.10040.4.1":
+                case KeyType.Dsa:
                     return verifyHashDsa(hash, signature);
                 default:
                     throw new NotSupportedException("Public key algorithm is not supported");
             }
+        }
+        /// <summary>
+        /// Verifies signature of a signed blob by using specified public key.
+        /// </summary>
+        /// <param name="blob"></param>
+        /// <param name="publicKey"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This method is suitable to validate certificate signing requests (CSR) or other data
+        /// when signing key pair exist outside of X.509 certificate object.
+        /// </remarks>
+        public static Boolean VerifyData(SignedContentBlob blob, PublicKey publicKey) {
+            if (blob == null) { throw new ArgumentNullException(nameof(blob)); }
+            if (publicKey == null) { throw new ArgumentNullException(nameof(publicKey)); }
+
+            if (blob.BlobType != ContentBlobType.SignedBlob) {
+                throw new InvalidOperationException("The blob is not signed.");
+            }
+
+            using (var signerInfo = new MessageSigner()) {
+                signerInfo.acquirePublicKey(publicKey);
+                signerInfo.getConfiguration(blob.SignatureAlgorithm.RawData);
+                return signerInfo.VerifyData(blob.ToBeSignedData, blob.GetRawSignature());
+            }
+        }
+
+        /// <summary>
+        /// Gets ASN-encoded algorithm identifier based on current configuration.
+        /// </summary>
+        /// <param name="alternate">
+        /// Specifies whether alternate signature format is used. This parameter has meaning only for
+        /// ECDSA keys. Otherwise, the parameter is ignored. Default value is <strong>false</strong>.
+        /// </param>
+        /// <returns>ASN-encoded algorithm identifier.</returns>
+        public AlgorithmIdentifier GetAlgorithmIdentifier(Boolean alternate = false) {
+            Oid algId = SignatureAlgorithm;
+            List<Byte> parameters = new List<Byte>();
+            switch (SignerCertificate.PublicKey.Oid.Value) {
+                case AlgorithmOids.ECC: // ECDSA
+                    if (alternate) {
+                        // specifiedECDSA
+                        algId = new Oid(AlgorithmOids.ECDSA_SPECIFIED); // only here we override algorithm OID
+                        parameters
+                            .AddRange(
+                                new AlgorithmIdentifier(HashingAlgorithm.ToOid(), Asn1Utils.EncodeNull()).RawData
+                            );
+                    }
+                    break;
+                case AlgorithmOids.RSA: // RSA
+                    // only RSA supports parameters. For PKCS1 padding: NULL, for PSS padding: 
+                    // RSASSA-PSS-params ::= SEQUENCE {
+                    //     hashAlgorithm      [0] HashAlgorithm    DEFAULT sha1,
+                    //     maskGenAlgorithm   [1] MaskGenAlgorithm DEFAULT mgf1SHA1,
+                    //     saltLength         [2] INTEGER          DEFAULT 20,
+                    //     trailerField       [3] TrailerField     DEFAULT trailerFieldBC
+                    // }
+                    if (PaddingScheme == SignaturePadding.PSS) {
+                        Byte[] hash = new AlgorithmIdentifier(HashingAlgorithm.ToOid(), null).RawData;
+                        parameters.AddRange(Asn1Utils.Encode(hash, 0xa0));
+                        // mask generation function: mgf1
+                        Byte[] mgf = new AlgorithmIdentifier(new Oid("1.2.840.113549.1.1.8"), hash).RawData;
+                        parameters.AddRange(Asn1Utils.Encode(mgf, 0xa1));
+                        // salt
+                        parameters.AddRange(Asn1Utils.Encode(new Asn1Integer(20).RawData, 0xa2));
+                        // general PSS parameters encode
+                        parameters = new List<Byte>(Asn1Utils.Encode(parameters.ToArray(), 48));
+                    } else {
+                        parameters.AddRange(Asn1Utils.EncodeNull());
+                    }
+                    break;
+            }
+            return new AlgorithmIdentifier(algId, parameters.ToArray());
         }
 
         #region IDisposable implementation

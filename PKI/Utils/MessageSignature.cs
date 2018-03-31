@@ -32,31 +32,8 @@ namespace PKI.Utils {
     /// This class proides methods to work only with <strong>RSA</strong> signatures. To work with authenticode signatures use
     /// <strong>Set-AuthenticodeSignature</strong> and <strong>Get-AuthenticodeSignature</strong> PowerShell cmdlets.
     /// </remarks>
+    [Obsolete("Use MessageSigner class instead.", true)]
     public static class MessageSignature {
-        static Byte[] getSignatureBytes(Wincrypt.CERT_SIGNED_CONTENT_INFO signedData, Boolean cng) {
-            Byte[] signature = new Byte[signedData.Signature.cbData];
-            Marshal.Copy(signedData.Signature.pbData, signature, 0, (Int32)signedData.Signature.cbData);
-            if (cng) {
-                Asn1Reader asn = new Asn1Reader(signature);
-                asn.MoveNext();
-                List<byte> sigBuilder = asn.PayloadLength % 2 == 1
-                    ? new List<Byte>(asn.GetPayload().Skip(1))
-                    : new List<Byte>(asn.GetPayload());
-                asn.MoveNext();
-                sigBuilder.AddRange(
-                    asn.PayloadLength % 2 == 1
-                    ? asn.GetPayload().Skip(1)
-                    : asn.GetPayload()
-                );
-                return sigBuilder.ToArray();
-            }
-            return signature;
-        }
-        static Byte[] getSignedBytes(Wincrypt.CERT_SIGNED_CONTENT_INFO signedData) {
-            Byte[] tbs = new Byte[signedData.ToBeSigned.cbData];
-            Marshal.Copy(signedData.ToBeSigned.pbData, tbs, 0, tbs.Length);
-            return tbs;
-        }
         static ECDsaCng bindPublicKey(PublicKey pubKey) {
             List<Byte> header = new List<Byte>();
             // headers from bcrypt.h
@@ -145,15 +122,6 @@ namespace PKI.Utils {
             return null;
         }
 
-        internal static Boolean VerifySignature(PublicKey pubKey, Wincrypt.CERT_SIGNED_CONTENT_INFO signedInfo) {
-            Byte[] data = getSignedBytes(signedInfo);
-            Byte[] signature = pubKey.Oid.Value == "1.2.840.10045.2.1"
-                ? getSignatureBytes(signedInfo, true)
-                : getSignatureBytes(signedInfo, false);
-            Oid hashAlgorithm = new Oid(signedInfo.SignatureAlgorithm.pszObjId);
-            hashAlgorithm = new Oid(hashAlgorithm.FriendlyName.ToLower().Replace("rsa", null).Replace("ecdsa", null));
-            return verifySignature(pubKey, data, signature, hashAlgorithm);
-        }
         /// <summary>
         /// Verifies that a digital signature is valid by determining the hash value in the signature using the provided public
         /// key and comparing it to the hash value of the provided data.

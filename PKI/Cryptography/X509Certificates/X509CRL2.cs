@@ -140,7 +140,7 @@ namespace System.Security.Cryptography.X509Certificates {
         void m_decode(Byte[] rawData) {
             try {
                 Type = BaseCRL;
-                var signedInfo = new SignedContentBlob(rawData);
+                var signedInfo = new SignedContentBlob(rawData, ContentBlobType.SignedBlob);
                 // signature and alg
                 signature = signedInfo.Signature.Value;
                 sigUnused = signedInfo.Signature.UnusedBits;
@@ -429,7 +429,8 @@ namespace System.Security.Cryptography.X509Certificates {
                     return Convert.ToBase64String(RawData, Base64FormattingOptions.InsertLineBreaks);
                 case X509EncodingType.Base64Header:
                     return AsnFormatter.BinaryToString(RawData, EncodingType.Base64CrlHeader);
-                default: throw new ArgumentException("Binary encoding is not supported.");
+                default:
+                    throw new ArgumentException("Binary encoding is not supported.");
             }
         }
         /// <summary>
@@ -489,8 +490,8 @@ namespace System.Security.Cryptography.X509Certificates {
         ///  </returns>
         public Boolean VerifySignature(X509Certificate2 issuer, Boolean strict = false) {
             if (RawData == null) { throw new UninitializedObjectException(); }
-            var signedInfo = new SignedContentBlob(RawData);
-            return MessageSignature.VerifySignature(issuer, signedInfo.ToBeSignedData, signature, SignatureAlgorithm);
+            var signedInfo = new SignedContentBlob(RawData, ContentBlobType.SignedBlob);
+            return MessageSigner.VerifyData(signedInfo, issuer.PublicKey);
         }
         /// <summary>
         /// Verifies whether the specified certificate is in the current revocation list.
@@ -578,8 +579,8 @@ namespace System.Security.Cryptography.X509Certificates {
                 ReleaseContext();
             } catch { }
         }
-        // generation functions
 
+        // generation functions
         /// <summary>
         /// Sets version for X.509 CRL. Possible values are 1 or 2. Any other value will result in version 2.
         /// </summary>
@@ -587,8 +588,12 @@ namespace System.Security.Cryptography.X509Certificates {
         public void SetVersion(Int32 version) {
             switch (version) {
                 case 1:
-                case 2: Version = version; break;
-                default: Version = 2; break;
+                case 2:
+                    Version = version;
+                    break;
+                default:
+                    Version = 2;
+                    break;
             }
         }
         ///  <summary>
@@ -625,7 +630,8 @@ namespace System.Security.Cryptography.X509Certificates {
             RevokedCertificates.Close();
         }
         /// <summary>
-        /// 
+        /// Imports extensions to be added to CRL. This method is a generator method, for more details
+        /// see <strong>Remarks</strong> section.
         /// </summary>
         /// <param name="extensions">A collection of extensions to add.</param>
         /// <exception cref="ArgumentNullException"><strong>extensions</strong> parameter is null reference.</exception>
@@ -809,37 +815,37 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </list>
         /// </para>
         ///   </remarks>
-        public void Build(X509Certificate2 signerInfo, Boolean hashOnly) {
+        public void Build(MessageSigner signerInfo, Boolean hashOnly) {
             if (isReadOnly) { throw new InvalidOperationException(); }
             if (signerInfo == null) { throw new ArgumentNullException(nameof(signerInfo)); }
-            if (signerInfo.RawData == null) { throw new UninitializedObjectException(); }
 
-            if (SignatureAlgorithm == null) {
-                SignatureAlgorithm = new Oid("1.3.14.3.2.26", "sha1NoSign");
-            } else {
-                String hashAlg = SignatureAlgorithm.FriendlyName;
-                String keyAlg = signerInfo.PublicKey.Oid.Value == "1.2.840.10045.2.1"
-                    ? "ECDSA"
-                    : signerInfo.PublicKey.Oid.FriendlyName;
-                SignatureAlgorithm = new Oid($"{hashAlg}{keyAlg}");
-            }
-            if (String.IsNullOrEmpty(signerInfo.SubjectName.Name)) {
+            if (String.IsNullOrEmpty(signerInfo.SignerCertificate.SubjectName.Name)) {
                 throw new ArgumentException("Subject name is empty.");
             }
-            List<Byte> algId = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(SignatureAlgorithm));
-            algId.AddRange(new Byte[] { 5, 0 });
-            algId = new List<Byte>(Asn1Utils.Encode(algId.ToArray(), 48));
-            if (NextUpdate <= ThisUpdate) {
-                NextUpdate = signerInfo.NotAfter;
+            if (SignatureAlgorithm == null) {
+                SignatureAlgorithm = new Oid("1.3.14.3.2.26");
             }
-            IssuerName = signerInfo.SubjectName;
+
+            // create dummy blob, sign/hash it to get proper encoded signature algorithm identifier.
+            var dummyBlob = new SignedContentBlob(new Byte[] { 0 }, ContentBlobType.ToBeSignedBlob);
+            if (hashOnly) {
+                dummyBlob.Hash(new Oid2(SignatureAlgorithm, false));
+            } else {
+                dummyBlob.Sign(signerInfo);
+            }
+
+            // fill CRL-specific data
+            if (NextUpdate <= ThisUpdate) {
+                NextUpdate = signerInfo.SignerCertificate.NotAfter;
+            }
+            IssuerName = signerInfo.SignerCertificate.SubjectName;
             List<Byte> rawBytes = new List<Byte>();
             // version
             if (Version == 2) {
                 rawBytes.AddRange(new Asn1Integer(Version - 1).RawData);//TODO ???
             }
             // algorithm
-            rawBytes.AddRange(algId);
+            rawBytes.AddRange(dummyBlob.SignatureAlgorithm.RawData);
             // issuer
             rawBytes.AddRange(IssuerName.RawData);
             // thisUpdate
@@ -855,25 +861,22 @@ namespace System.Security.Cryptography.X509Certificates {
             }
             // extensions
             if (Extensions != null || Version == 2) {
-                genExts(signerInfo);
+                genExts(signerInfo.SignerCertificate);
                 rawBytes.AddRange(Asn1Utils.Encode(Crypt32Managed.EncodeX509Extensions(Extensions), 160));
             }
             // generate tbs
             rawBytes = new List<Byte>(Asn1Utils.Encode(rawBytes.ToArray(), 48));
-            // calculate signature
-            sigUnused = 0;
-            if (signerInfo.HasPrivateKey && !hashOnly) {
-                signature = MessageSignature.SignMessage(signerInfo, rawBytes.ToArray(), SignatureAlgorithm);
+
+            // now create correct blob and sign/hash it
+            var blob = new SignedContentBlob(rawBytes.ToArray(), ContentBlobType.ToBeSignedBlob);
+            if (hashOnly) {
+                blob.Hash(new Oid2(SignatureAlgorithm, false));
             } else {
-                HashAlgorithm hasher = HashAlgorithm.Create(SignatureAlgorithm.FriendlyName.Replace("NoSign", null));
-                signature = hasher.ComputeHash(rawBytes.ToArray());
+                blob.Sign(signerInfo);
             }
-            // signature algorithm
-            rawBytes.AddRange(algId);
-            List<Byte> pure = new List<Byte> { 0 };
-            pure.AddRange(signature);
-            rawBytes.AddRange(Asn1Utils.Encode(pure.ToArray(), (Byte)Asn1Type.BIT_STRING));
-            RawData = Asn1Utils.Encode(rawBytes.ToArray(), 48);
+
+            SignatureAlgorithm = dummyBlob.SignatureAlgorithm.AlgorithmId;
+            RawData = blob.Encode();
             //m_decode(RawData);
             isReadOnly = true;
         }
