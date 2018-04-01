@@ -57,11 +57,15 @@ namespace System.Security.Cryptography.X509CertificateRequests {
         /// <summary>
         /// Gets textual form of the distinguished name of the request subject.
         /// </summary>
-        public String Subject => SubjectDn.Name;
-
+        public String Subject => SubjectName?.Name;
         /// <summary>
         /// Gets the distinguished name of the request subject.
         /// </summary>
+        public X500DistinguishedName SubjectName { get; private set; }
+        /// <summary>
+        /// Gets the distinguished name of the request subject.
+        /// </summary>
+        [Obsolete("Use SubjectName instead.")]
         public X500DistinguishedName SubjectDn { get; private set; }
         /// <summary>
         /// Gets a <see cref="PublicKey"/> object associated with a certificate
@@ -155,9 +159,12 @@ namespace System.Security.Cryptography.X509CertificateRequests {
             } else { throw new Win32Exception(Marshal.GetLastWin32Error()); }
         }
         void getSubject() {
+            if (reqData.Subject.cbData == 0) { return; }
             Byte[] RawBytes = new Byte[reqData.Subject.cbData];
             Marshal.Copy(reqData.Subject.pbData, RawBytes, 0, (Int32)reqData.Subject.cbData);
-            SubjectDn = new X500DistinguishedName(RawBytes);
+            SubjectName = new X500DistinguishedName(RawBytes);
+            SubjectDn = SubjectName;
+
         }
         void getPublickey() {
             Oid keyoid = new Oid(reqData.SubjectPublicKeyInfo.Algorithm.pszObjId);
