@@ -14,6 +14,7 @@ namespace PKI.ServiceProviders {
     /// <summary>
     /// This class is used to obtain installed about Cryptographic Service Providers, Key Storage Providers and their parameters.
     /// </summary>
+    [Obsolete]
     public static class Csp {
 
         /// <summary>
@@ -21,6 +22,7 @@ namespace PKI.ServiceProviders {
         /// </summary>
         /// <returns>List of installed CSPs and their parameters.</returns>
         /// <remarks>This method is deprecated.</remarks>
+        [Obsolete("Use 'CspProviderInfoCollection.GetProviderInfo' class.")]
         public static CspCollection EnumLegacyProviders() {
             return m_enumprovs();
         }
@@ -33,6 +35,7 @@ namespace PKI.ServiceProviders {
         /// </exception>
         /// <returns>List of installed Key Storage Providers and their parameters</returns>
         /// <remarks>This method is deprecated.</remarks>
+        [Obsolete("Use 'CspProviderInfoCollection.GetProviderInfo' class.")]
         public static CspCNGCollection EnumCNGProviders() {
             if (!CryptographyUtils.TestCNGCompat()) { throw new PlatformNotSupportedException(); }
             return m_enumcngprovs();
@@ -45,6 +48,7 @@ namespace PKI.ServiceProviders {
         ///		<strong>Windows Server 2003</strong> operating system.
         /// </exception>
         /// <returns>An array of registered cryptographic service providers.</returns>
+        [Obsolete("Use 'CspProviderInfoCollection.GetProviderInfo' class.")]
         public static CspObject[] EnumProviders() {
             if (!CryptographyUtils.TestCNGCompat()) { throw new PlatformNotSupportedException(); }
             var csps = new CCspInformations();
@@ -98,7 +102,6 @@ namespace PKI.ServiceProviders {
         static CspCNGCollection m_enumcngprovs() {
             UInt32 pImplCount = 0;
             IntPtr ppImplList = IntPtr.Zero;
-            SafeNCryptProviderHandle phProvider = new SafeNCryptProviderHandle();
             StringBuilder SB = new StringBuilder();
             Hashtable interfaces = get_interfaces();
             CspCNGCollection csps = new CspCNGCollection();
@@ -118,7 +121,7 @@ namespace PKI.ServiceProviders {
             nCrypt.NCryptFreeBuffer(pvInput);
             foreach (String pszProviderName in names) {
                 ALG_ID_CNGCollection algs = new ALG_ID_CNGCollection();
-                retn = nCrypt.NCryptOpenStorageProvider(out phProvider, pszProviderName, 0);
+                retn = nCrypt.NCryptOpenStorageProvider(out SafeNCryptProviderHandle phProvider, pszProviderName, 0);
                 if (retn == 0) {
                     Int32 pdwAlgCount = 0;
                     IntPtr ppAlgList = IntPtr.Zero;

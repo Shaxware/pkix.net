@@ -108,6 +108,10 @@
     <Compile Include="ManagedAPI\StructClasses\AlgorithmIdentifier.cs" />
     <Compile Include="ManagedAPI\StructClasses\ContentBlobType.cs" />
     <Compile Include="ManagedAPI\StructClasses\SignedContentBlob.cs" />
+    <Compile Include="ServiceProviders\CspProviderAlgorithmInfo.cs" />
+    <Compile Include="ServiceProviders\CspProviderAlgorithmInfoCollection.cs" />
+    <Compile Include="ServiceProviders\CspProviderInfoCollection.cs" />
+    <Compile Include="ServiceProviders\CspProviderInfo.cs" />
     <Compile Include="Structs\CertConfigConstants.cs" />
     <Compile Include="Structs\SignatureOids.cs" />
     <Compile Include="Structs\X509CertExtensions.cs" />
