@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Text;
+using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 
 namespace PKI.ManagedAPI.StructClasses {
@@ -67,12 +69,12 @@ namespace PKI.ManagedAPI.StructClasses {
             //AlgorithmId = String.IsNullOrEmpty(oid2.Value)
             //	? oid
             //	: new Oid(oid2.Value, oid2.FriendlyName);
-            Parameters = asn.MoveNext() ? asn.GetTagRawData() : new Byte[0];
+            Parameters = asn.MoveNext() ? asn.GetTagRawData() : null;
 
             RawData = rawData;
         }
         void m_encode(Oid oid, Byte[] parameters) {
-            Parameters = parameters ?? new Byte[0];
+            Parameters = parameters;
             AlgorithmId = oid;
             List<Byte> rawBytes = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(oid));
             rawBytes.AddRange(Parameters);
@@ -84,17 +86,25 @@ namespace PKI.ManagedAPI.StructClasses {
         /// </summary>
         /// <returns>Formatted string.</returns>
         public override String ToString() {
-            String n = Environment.NewLine;
             if (RawData == null) { return String.Empty; }
-            String retValue = "Algorithm Data:" + n + "    Algorithm Identifier: ";
-            retValue += String.IsNullOrEmpty(AlgorithmId.FriendlyName)
-                ? AlgorithmId.Value + n + "    "
-                : $"{AlgorithmId.FriendlyName} ({AlgorithmId.Value}){n}    ";
-            retValue += "Algorithm Parameters:" + n + "    ";
-            retValue += AsnFormatter.BinaryToString(Parameters, EncodingType.Hex)
-                .Replace("\r\n", "\r\n    ")
-                .TrimEnd();
-            return retValue;
+            StringBuilder sb = new StringBuilder();
+            StringBuilder algParamString = new StringBuilder();
+            if (Parameters == null) {
+                algParamString.Append(" NULL");
+            } else {
+                algParamString.AppendLine("    ");
+                EncodingType format = EncodingType.Hex;
+                if (Parameters.Length > 16) {
+                    format = EncodingType.HexAddress;
+                }
+                algParamString.Append(AsnFormatter.BinaryToString(Parameters, format).TrimEnd());
+            }
+            sb.Append(
+                $@"Signature Algorithm:
+    Algorithm ObjectId: {AlgorithmId.Format(true)}
+    Algorithm Parameters:{algParamString}
+");
+            return sb.ToString();
         }
     }
 }
