@@ -79,6 +79,7 @@
     <Compile Include="AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="CertificateServices\DB\AdcsDbManager.cs" />
+    <Compile Include="CertificateServices\DB\AdcsDbPropertyCollection.cs" />
     <Compile Include="CertificateServices\DB\AdcsDbValue.cs" />
     <Compile Include="CertificateServices\UrlProtocolSchemes.cs" />
     <Compile Include="CertificateTemplates\CertTemplateSubjectType.cs" />
