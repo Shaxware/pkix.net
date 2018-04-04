@@ -1,14 +1,14 @@
 ﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI;
 using PKI.ManagedAPI;
-using PKI.ManagedAPI.StructClasses;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Cryptography;
+using SysadminsLV.PKI.Cryptography.Pkcs;
 
 namespace System.Security.Cryptography.X509CertificateRequests {
     /// <summary>
@@ -97,7 +97,7 @@ namespace System.Security.Cryptography.X509CertificateRequests {
         /// <summary>
         /// Gets request signature status. Returns <strong>True</strong> if signature is valid, <strong>False</strong> otherwise.
         /// </summary>
-        public bool SignatureIsValid { get; private set; }
+        public Boolean SignatureIsValid { get; private set; }
         /// <summary>
         /// Gets the algorithm used to create the signature of a certificate request.
         /// </summary>

@@ -5,12 +5,12 @@ using System.Text;
 using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 
-namespace PKI.ManagedAPI.StructClasses {
+namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// Specifies an algorithm used to encrypt or sign data. This class includes the object identifier
     /// (<strong>OID</strong>) of the algorithm and any needed parameters for that algorithm. 
     /// </summary>
-    /// <remarks>This class do not support PKCS#2.1 signature format.</remarks>
+    /// <remarks>This class supports PKCS#2.1 signature format.</remarks>
     public class AlgorithmIdentifier {
         /// <summary>
         /// Initializes a new instance of the <strong>AlgorithmIdentifier</strong> class from a ASN.1-encoded
@@ -100,6 +100,8 @@ namespace PKI.ManagedAPI.StructClasses {
                 algParamString.Append(AsnFormatter.BinaryToString(Parameters, format).TrimEnd());
             }
             sb.Append(
+                // TODO: algorithm identifier is more than signature algorithm identifier, it is commonly used
+                // TODO: structure type in X.509 and PKCS world
                 $@"Signature Algorithm:
     Algorithm ObjectId: {AlgorithmId.Format(true)}
     Algorithm Parameters:{algParamString}

@@ -7,12 +7,12 @@ using System.Text;
 using PKI;
 using PKI.Exceptions;
 using PKI.ManagedAPI;
-using PKI.ManagedAPI.StructClasses;
 using PKI.Structs;
 using PKI.Utils;
 using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
+using SysadminsLV.PKI.Cryptography;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>

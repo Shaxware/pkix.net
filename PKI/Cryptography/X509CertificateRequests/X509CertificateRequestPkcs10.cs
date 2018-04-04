@@ -3,7 +3,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI.ManagedAPI.StructClasses;
+using PKI.Cryptography;
 using PKI.Structs;
 using PKI.Utils;
 using PKI.Utils.CLRExtensions;
@@ -15,7 +15,14 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
     /// </summary>
     public class X509CertificateRequestPkcs10 {
 
+        protected X509CertificateRequestPkcs10() { }
+        /// <summary>
+        /// Initializes a new instance of <strong>X509CertificateRequestPkcs10</strong> class from ASN.1-encoded
+        /// byte array that represents PKCS #10 certificate request.
+        /// </summary>
+        /// <param name="rawData">ASN.1-encoded byte array.</param>
         public X509CertificateRequestPkcs10(Byte[] rawData) {
+            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             Decode(rawData);
         }
 

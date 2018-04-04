@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509CertificateRequests;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -10,18 +13,18 @@ using PKI.ManagedAPI;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
-namespace System.Security.Cryptography.Pkcs {
+namespace SysadminsLV.PKI.Cryptography.Pkcs {
     /// <summary>
     /// Represents a PKCS#7 message syntax format.
     /// </summary>
-    [SecurityCritical]
+    [Obsolete, SecurityCritical]
     public class PKCS7SignedMessage {
         readonly List<X509Attribute> _attributes          = new List<X509Attribute>();
         readonly List<Oid> _digestAlgs                    = new List<Oid>();
         readonly List<X509CRL2> _crls                     = new List<X509CRL2>();
         readonly X509Certificate2Collection _certificates = new X509Certificate2Collection();
         readonly List<X509CertificateRequest> _requests   = new List<X509CertificateRequest>();
-        readonly List<SignerInfo2> _signerInfos           = new List<SignerInfo2>();
+        readonly List<PkcsSignerInfo> _signerInfos           = new List<PkcsSignerInfo>();
 
         /// <param name="path">Specifies the path to a file that contains either binary or Base64-encoded PKCS#7 message.</param>
         /// <exception cref="ArgumentException"><strong>path</strong> parameter is null or empty string.</exception>
@@ -99,7 +102,7 @@ namespace System.Security.Cryptography.Pkcs {
         /// <summary>
         /// Gets an array of signer information that were used to sign the message.
         /// </summary>
-        public SignerInfo2[] SignerInfos => _signerInfos.ToArray();
+        public PkcsSignerInfo[] SignerInfos => _signerInfos.ToArray();
         /// <summary>
         /// Gets 
         /// </summary>
@@ -173,7 +176,7 @@ namespace System.Security.Cryptography.Pkcs {
             if (asn.Tag != 49) { throw new InvalidDataException("The data is invalid."); }
             asn.MoveNext();
             do {
-                _digestAlgs.Add(new PKI.ManagedAPI.StructClasses.AlgorithmIdentifier(asn.GetTagRawData()).AlgorithmId);
+                _digestAlgs.Add(new AlgorithmIdentifier(asn.GetTagRawData()).AlgorithmId);
             } while (asn.MoveNextCurrentLevel());
         }
         void switchInnerType(Wincrypt.CRYPTOAPI_BLOB blob) {
@@ -267,7 +270,7 @@ namespace System.Security.Cryptography.Pkcs {
             Asn1Reader asn = new Asn1Reader(signerBytes);
             asn.MoveNext();
             do {
-                _signerInfos.Add(new SignerInfo2(asn.GetTagRawData(), _certificates));
+                _signerInfos.Add(new PkcsSignerInfo(asn.GetTagRawData(), _certificates));
             } while (asn.MoveNextCurrentLevel());
         }
 

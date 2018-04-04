@@ -1,39 +1,73 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System;
+using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
+using SysadminsLV.Asn1Parser;
 
-namespace System.Security.Cryptography.Pkcs {
-	/// <summary>
-	/// Represents the <strong>X509IssuerSerial</strong> element of an XML digital signature.
-	/// </summary>
-	/// <remarks>
-	/// This class is a replacement for a .NET native <see href="http://msdn.microsoft.com/en-us/library/system.security.cryptography.xml.x509issuerserial.aspx">X509IssuerSerial</see> structure.
-	/// </remarks>
-	public sealed class X509IssuerSerial {
-		/// <param name="issuer">An <see cref="X500DistinguishedName"/> object that represents issuer name.</param>
-		/// <param name="serialNumber">A string that contains issuer certificate's serial number.</param>
-		/// <exception cref="ArgumentNullException">
-		///		<strong>issuer</strong> and/or <strong>serialNumber</strong> parameters are null or empty.
-		/// </exception>
-		public X509IssuerSerial(X500DistinguishedName issuer, String serialNumber) {
-			if (issuer == null || issuer.RawData == null) { throw new ArgumentNullException(nameof(issuer)); }
-			if (String.IsNullOrEmpty(serialNumber)) { throw new ArgumentNullException(nameof(serialNumber)); }
-			IssuerName = issuer;
-			SerialNumber = serialNumber;
-		}
+namespace SysadminsLV.PKI.Cryptography.Pkcs {
+    /// <summary>
+    /// Represents the <strong>X509IssuerSerial</strong> element of an XML digital signature.
+    /// </summary>
+    /// <remarks>
+    /// This class is a replacement for a .NET native <see href="http://msdn.microsoft.com/en-us/library/system.security.cryptography.xml.x509issuerserial.aspx">X509IssuerSerial</see> structure.
+    /// </remarks>
+    public sealed class X509IssuerSerial {
+        /// <param name="issuer">An <see cref="X500DistinguishedName"/> object that represents issuer name.</param>
+        /// <param name="serialNumber">A string that contains issuer certificate's serial number.</param>
+        /// <exception cref="ArgumentNullException">
+        ///		<strong>issuer</strong> and/or <strong>serialNumber</strong> parameters are null or empty.
+        /// </exception>
+        public X509IssuerSerial(X500DistinguishedName issuer, String serialNumber) {
+            if (String.IsNullOrEmpty(serialNumber)) { throw new ArgumentNullException(nameof(serialNumber)); }
+            IssuerName = issuer ?? throw new ArgumentNullException(nameof(issuer));
+            SerialNumber = serialNumber;
+            encode();
+        }
+        /// <summary>
+        /// Initializes a new instance of <strong>X509IssuerSerial</strong> from ASN.1-encoded byte array that
+        /// contains issuer information.
+        /// </summary>
+        /// <param name="rawData">ASN.1-encoded byte array.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>rawData</strong> parameter is null.
+        /// </exception>
+        public X509IssuerSerial(Byte[] rawData) {
+            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
+            decode(rawData);
+        }
 
-		/// <summary>
-		/// Gets or sets an X.509 certificate issuer's distinguished name.
-		/// </summary>
-		public X500DistinguishedName IssuerName { get; set; }
-		/// <summary>
-		/// Gets an X.509 certificate issuer's distinguished name in a string format.
-		/// </summary>
-		public String Issuer => IssuerName == null
-			? null
-			: IssuerName.Name;
+        /// <summary>
+        /// Gets or sets an X.509 certificate issuer's distinguished name.
+        /// </summary>
+        public X500DistinguishedName IssuerName { get; private set; }
+        /// <summary>
+        /// Gets an X.509 certificate issuer's distinguished name in a string format.
+        /// </summary>
+        public String Issuer => IssuerName?.Name;
 
-		/// <summary>
-		/// Gets or sets an X.509 certificate issuer's serial number.
-		/// </summary>
-		public String SerialNumber { get; set; }
-	}
+        /// <summary>
+        /// Gets or sets an X.509 certificate issuer's serial number.
+        /// </summary>
+        public String SerialNumber { get; private set; }
+        /// <summary>
+        /// Gets ASN.1-encoded byte array that represents current object.
+        /// </summary>
+        public Byte[] RawData { get; private set; }
+
+        void decode(Byte[] rawData) {
+            Asn1Reader asn = new Asn1Reader(rawData);
+            asn.MoveNext();
+            IssuerName = new X500DistinguishedName(asn.GetTagRawData());
+            asn.MoveNext();
+            if (asn.Tag != (Byte) Asn1Type.INTEGER) {
+                throw new Asn1InvalidTagException();
+            }
+            SerialNumber = AsnFormatter.BinaryToString(asn);
+            RawData = rawData;
+        }
+        void encode() {
+            List<Byte> rawData = new List<Byte>(IssuerName.RawData);
+            rawData.AddRange(Asn1Utils.Encode(AsnFormatter.StringToBinary(SerialNumber, EncodingType.HexRaw), 4));
+            RawData = rawData.ToArray();
+        }
+    }
 }

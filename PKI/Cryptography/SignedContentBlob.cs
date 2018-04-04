@@ -7,7 +7,7 @@ using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
-namespace PKI.ManagedAPI.StructClasses {
+namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// This class represents an encoded content to be signed and a BLOB to hold the signature.
     /// The <see cref="ToBeSignedData"/> member is an encoded X.509 certificate, certificate revocation list

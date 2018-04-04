@@ -6,10 +6,10 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI.ManagedAPI;
-using PKI.ManagedAPI.StructClasses;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Cryptography;
 
 namespace PKI.OCSP {
     #region Oids
