@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using PKI.Base;
+using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography {
     /// <summary>
@@ -33,6 +34,38 @@ namespace System.Security.Cryptography {
                 }
                 return null;
             }
+        }
+        /// <summary>
+        /// Decodes ASN.1-encoded attribute collection.
+        /// </summary>
+        /// <param name="rawData">ASN.1-encoded byte array that represents attribute collection.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>rawData</strong> parameter is null.
+        /// </exception>
+        public void Decode(Byte[] rawData) {
+            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
+            Clear();
+            Asn1Reader asn = new Asn1Reader(rawData);
+            if (asn.PayloadLength == 0) { return; }
+            asn.MoveNext();
+            do {
+                _list.Add(X509Attribute.Decode(asn.GetTagRawData()));
+            } while (asn.MoveNextCurrentLevel());
+        }
+        /// <summary>
+        /// Encodes current collection to an ASN.1-encoded byte array.
+        /// </summary>
+        /// <returns></returns>
+        public Byte[] Encode() {
+            if (Count == 0) {
+                return new Byte[0];
+            }
+            var rawData = new List<Byte>();
+            foreach (X509Attribute attribute in this) {
+                rawData.AddRange(attribute.Encode());
+            }
+
+            return Asn1Utils.Encode(rawData.ToArray(), 48);
         }
     }
 }

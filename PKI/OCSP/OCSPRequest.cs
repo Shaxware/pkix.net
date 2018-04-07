@@ -8,12 +8,12 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using PKI.Exceptions;
 using PKI.ManagedAPI;
-using PKI.ManagedAPI.StructClasses;
 using PKI.Structs;
 using PKI.Utils;
 using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
+using SysadminsLV.PKI.Cryptography;
 
 namespace PKI.OCSP {
     /// <summary>

@@ -88,7 +88,7 @@ namespace System.Security.Cryptography.X509Certificates {
             CrossCertDistributionPoints = new X509AlternativeNameCollection();
 
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new ArgumentException("The data is invalid"); }
+            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             if (asn.Tag == (Byte)Asn1Type.INTEGER) {
                 DeltaSyncTimeInSeconds = (Int32)Asn1Utils.DecodeInteger(asn.GetTagRawData());

@@ -4,20 +4,89 @@ using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.Asn1Parser.Universal;
 
 namespace PKI.Utils.CLRExtensions {
     static class PublicKeyExtensions {
         // all magic numbers are for public keys only.
         const Int32 RSA_MAGIC        = 0x31415352;
         const Int32 DSA_V1_MAGIC     = 0x42505344; // 512-1024 bit, legacy
-        const Int32 DSA_V2_MAGIC     = 0x32425044; // larger than 1024, CNG
+        const Int32 DSA_V2_MAGIC     = 0x32425044; // up to 3072, CNG, starts with Win8
         const Int32 ECDSA_P256_MAGIC = 0x31534345;
         const Int32 ECDSA_P384_MAGIC = 0x33534345;
         const Int32 ECDSA_P521_MAGIC = 0x35534345;
         // non-default, some platforms may not support all of them
 
+        public static PublicKey FromRawData(Byte[] rawData) {
+            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
+            Asn1Reader asn = new Asn1Reader(rawData);
+            asn.MoveNext();
+            Asn1Reader pubKeyOidIdReader = new Asn1Reader(asn.GetTagRawData());
+            pubKeyOidIdReader.MoveNext();
+            Oid pubKeyOid = Asn1Utils.DecodeObjectIdentifier(pubKeyOidIdReader.GetTagRawData());
+            pubKeyOidIdReader.MoveNext();
+            AsnEncodedData encodedParams = new AsnEncodedData(pubKeyOid, pubKeyOidIdReader.GetTagRawData());
+            asn.MoveNextCurrentLevel();
+            AsnEncodedData encodedKey = new AsnEncodedData(pubKeyOid, new Asn1BitString(asn.GetTagRawData()).Value.ToArray());
+            return new PublicKey(pubKeyOid, encodedParams, encodedKey);
+        }
+        public static String Format(this PublicKey publicKey) {
+            StringBuilder sb = new StringBuilder();
+            String keyParamsString = "";
+            switch (publicKey.Oid.Value) {
+                case AlgorithmOids.ECC:
+                    keyParamsString = AsnFormatter
+                        .BinaryToString(publicKey.EncodedParameters.RawData, EncodingType.HexAddress)
+                        .TrimEnd();
+                    keyParamsString += $"\r\n        {new Asn1ObjectIdentifier(publicKey.EncodedParameters.RawData).Value.Format(true)}";
+                    break;
+                case AlgorithmOids.RSA:
+                    keyParamsString = AsnFormatter.BinaryToString(Asn1Utils.EncodeNull(), EncodingType.Hex);
+                    break;
+                default:
+                    keyParamsString = AsnFormatter
+                        .BinaryToString(publicKey.EncodedParameters.RawData, EncodingType.HexAddress)
+                        .Replace("\r\n", "\r\n    ")
+                        .TrimEnd();
+                    break;
+            }
+            String keyValueString = AsnFormatter
+                .BinaryToString(publicKey.EncodedKeyValue.RawData, EncodingType.HexAddress)
+                .Replace("\r\n", "\r\n    ")
+                .TrimEnd();
+            sb.Append(
+$@"Public Key Algorithm:
+    Algorithm ObjectId: {publicKey.Oid.FriendlyName} ({publicKey.Oid.Value})
+    Algorithm Parameters:
+    {keyParamsString}
+Public Key Length: {publicKey.GetKeyLength()} bits
+Public Key: UnusedBits = 0
+    {keyValueString}
+");
+            return sb.ToString();
+        }
+        public static Int32 GetKeyLength(this PublicKey publicKey) {
+            if (publicKey == null) { throw new ArgumentNullException(nameof(publicKey)); }
 
+            switch (publicKey.Oid.Value) {
+                case AlgorithmOids.RSA:
+                case AlgorithmOids.DSA:
+                    using (AsymmetricAlgorithm key = publicKey.Key) {
+                        return key.KeySize;
+                    }
+                case AlgorithmOids.ECC:
+                    var cryptBlob = publicKey.GetCryptBlob();
+                    using (CngKey cngKey = CngKey.Import(cryptBlob, CngKeyBlobFormat.EccPublicBlob)) {
+                        return cngKey.KeySize;
+                    }
+                default:
+                    return 0;
+
+            }
+        }
         public static Byte[] GetCryptBlob(this PublicKey publicKey) {
             List<Byte> blob = new List<Byte>();
             switch (publicKey.Oid.Value) {
@@ -31,8 +100,10 @@ namespace PKI.Utils.CLRExtensions {
                     // SHA1 hash algorithm only. Larger keys support up to 2048? bit keys and new hashing algorithms,
                     // SHA1, SHA256 and SHA512. SHA384 somehow is missing, see bcrypt.h file for
                     // HASHALGORITHM_ENUM
-                    // so check the key size and read appropriate header
-                    if (publicKey.Key.KeySize <= 1024) {
+                    // so check the key size and read appropriate header. Public key length in bits is
+                    // EncodedPublicKey * 8. Encoded key value includes ASN.1 tag (INTEGER), length (up to
+                    // two bytes) and extra zero byte if most-significant bit is 1, so 132 bytes max for 1024 key.
+                    if (publicKey.EncodedKeyValue.RawData.Length <= 132) {
                         readDsaV1Header(blob, publicKey);
                     } else {
                         readDsaV2Header(blob, publicKey);
@@ -117,13 +188,17 @@ namespace PKI.Utils.CLRExtensions {
             blob.AddRange(parameters.Q);
             /*
             BCRYPT_DSA_KEY_BLOB
-            Modulus[cbKey]    // Big-endian.
+            Modulus[cbKey]    // Big-endian. Base Generator G, Prime Modulus P, SubPrime Q, Public Key.
             Generator[cbKey]  // Big-endian.
             Public[cbKey]     // Big-endian.
             */
             blob.AddRange(parameters.P);
             blob.AddRange(parameters.G);
             blob.AddRange(parameters.Y);
+            blob.Clear();
+            // for some reasons, newer structure doesn't work for DSA keys. Until I can figure out
+            // new DSA keys (introduced in Windows 8) are not supported.
+            blob.AddRange(((DSACryptoServiceProvider)publicKey.Key).ExportCspBlob(false));
         }
         static void readDsaV2Header(List<Byte> blob, PublicKey publicKey) {
             /*

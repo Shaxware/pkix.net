@@ -24,7 +24,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// Decodes ASN.1 encoded byte array to an array of <see cref="X509AlternativeName"/> objects.
         /// </summary>
         /// <param name="rawData">ASN.1-encoded byte array.</param>
-        /// <exception cref="InvalidDataException">
+        /// <exception cref="Asn1InvalidTagException">
         /// The data in the <strong>rawData</strong> parameter is not valid array of <see cref="X509AlternativeName"/> objects.
         /// </exception>
         public void Decode(Byte[] rawData) {
@@ -32,7 +32,7 @@ namespace System.Security.Cryptography.X509Certificates {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             _list.Clear();
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new ArgumentException("The parameter is incorrect."); }
+            if (asn.Tag != 48) { throw new Asn1InvalidTagException(); }
             asn.MoveNext();
             do {
                 _list.Add(new X509AlternativeName(asn.GetTagRawData()));

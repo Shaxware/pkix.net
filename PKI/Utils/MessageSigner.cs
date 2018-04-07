@@ -6,11 +6,11 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Win32.SafeHandles;
 using PKI.Exceptions;
-using PKI.ManagedAPI.StructClasses;
 using PKI.Structs;
 using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
+using SysadminsLV.PKI.Cryptography;
 
 namespace PKI.Utils {
     /// <summary>

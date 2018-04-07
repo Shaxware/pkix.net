@@ -1,4 +1,4 @@
-﻿namespace PKI.ManagedAPI.StructClasses {
+﻿namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// Contains enumeration to identify data type in <see cref="SignedContentBlob"/> object.
     /// </summary>

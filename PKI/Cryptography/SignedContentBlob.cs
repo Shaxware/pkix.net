@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
-namespace PKI.ManagedAPI.StructClasses {
+namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// This class represents an encoded content to be signed and a BLOB to hold the signature.
     /// The <see cref="ToBeSignedData"/> member is an encoded X.509 certificate, certificate revocation list
@@ -78,19 +79,13 @@ namespace PKI.ManagedAPI.StructClasses {
         void m_decode(Byte[] rawData) {
             Asn1Reader asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) {
-                throw new Asn1InvalidTagException("The data is invalid");
+                throw new Asn1InvalidTagException(asn.Offset);
             }
-            if (!asn.MoveNext()) {
-                throw new ArgumentException("The data is invalid");
-            }
+            asn.MoveNextAndExpectTags(0x30);
             ToBeSignedData = asn.GetTagRawData();
-            if (!asn.MoveNextCurrentLevel()) {
-                throw new ArgumentException("The data is invalid");
-            }
+            asn.MoveNextCurrentLevelAndExpectTags(0x30);
             SignatureAlgorithm = new AlgorithmIdentifier(asn.GetTagRawData());
-            if (!asn.MoveNextCurrentLevel()) {
-                throw new ArgumentException("The data is invalid");
-            }
+            asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.BIT_STRING);
             Signature = new Asn1BitString(asn);
         }
 
@@ -110,7 +105,7 @@ namespace PKI.ManagedAPI.StructClasses {
         /// <param name="signerInfo">Configured message signer object which is used to sign the data.</param>
         public void Sign(MessageSigner signerInfo) {
             var signature = signerInfo.SignData(ToBeSignedData).ToList();
-            if (signerInfo.SignerCertificate.PublicKey.Oid.Value == "1.2.840.113549.1.1.1") {
+            if (signerInfo.SignerCertificate.PublicKey.Oid.Value == AlgorithmOids.RSA) {
                 signature.Insert(0, 0);
                 Signature = new Asn1BitString(Asn1Utils.Encode(signature.ToArray(), 3));
             } else {

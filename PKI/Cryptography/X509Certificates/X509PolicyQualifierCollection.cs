@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using PKI.Base;
 using SysadminsLV.Asn1Parser;
 
@@ -34,13 +33,13 @@ namespace System.Security.Cryptography.X509Certificates {
         /// Decodes ASN.1 encoded byte array to an array of <see cref="X509PolicyQualifier"/> objects.
         /// </summary>
         /// <param name="rawData">ASN.1-encoded byte array.</param>
-        /// <exception cref="InvalidDataException">
+        /// <exception cref="Asn1InvalidTagException">
         /// The data in the <strong>rawData</strong> parameter is not valid array of <see cref="X509PolicyQualifier"/> objects.
         /// </exception>
         public void Decode(Byte[] rawData) {
             _list.Clear();
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new InvalidDataException("The data is invalid."); }
+            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             do {
                 _list.Add(new X509PolicyQualifier(asn.GetTagRawData()));

@@ -6,6 +6,7 @@ namespace PKI.Structs {
     /// extensions.
     /// </summary>
     public static class X509CertExtensions {
+        public const String X509CertificateExtensions           = "1.2.840.113549.1.9.14";
         public const String X509CertTemplateInfoV2              = "1.3.6.1.4.1.311.20.2";
         public const String X509CAVersion                       = "1.3.6.1.4.1.311.21.1";
         public const String X509PreviousCaHash                  = "1.3.6.1.4.1.311.21.2";

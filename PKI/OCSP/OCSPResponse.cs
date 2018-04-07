@@ -6,10 +6,11 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI.ManagedAPI;
-using PKI.ManagedAPI.StructClasses;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.Asn1Parser.Universal;
+using SysadminsLV.PKI.Cryptography;
 
 namespace PKI.OCSP {
     #region Oids
@@ -29,7 +30,7 @@ namespace PKI.OCSP {
     public class OCSPResponse {
         readonly WebClient _wc;
         readonly List<X509Extension> _listExtensions = new List<X509Extension>();
-        Asn1Reader asn1;
+        Asn1Reader asn;
 
         internal OCSPResponse(Byte[] rawData, OCSPRequest req, WebClient web) {
             RawData = rawData;
@@ -146,53 +147,37 @@ namespace PKI.OCSP {
         public byte[] RawData { get; }
 
         void decodeResponse() {
-            asn1 = new Asn1Reader(RawData);
-            if (asn1.Tag != 48) {
-                throw new Exception("Response data is not valid ASN.1 encoded data.");
+            asn = new Asn1Reader(RawData);
+            if (asn.Tag != 48) {
+                throw new Asn1InvalidTagException("Response data is not valid ASN.1 encoded data.");
             }
             //response status
-            asn1.MoveNext();
-            if (asn1.Tag != 10) {
-                throw new Exception("Unable to decode OCSP Reponse data. The data is invalid.");
-            }
-            ResponseStatus = (OCSPResponseStatus)asn1.GetPayload()[0];
-            if (asn1.NextOffset == 0) { return; }
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.ENUMERATED);
+            ResponseStatus = (OCSPResponseStatus)asn.GetPayload()[0];
+            if (asn.NextOffset == 0) { return; }
             //responseBytesCS
-            asn1.MoveNext();
-            if (asn1.Tag != 160) {
-                throw new Exception("Unable to decode Response.");
-            }
-            asn1.MoveNext();
-            asn1.MoveNext();
-            if (asn1.Tag != 6) {
-                throw new Exception("Response type is invalid.");
-            }
-            Byte[] oidbytes = Asn1Utils.Encode(asn1.GetPayload(), (Byte)Asn1Type.OBJECT_IDENTIFIER);
-            decodeResponseType(oidbytes);
-            asn1.MoveNext();
-            if (asn1.Tag != 4) {
-                throw new Exception("Response is missing.");
-            }
+            asn.MoveNextAndExpectTags(0xa0);
+            asn.MoveNext();
+            asn.MoveNext();
+            decodeResponseType(new Asn1ObjectIdentifier(asn.GetTagRawData()).Value);
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.OCTET_STRING);
             //BasicOCSPResponse
-            asn1.MoveNext();
-            if (asn1.Tag != 48) {
-                throw new Exception("tbsResponseData is missing.");
-            }
-            asn1.MoveNext();
+            asn.MoveNextAndExpectTags(0x30);
+            asn.MoveNext();
             //tbsResponseData
-            Asn1Reader tbsResponseData = new Asn1Reader(asn1.GetTagRawData());
+            Asn1Reader tbsResponseData = new Asn1Reader(asn.GetTagRawData());
             //decodetbsResponse(tbsResponseData);
             //signatureAlgorithm
-            asn1.MoveNextCurrentLevel();
-            SignatureAlgorithm = new AlgorithmIdentifier(Asn1Utils.Encode(asn1.GetPayload(), 48)).AlgorithmId;
+            asn.MoveNextCurrentLevel();
+            SignatureAlgorithm = new AlgorithmIdentifier(Asn1Utils.Encode(asn.GetPayload(), 48)).AlgorithmId;
             //signature
-            asn1.MoveNextCurrentLevel();
-            Byte[] signature = asn1.GetPayload().Skip(1).ToArray();
+            asn.MoveNextCurrentLevel();
+            Byte[] signature = asn.GetPayload().Skip(1).ToArray();
             // GenericArray.GetSubArray(asn1.Payload, 1, asn1.Payload.Length - 1);
             SignerCertificates = new X509Certificate2Collection();
-            if (asn1.MoveNext()) {
-                asn1.MoveNext();
-                Asn1Reader cert = new Asn1Reader(asn1.GetPayload());
+            if (asn.MoveNext()) {
+                asn.MoveNext();
+                Asn1Reader cert = new Asn1Reader(asn.GetPayload());
                 do {
                     SignerCertificates.Add(new X509Certificate2(Asn1Utils.Encode(cert.GetPayload(), 48)));
                 } while (cert.MoveNextCurrentLevel());
@@ -200,8 +185,7 @@ namespace PKI.OCSP {
             } // optional. Find cert in store.
             verifyAll(tbsResponseData, signature, SignatureAlgorithm);
         }
-        void decodeResponseType(Byte[] raw) {
-            Oid oid = Asn1Utils.DecodeObjectIdentifier(raw);
+        void decodeResponseType(Oid oid) {
             switch (oid.Value) {
                 case "1.3.6.1.5.5.7.48.1.1":
                     ResponseType = OCSPResponseType.id_pkix_ocsp_basic;
