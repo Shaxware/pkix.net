@@ -1,8 +1,8 @@
-﻿using SysadminsLV.Asn1Parser;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using PKI.Structs;
+using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
@@ -74,7 +74,7 @@ namespace System.Security.Cryptography.X509Certificates {
             Oid = _oid;
             Critical = critical;
             IncludedComponents = AuthorityKeyIdentifierFlags.None;
-			// TODO rawData is not used
+            // TODO rawData is not used
             List<Byte> rawData = new List<Byte>();
             if ((flags & AuthorityKeyIdentifierFlags.KeyIdentifier) > 0) {
                 using (var hasher = SHA1.Create()) {
@@ -100,7 +100,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 rawData.AddRange(Asn1Utils.Encode(issuer.GetSerialNumber().Reverse().ToArray(), 0x82));
                 IncludedComponents |= AuthorityKeyIdentifierFlags.SerialNumber;
             }
-			RawData = Asn1Utils.Encode(rawData.ToArray(), 48);
+            RawData = Asn1Utils.Encode(rawData.ToArray(), 48);
         }
         void initializeFromKeyId(String keyId, Boolean critical) {
             Oid = _oid;
@@ -114,7 +114,7 @@ namespace System.Security.Cryptography.X509Certificates {
         }
         void m_decode(Byte[] rawData) {
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new ArgumentException("The data is invalid."); }
+            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             IncludedComponents = AuthorityKeyIdentifierFlags.None;
             do {
@@ -138,9 +138,9 @@ namespace System.Security.Cryptography.X509Certificates {
             } while (asn.MoveNextCurrentLevel());
         }
 
-		/// <summary>
-		/// Indicates which components are included in the Authority Key Identifier extension.
-		/// </summary>
+        /// <summary>
+        /// Indicates which components are included in the Authority Key Identifier extension.
+        /// </summary>
         public AuthorityKeyIdentifierFlags IncludedComponents { get; private set; }
         /// <summary>
         /// Gets an octet string of the KeyIdientifier component. May be null.

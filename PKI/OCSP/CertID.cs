@@ -96,24 +96,21 @@ namespace PKI.OCSP {
         public Boolean IsReadOnly { get; private set; }
 
         void initializeFromAsn(Byte[] rawData) {
-            Asn1Reader asn1 = new Asn1Reader(rawData);
-            if (asn1.Tag != 48) {
-                throw new Exception("Unable to decode. Input data is not valid ASN.1 encoded data.");
+            Asn1Reader asn = new Asn1Reader(rawData);
+            if (asn.Tag != 48) {
+                throw new Asn1InvalidTagException(asn.Offset);
             }
-            asn1.MoveNext();
-            HashingAlgorithm = new AlgorithmIdentifier(Asn1Utils.Encode(asn1.GetPayload(), 48)).AlgorithmId;
-            asn1.MoveNextCurrentLevel();
+            asn.MoveNext();
+            HashingAlgorithm = new AlgorithmIdentifier(Asn1Utils.Encode(asn.GetPayload(), 48)).AlgorithmId;
+            asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.OCTET_STRING);
             // issuerNameHash
-            if (asn1.Tag != 4) { throw new Exception("Unable to decode. The data is invalid"); }
-            IssuerNameId = AsnFormatter.BinaryToString(asn1.GetPayload()).Trim();
-            asn1.MoveNextCurrentLevel();
+            IssuerNameId = AsnFormatter.BinaryToString(asn.GetPayload()).Trim();
+            asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.OCTET_STRING);
             // issuerKeyId
-            if (asn1.Tag != 4) { throw new Exception("Unable to decode. The data is invalid"); }
-            IssuerKeyId = AsnFormatter.BinaryToString(asn1.GetPayload()).Trim();
-            asn1.MoveNextCurrentLevel();
+            IssuerKeyId = AsnFormatter.BinaryToString(asn.GetPayload()).Trim();
+            asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.INTEGER);
             // serialnumber
-            if (asn1.Tag != 2) { throw new Exception("Unable to decode. The data is invalid"); }
-            serialNumber = asn1.GetPayload();
+            serialNumber = asn.GetPayload();
             IsReadOnly = true;
         }
         void initializeFromCert(X509Certificate2 cert) {

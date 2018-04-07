@@ -97,7 +97,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
                     break;
                 case 0x80:
                     Type = SubjectIdentifierType.SubjectKeyIdentifier;
-                    Value = AsnFormatter.BinaryToString(asn);
+                    Value = AsnFormatter.BinaryToString(asn, EncodingType.HexRaw, EncodingFormat.NOCRLF);
                     break;
                 default: throw new ArgumentException("Invalid CMS issuer identifier type.");
             }

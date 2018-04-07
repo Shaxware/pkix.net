@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using PKI.Base;
 using PKI.Utils;
@@ -54,14 +53,14 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </para>
         /// </summary>
         /// <param name="rawData">ASN.1-encoded byte array that represents certificate policies extension value.</param>
-        /// <exception cref="InvalidDataException">The data in the <strong>rawData</strong> parameter is not valid
+        /// <exception cref="Asn1InvalidTagException">The data in the <strong>rawData</strong> parameter is not valid
         /// extension value.</exception>
         /// <exception cref="ArgumentNullException"><strong>rawData</strong> is null.</exception>
         public void Decode(Byte[] rawData) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             _list.Clear();
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new InvalidDataException("The data is invalid."); }
+            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             do {
                 _list.Add(new X509CertificatePolicy(asn.GetTagRawData()));

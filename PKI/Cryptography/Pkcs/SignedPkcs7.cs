@@ -78,11 +78,13 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             Asn1Reader asn = new Asn1Reader(rawData);
             asn.MoveNext();
             ContentType = new Asn1ObjectIdentifier(asn.GetTagRawData()).Value;
-            asn.MoveNext(); // [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL, 0xa0
-            asn.MoveNext(); // SEQUENCE OF ANY
-            asn.MoveNext(); // version
+            asn.MoveNextAndExpectTags(0xa0); // [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL, 0xa0
+            asn.MoveNextAndExpectTags(0x30); // SEQUENCE OF ANY
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER); // version
+            Version = (Int32)new Asn1Integer(asn.GetTagRawData()).Value;
+            asn.MoveNextCurrentLevelAndExpectTags(0x31);
             decodeDigestAlgorithms(asn);
-            asn.MoveNextCurrentLevel(); // ContentInfo
+            asn.MoveNextCurrentLevelAndExpectTags(0x30); // ContentInfo
             Byte[] content = extractContent(asn);
             while (asn.MoveNextCurrentLevel()) {
                 switch (asn.Tag) {
@@ -114,35 +116,42 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             asn.MoveToPoisition(offset);
         }
         Byte[] extractContent(Asn1Reader asn) {
-            var asn2 = new Asn1Reader(asn.GetPayload());
-            asn2.MoveNext();
+            Int32 offset = asn.Offset;
+            asn.MoveNext();
             ContentType = new Asn1ObjectIdentifier(asn.GetTagRawData()).Value;
-            if (asn2.MoveNext()) { // content [0] EXPLICIT ANY DEFINED BY contentType
-                asn2.MoveNext(); // octet string
-                return asn2.GetPayload();
+            if (asn.MoveNextCurrentLevel()) { // content [0] EXPLICIT ANY DEFINED BY contentType
+                asn.MoveNextAndExpectTags((Byte)Asn1Type.OCTET_STRING); // octet string
+                return asn.GetPayload();
             }
+            asn.MoveToPoisition(offset);
             return null;
         }
         void decodeCertificates(Asn1Reader asn) {
             if (asn.PayloadLength == 0) { return; }
-            var asn2 = new Asn1Reader(asn.GetPayload());
+            Int32 offset = asn.Offset;
+            asn.MoveNext();
             do {
-                Certificates.Add(new X509Certificate2(asn2.GetTagRawData()));
-            } while (asn2.MoveNextCurrentLevel());
+                Certificates.Add(new X509Certificate2(asn.GetTagRawData()));
+            } while (asn.MoveNextCurrentLevel());
+            asn.MoveToPoisition(offset);
         }
         void decodeCrls(Asn1Reader asn) {
             if (asn.PayloadLength == 0) { return; }
-            var asn2 = new Asn1Reader(asn.GetPayload());
+            Int32 offset = asn.Offset;
+            asn.MoveNext();
             do {
-                _crls.Add(new X509CRL2(asn2.GetTagRawData()));
-            } while (asn2.MoveNextCurrentLevel());
+                _crls.Add(new X509CRL2(asn.GetTagRawData()));
+            } while (asn.MoveNextCurrentLevel());
+            asn.MoveToPoisition(offset);
         }
         void decodeSignerInfos(Asn1Reader asn) {
             if (asn.PayloadLength == 0) { return; }
-            var asn2 = new Asn1Reader(asn.GetPayload());
+            Int32 offset = asn.Offset;
+            asn.MoveNext();
             do {
-                _signerInfos.Add(new PkcsSignerInfo(asn2.GetTagRawData()));
-            } while (asn2.MoveNextCurrentLevel());
+                _signerInfos.Add(new PkcsSignerInfo(asn.GetTagRawData()));
+            } while (asn.MoveNextCurrentLevel());
+            asn.MoveToPoisition(offset);
         }
 
         /// <summary>

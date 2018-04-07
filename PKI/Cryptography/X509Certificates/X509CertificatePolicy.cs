@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using PKI.Exceptions;
 using SysadminsLV.Asn1Parser;
 
@@ -63,7 +62,7 @@ namespace System.Security.Cryptography.X509Certificates {
         void m_decode(Byte[] raw) {
             PolicyQualifiers = new X509PolicyQualifierCollection();
             Asn1Reader asn = new Asn1Reader(raw);
-            if (asn.Tag != 48) { throw new InvalidDataException("The data is invalid."); }
+            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             PolicyOid = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
             if (asn.MoveNext()) { PolicyQualifiers.Decode(asn.GetTagRawData()); }

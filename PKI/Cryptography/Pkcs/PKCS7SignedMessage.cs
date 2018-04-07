@@ -17,7 +17,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
     /// <summary>
     /// Represents a PKCS#7 message syntax format.
     /// </summary>
-    [Obsolete, SecurityCritical]
+    [Obsolete("Use SignedPkcs7 class or its inheritors instead.", true), SecurityCritical]
     public class PKCS7SignedMessage {
         readonly List<X509Attribute> _attributes          = new List<X509Attribute>();
         readonly List<Oid> _digestAlgs                    = new List<Oid>();
@@ -173,7 +173,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             Byte[] rawData = new Byte[blob.cbData];
             Marshal.Copy(blob.pbData, rawData, 0, (Int32)blob.cbData);
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 49) { throw new InvalidDataException("The data is invalid."); }
+            if (asn.Tag != 49) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             do {
                 _digestAlgs.Add(new AlgorithmIdentifier(asn.GetTagRawData()).AlgorithmId);

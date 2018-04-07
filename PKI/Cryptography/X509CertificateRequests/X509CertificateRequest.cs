@@ -1,37 +1,24 @@
-﻿using System.ComponentModel;
-using System.Runtime.InteropServices;
+﻿using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI;
 using PKI.ManagedAPI;
 using PKI.Structs;
-using PKI.Utils;
-using SysadminsLV.Asn1Parser;
-using SysadminsLV.PKI.Cryptography;
-using SysadminsLV.PKI.Cryptography.Pkcs;
+using PKI.Utils.CLRExtensions;
+using SysadminsLV.PKI.Cryptography.X509CertificateRequests;
 
 namespace System.Security.Cryptography.X509CertificateRequests {
     /// <summary>
     /// This class represents single PKCS#10 certificate request.
     /// </summary>
-    public class X509CertificateRequest {
-        Wincrypt.CERT_REQUEST_INFO reqData;
-        Wincrypt.CERT_SIGNED_CONTENT_INFO signedData;
-        readonly X509AttributeCollection _attribs = new X509AttributeCollection();
-        X509ExtensionCollection exts = new X509ExtensionCollection();
-        Byte[] signature;
-        UInt32 sigUnused;
-        UInt32 pubKeyUnused;
-        Int32 pubKeyLength;
-        Oid curve;
-
+    public class X509CertificateRequest : X509CertificateRequestPkcs10 {
         /// <summary>
         /// Initializes a new instance of the <strong>X509CertificateRequest</strong> class defined from a sequence of bytes
         /// representing certificate request.
         /// </summary>
         /// <param name="rawData">A byte array containing data from a certificate request.</param>
         public X509CertificateRequest(Byte[] rawData) {
-            RawData = rawData;
+            FullRequestRawData = rawData;
             m_initialize();
         }
         /// <summary>
@@ -44,241 +31,51 @@ namespace System.Security.Cryptography.X509CertificateRequests {
         }
 
         /// <summary>
-        /// Gets the X.509 format version of a certificate request.
-        /// </summary>
-        /// <remarks>
-        /// Currently only version 1 is defined.
-        /// </remarks>
-        public Int32 Version { get; private set; }
-        /// <summary>
         /// Gets request format. Can be either <strong>PKCS10</strong> or <strong>PKCS7</strong>.
         /// </summary>
         public X509CertificateRequestType RequestType { get; private set; }
         /// <summary>
-        /// Gets textual form of the distinguished name of the request subject.
-        /// </summary>
-        public String Subject => SubjectName?.Name;
-        /// <summary>
-        /// Gets the distinguished name of the request subject.
-        /// </summary>
-        public X500DistinguishedName SubjectName { get; private set; }
-        /// <summary>
         /// Gets the distinguished name of the request subject.
         /// </summary>
         [Obsolete("Use SubjectName instead.")]
-        public X500DistinguishedName SubjectDn { get; private set; }
+        public X500DistinguishedName SubjectDn => SubjectName;
         /// <summary>
-        /// Gets a <see cref="PublicKey"/> object associated with a certificate
+        /// Gets external PKCS7/CMC envelope. External envelope is aplicable only for PKCS7/CMC requests.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// This property returns a PublicKey object, which contains the object identifier (Oid) representing the public key
-        /// algorithm, the ASN.1-encoded parameters, and the ASN.1-encoded key value.</para>
-        /// <para>You can also obtain the key as an <see cref="AsymmetricAlgorithm"/> object by referencing the <strong>PublicKey</strong> property.
-        /// This property supports only RSA or DSA keys, so it returns either an <see cref="RSACryptoServiceProvider"/> or a
-        /// <see cref="DSACryptoServiceProvider"/> object that represents the public key.</para>
-        /// </remarks>
-        public PublicKey PublicKey { get; private set; }
-        /// <summary>
-        /// Gets <see cref="X509AttributeCollection"/> object that contains a collection of attributes associated with the
-        /// certificate request.
-        /// </summary>
-        public X509AttributeCollection Attributes => _attribs.Count > 0 ? _attribs : null;
-
-        /// <summary>
-        /// Gets a collection of <see cref="X509Extension">X509Extension</see> objects.
-        /// </summary>
-        public X509ExtensionCollection Extensions => exts.Count > 0 ? exts : null;
-
-        /// <summary>
-        /// Gets external PKCS7 envelope. External envelope is aplicable only for PKCS7 requests.
-        /// </summary>
-        public PKCS7SignedMessage ExternalData { get; private set; }
-        /// <summary>
-        /// Gets request signature status. Returns <strong>True</strong> if signature is valid, <strong>False</strong> otherwise.
-        /// </summary>
-        public Boolean SignatureIsValid { get; private set; }
-        /// <summary>
-        /// Gets the algorithm used to create the signature of a certificate request.
-        /// </summary>
-        /// <remarks>The object identifier <see cref="Oid">(Oid)</see> identifies the type of signature
-        /// algorithm used by the certificate request.</remarks>
-        public Oid SignatureAlgorithm { get; private set; }
+        public X509CertificateRequestCmc ExternalData { get; private set; }
         /// <summary>
         /// Gets the raw data of a certificate request.
         /// </summary>
-        public Byte[] RawData { get; private set; }
+        public Byte[] FullRequestRawData { get; private set; }
 
         void getBinaryData(String path) {
-            RawData = Crypt32Managed.CryptFileToBinary(path);
+            FullRequestRawData = Crypt32Managed.CryptFileToBinary(path);
         }
         void m_initialize() {
             // at this point RawData is not null
-            RequestType = getRequestFormat(RawData);
-            switch (RequestType) {
-                case X509CertificateRequestType.PKCS10:
-                    decodePkcs10();
-                    break;
-                case X509CertificateRequestType.PKCS7:
-                    decodePkcs7();
-                    break;
-                default:
-                    throw new Win32Exception(Error.InvalidDataException);
+            try {
+                Decode(FullRequestRawData);
+                RequestType = X509CertificateRequestType.PKCS10;
             }
-        }
-        void decodePkcs10() {
-            m_decode();
-        }
-        void decodePkcs7() {
-            ExternalData = new PKCS7SignedMessage(RawData);
-            Version = ((X509CertificateRequest[])ExternalData.Content)[0].Version;
-            SubjectDn = ((X509CertificateRequest[])ExternalData.Content)[0].SubjectDn;
-            PublicKey = ((X509CertificateRequest[])ExternalData.Content)[0].PublicKey;
-            SignatureIsValid = ((X509CertificateRequest[])ExternalData.Content)[0].SignatureIsValid;
-            SignatureAlgorithm = ((X509CertificateRequest[])ExternalData.Content)[0].SignatureAlgorithm;
-            foreach (X509Attribute attrib in ((X509CertificateRequest[])ExternalData.Content)[0].Attributes) {
-                _attribs.Add(attrib);
+            catch {
+                X509CertificateRequestCmc cmc = new X509CertificateRequestCmc(FullRequestRawData);
+                Version = cmc.Content.Version;
+                SubjectName = cmc.Content.SubjectName;
+                PublicKey = cmc.Content.PublicKey;
+                Extensions.AddRange(cmc.Content.Extensions.Cast<X509Extension>());
+                Attributes.AddRange(cmc.Content.Attributes);
+                SignatureAlgorithm = cmc.Content.SignatureAlgorithm;
+                SignatureIsValid = cmc.Content.SignatureIsValid;
+                ExternalData = cmc;
+                RequestType = X509CertificateRequestType.PKCS7;
             }
-            foreach (X509Extension ext in ((X509CertificateRequest[])ExternalData.Content)[0].Extensions) {
-                exts.Add(ext);
-            }
-        }
-        void m_decode() {
-            UInt32 pcbStructInfo = 0;
-            if (Crypt32.CryptDecodeObject(65537, Wincrypt.X509_CERT_REQUEST_TO_BE_SIGNED, RawData, (UInt32)RawData.Length, 0, IntPtr.Zero, ref pcbStructInfo)) {
-                IntPtr pvStructInfo = Marshal.AllocHGlobal((Int32)pcbStructInfo);
-                Crypt32.CryptDecodeObject(65537, Wincrypt.X509_CERT_REQUEST_TO_BE_SIGNED, RawData, (UInt32)RawData.Length, 0, pvStructInfo, ref pcbStructInfo);
-                reqData = (Wincrypt.CERT_REQUEST_INFO)Marshal.PtrToStructure(pvStructInfo, typeof(Wincrypt.CERT_REQUEST_INFO));
-                Version = (Int32)reqData.dwVersion + 1;
-                getSubject();
-                getPublickey();
-                getAttributes();
-                getSignature();
-                m_verifysignature();
-                Marshal.FreeHGlobal(pvStructInfo);
-            } else { throw new Win32Exception(Marshal.GetLastWin32Error()); }
-        }
-        void getSubject() {
-            if (reqData.Subject.cbData == 0) { return; }
-            Byte[] RawBytes = new Byte[reqData.Subject.cbData];
-            Marshal.Copy(reqData.Subject.pbData, RawBytes, 0, (Int32)reqData.Subject.cbData);
-            SubjectName = new X500DistinguishedName(RawBytes);
-            SubjectDn = SubjectName;
-
-        }
-        void getPublickey() {
-            Oid keyoid = new Oid(reqData.SubjectPublicKeyInfo.Algorithm.pszObjId);
-            pubKeyUnused = reqData.SubjectPublicKeyInfo.PublicKey.cUnusedBits;
-            Byte[] param = new Byte[reqData.SubjectPublicKeyInfo.Algorithm.Parameters.cbData];
-            Marshal.Copy(reqData.SubjectPublicKeyInfo.Algorithm.Parameters.pbData, param, 0, (Int32)reqData.SubjectPublicKeyInfo.Algorithm.Parameters.cbData);
-            Oid paramOid = keyoid.Value == "1.2.840.10045.2.1"
-                ? Asn1Utils.DecodeObjectIdentifier(param)
-                : new Oid("1.2.840.113549.1.1.1");
-            AsnEncodedData asnpara = new AsnEncodedData(paramOid, param);
-            Byte[] key = new Byte[reqData.SubjectPublicKeyInfo.PublicKey.cbData];
-            Marshal.Copy(reqData.SubjectPublicKeyInfo.PublicKey.pbData, key, 0, (Int32)reqData.SubjectPublicKeyInfo.PublicKey.cbData);
-            AsnEncodedData asnkey = new AsnEncodedData(keyoid, key);
-            PublicKey = new PublicKey(keyoid, asnpara, asnkey);
-            curve = PublicKey.EncodedParameters.Oid;
-            if (PublicKey.Oid.Value == "1.2.840.10045.2.1") {
-                getPublicKeyLength(asnpara.Oid.Value);
-            } else {
-                pubKeyLength = PublicKey.Key.KeySize;
-            }
-        }
-        void getPublicKeyLength(String oid) {
-            switch (oid) {
-                case "1.2.840.10045.3.1.7":
-                    pubKeyLength = 256;
-                    break;
-                case "1.3.132.0.34":
-                    pubKeyLength = 384;
-                    break;
-                case "1.3.132.0.35":
-                    pubKeyLength = 521;
-                    break;
-            }
-        }
-        void getAttributes() {
-            if (reqData.cAttribute <= 0) { return; }
-            IntPtr rgAttribute = reqData.rgAttribute;
-            for (Int32 index = 0; index < reqData.cAttribute; index++) {
-                Wincrypt.CRYPT_ATTRIBUTE attrib = (Wincrypt.CRYPT_ATTRIBUTE)Marshal.PtrToStructure(rgAttribute, typeof(Wincrypt.CRYPT_ATTRIBUTE));
-                Oid attriboid = new Oid(attrib.pszObjId);
-                Wincrypt.CRYPTOAPI_BLOB blob = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(attrib.rgValue, typeof(Wincrypt.CRYPTOAPI_BLOB));
-                Byte[] bytes = new Byte[blob.cbData];
-                Marshal.Copy(blob.pbData, bytes, 0, (Int32)blob.cbData);
-                if (attrib.pszObjId == "1.2.840.113549.1.9.14") {
-                    getExtensions(bytes);
-                } else {
-                    _attribs.Add(new X509Attribute(attriboid, bytes));
-                }
-                rgAttribute = (IntPtr)((UInt64)rgAttribute + (UInt32)Marshal.SizeOf(typeof(Wincrypt.CRYPT_ATTRIBUTE)));
-            }
-        }
-        void getExtensions(Byte[] bytes) {
-            exts = Crypt32Managed.DecodeX509Extensions(bytes);
-        }
-        void getSignature() {
-            UInt32 pcbStructInfo = 0;
-            if (!Crypt32.CryptDecodeObject(65537, Wincrypt.X509_CERT, RawData, (UInt32)RawData.Length, 8, IntPtr.Zero, ref pcbStructInfo)) {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-            IntPtr pvStructInfo = Marshal.AllocHGlobal((Int32)pcbStructInfo);
-            Crypt32.CryptDecodeObject(65537, Wincrypt.X509_CERT, RawData, (UInt32)RawData.Length, 8, pvStructInfo, ref pcbStructInfo);
-            signedData = (Wincrypt.CERT_SIGNED_CONTENT_INFO)Marshal.PtrToStructure(pvStructInfo, typeof(Wincrypt.CERT_SIGNED_CONTENT_INFO));
-            signature = new Byte[signedData.Signature.cbData];
-            Marshal.Copy(signedData.Signature.pbData, signature, 0, (Int32)signedData.Signature.cbData);
-            sigUnused = signedData.Signature.cUnusedBits;
-            SignatureAlgorithm = new Oid(signedData.SignatureAlgorithm.pszObjId);
-            Array.Reverse(signature);
-            Marshal.FreeHGlobal(pvStructInfo);
-        }
-        void m_verifysignature() {
-            var blob = new SignedContentBlob(RawData, ContentBlobType.SignedBlob);
-            SignatureIsValid = MessageSigner.VerifyData(blob, PublicKey);
         }
         // functions for ToString() method.
-        void genPkcs10String(StringBuilder SB) {
-            String nl = Environment.NewLine;
-            SB.Append($"PKCS10 Certificate Request:{nl}");
-            SB.Append($"Version: {Version}{nl}");
-            SB.Append($"Subject:{nl}");
-            SB.Append($"    {Subject}{nl}{nl}");
-            SB.Append($"Public Key Algorithm: {nl}");
-            SB.Append($"    Algorithm ObjectId: {PublicKey.Oid.FriendlyName} ({PublicKey.Oid.Value}){nl}");
-            SB.Append($"    Algorithm Parameters: {nl}" + "    ");
-            String tempString = AsnFormatter.BinaryToString(PublicKey.EncodedParameters.RawData, EncodingType.Hex);
-            SB.Append(tempString.Replace("\r\n", "\r\n    ").TrimEnd() + nl);
-            if (PublicKey.Oid.Value == "1.2.840.10045.2.1") {
-                SB.Append($"        {curve.FriendlyName} ({curve.Value}){nl}");
-            }
-            SB.Append($"Public Key Length: {pubKeyLength} bits{nl}");
-            SB.Append($"Public Key: UnusedBits={pubKeyUnused}{nl}    ");
-            tempString = AsnFormatter.BinaryToString(PublicKey.EncodedKeyValue.RawData, EncodingType.HexAddress);
-            SB.Append(tempString.Replace("\r\n", "\r\n    ").TrimEnd() + nl);
-            SB.Append($"Request attributes (Count={_attribs.Count}):{nl}");
-            for (Int32 index = 0; index < _attribs.Count; index++) {
-                SB.Append($"  Attribute[{index}], Length={_attribs[index].RawData.Length} ({_attribs[index].RawData.Length:x2}):{nl}");
-                SB.Append($"    {_attribs[index].Format(true).Replace("\r\n", "\r\n    ").TrimEnd()}{nl}{nl}");
-            }
-            SB.Append($"Request extensions (Count={exts.Count}):{nl}");
-            foreach (X509Extension ext in exts) {
-                SB.Append(String.IsNullOrEmpty(ext.Oid.FriendlyName)
-                    ? $"  {ext.Oid.Value}"
-                    : $"  OID={ext.Oid.FriendlyName} ({ext.Oid.Value}), ");
-                SB.Append($"Critical={ext.Critical}, Length={ext.RawData.Length} ({ext.RawData.Length:x2}):{nl}");
-                SB.Append($"    {ext.Format(true).Replace("\r\n", "\r\n    ").TrimEnd()}{nl}{nl}");
-            }
-            SB.Append($"Signature Algorithm:{nl}");
-            SB.Append($"    Algorithm ObjectId: {SignatureAlgorithm.Value} ({SignatureAlgorithm.FriendlyName}){nl}");
-            SB.Append($"Signature: Unused bits={sigUnused}{nl}    ");
-            tempString = AsnFormatter.BinaryToString(signature, EncodingType.HexAddress);
-            SB.Append(tempString.Replace("\r\n", "\r\n    ").TrimEnd() + nl);
-            SB.Append($"Signature matches Public Key: {SignatureIsValid}{nl}");
+        void genPkcs10String(StringBuilder sb) {
+            sb.Append(base.ToString());
         }
-        void genPkcs7String(StringBuilder SB) {
-            SB.Append(((X509CertificateRequest[])ExternalData.Content)[0]);
+        void genPkcs7String(StringBuilder sb) {
+            genPkcs10String(sb);
         }
 
         static X509CertificateRequestType getRequestFormat(Byte[] rawData) {
@@ -287,10 +84,8 @@ namespace System.Security.Cryptography.X509CertificateRequests {
                 return X509CertificateRequestType.PKCS10;
             }
             try {
-                PKCS7SignedMessage temp = new PKCS7SignedMessage(rawData);
-                return temp.Content is X509CertificateRequest[]
-                    ? X509CertificateRequestType.PKCS7
-                    : X509CertificateRequestType.Invalid;
+                new X509CertificateRequestCmc(rawData);
+                return X509CertificateRequestType.PKCS7;
             } catch {
                 return X509CertificateRequestType.Invalid;
             }
@@ -306,7 +101,7 @@ namespace System.Security.Cryptography.X509CertificateRequests {
         /// PKCS#7 dump use the <see cref="PKCS7SignedMessage.ToString()">ToString</see> method of the
         /// <see cref="PKCS7SignedMessage"/> class.
         /// </remarks>
-        public override string ToString() {
+        public override String ToString() {
             StringBuilder SB = new StringBuilder();
             switch (RequestType) {
                 case X509CertificateRequestType.PKCS10:

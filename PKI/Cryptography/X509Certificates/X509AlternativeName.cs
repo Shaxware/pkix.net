@@ -1,20 +1,20 @@
-﻿using PKI.Utils.CLRExtensions;
-using SysadminsLV.Asn1Parser;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Text;
+using PKI.Utils.CLRExtensions;
+using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography.X509Certificates {
-	/// <summary>
-	///		Represents a single alternative name used in <see cref="X509SubjectAlternativeNamesExtension"/> and
-	///		<see cref="X509IssuerAlternativeNamesExtension"/> classes.
-	///		This class supports all alternative name types defined in
-	///		<see href="http://tools.ietf.org/html/rfc5280">RFC 5280</see> and supports two Microsoft
-	///		proprietary alternative names: <strong>Guid</strong> and <strong>User Principal Name</strong> (<i>UPN</i>).
-	/// </summary>
-	public class X509AlternativeName {
+    /// <summary>
+    ///		Represents a single alternative name used in <see cref="X509SubjectAlternativeNamesExtension"/> and
+    ///		<see cref="X509IssuerAlternativeNamesExtension"/> classes.
+    ///		This class supports all alternative name types defined in
+    ///		<see href="http://tools.ietf.org/html/rfc5280">RFC 5280</see> and supports two Microsoft
+    ///		proprietary alternative names: <strong>Guid</strong> and <strong>User Principal Name</strong> (<i>UPN</i>).
+    /// </summary>
+    public class X509AlternativeName {
 
 		///  <summary>
 		/// 	Initializes a new instance of the <strong>X509AlternativeName</strong> class by using alternative name
@@ -437,8 +437,7 @@ namespace System.Security.Cryptography.X509Certificates {
 				Asn1Reader asn = new Asn1Reader(RawData);
 				if (!asn.MoveNext()) { throw new ArgumentException("Input data is not valid OtherName."); }
 				Oid oid = new Oid(Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData()));
-				asn.MoveNext();
-				if (asn.Tag != 160) { throw new ArgumentException("Input data is not valid OtherName."); }
+				asn.MoveNextAndExpectTags(0xa0);
 				asn.MoveNext();
 				OID = oid;
 				switch (oid.Value) {

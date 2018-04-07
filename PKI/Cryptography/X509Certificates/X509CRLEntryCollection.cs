@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using PKI.Base;
 using SysadminsLV.Asn1Parser;
 
@@ -39,13 +38,13 @@ namespace System.Security.Cryptography.X509Certificates {
         /// Decodes a ASN.1-encoded byte array that contains revoked certificate information to a collection.
         /// </summary>
         /// <param name="rawData">ASN.1-encoded byte array.</param>
-        /// <exception cref="InvalidDataException">The encoded data is not valid.</exception>
+        /// <exception cref="Asn1InvalidTagException">The encoded data is not valid.</exception>
         /// <exception cref="ArgumentNullException">The <strong>rawData</strong> parameter is null reference.</exception>
         public void Decode(Byte[] rawData) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new InvalidDataException(); }
-            if (!asn.MoveNext()) { throw new InvalidDataException(); }
+            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
+            if (!asn.MoveNext()) { throw new Asn1InvalidTagException(asn.Offset); }
             do {
                 _list.Add(new X509CRLEntry(asn.GetTagRawData()));
             } while (asn.MoveNextCurrentLevel());

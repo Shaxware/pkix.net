@@ -62,15 +62,9 @@ namespace SysadminsLV.PKI.Cryptography {
         void m_decode(Byte[] rawData) {
             Asn1Reader asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
-            if (!asn.MoveNext()) { throw new Asn1InvalidTagException(asn.Offset); }
-            if (asn.Tag != (Byte)Asn1Type.OBJECT_IDENTIFIER) { throw new Asn1InvalidTagException(asn.Offset); }
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
             AlgorithmId = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
-            //Oid2 oid2 = new Oid2(oid.Value, OidGroupEnum.SignatureAlgorithm, false);
-            //AlgorithmId = String.IsNullOrEmpty(oid2.Value)
-            //	? oid
-            //	: new Oid(oid2.Value, oid2.FriendlyName);
             Parameters = asn.MoveNext() ? asn.GetTagRawData() : null;
-
             RawData = rawData;
         }
         void m_encode(Oid oid, Byte[] parameters) {

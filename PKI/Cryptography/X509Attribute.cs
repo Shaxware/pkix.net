@@ -27,9 +27,7 @@ namespace System.Security.Cryptography {
         public X509Attribute(Oid oid, Int32 partId, Byte[] rawData) : base(oid, rawData) {
             BodyPartId = partId;
         }
-        internal X509Attribute(Wincrypt.CRYPT_ATTRIBUTE blob) {
-            m_initialize2(blob);
-        }
+
         /// <summary>
         /// Gets the value that identifies the tagged attribute.
         /// </summary>
@@ -43,19 +41,29 @@ namespace System.Security.Cryptography {
             Marshal.Copy(attrStruct.pbData, RawData, 0, RawData.Length);
         }
 
+        /// <summary>
+        /// Encodes current object to ASN.1-encoded byte array.
+        /// </summary>
+        /// <returns>ASN.1-encoded byte array.</returns>
         public Byte[] Encode() {
             List<Byte> list = new List<Byte>(Asn1Utils.Encode(RawData, 49));
             list.InsertRange(0, Asn1Utils.EncodeObjectIdentifier(Oid));
             return Asn1Utils.Encode(list.ToArray(), 48);
         }
+        /// <summary>
+        /// Decodes ASN.1-encoded attribute (with envelope) to an instance of <strong>X509Attribute</strong> class.
+        /// </summary>
+        /// <param name="rawData">ASN.1-encoded attribute full data.</param>
+        /// <exception cref="ArgumentNullException"><strong>rawData</strong> parameter is null.</exception>
+        /// <exception cref="Asn1InvalidTagException">Invalid tag identifier occured.</exception>
+        /// <returns>Instance of <strong>X509Attribute</strong> class</returns>
         public static X509Attribute Decode(Byte[] rawData) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new Asn1InvalidTagException(); }
+            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             Oid oid = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
-            asn.MoveNext();
-            if (asn.Tag != 49) { throw new Asn1InvalidTagException(); }
+            asn.MoveNextAndExpectTags(0x31);
             return new X509Attribute(oid, asn.GetPayload());
         }
         /// <summary>

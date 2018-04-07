@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using PKI.Exceptions;
 using PKI.ManagedAPI;
@@ -139,12 +138,11 @@ namespace System.Security.Cryptography.X509Certificates {
 
         void m_initialize(Byte[] rawData) {
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new InvalidDataException(); }
+            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
-            if (asn.Tag != (Byte)Asn1Type.INTEGER) { throw new InvalidDataException(); }
             SerialNumber = Asn1Utils.DecodeInteger(asn.GetTagRawData(), true);
             asn.MoveNext();
-            if (asn.Tag != (Byte)Asn1Type.UTCTime && asn.Tag != (Byte)Asn1Type.Generalizedtime) { throw new InvalidDataException(); }
+            if (asn.Tag != (Byte)Asn1Type.UTCTime && asn.Tag != (Byte)Asn1Type.Generalizedtime) { throw new Asn1InvalidTagException(asn.Offset); }
             if (asn.Tag == (Byte)Asn1Type.UTCTime) { RevocationDate = Asn1Utils.DecodeUTCTime(asn.GetTagRawData()); }
             if (asn.Tag == (Byte)Asn1Type.Generalizedtime) { RevocationDate = Asn1Utils.DecodeGeneralizedTime(asn.GetTagRawData()); }
             if (asn.MoveNext()) {

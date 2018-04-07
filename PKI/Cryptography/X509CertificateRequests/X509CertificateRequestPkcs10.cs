@@ -3,7 +3,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI.Cryptography;
 using PKI.Structs;
 using PKI.Utils;
 using PKI.Utils.CLRExtensions;
@@ -22,7 +21,6 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
         /// </summary>
         /// <param name="rawData">ASN.1-encoded byte array.</param>
         public X509CertificateRequestPkcs10(Byte[] rawData) {
-            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             Decode(rawData);
         }
 
@@ -32,11 +30,11 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
         /// <remarks>
         /// Currently only version 1 is defined.
         /// </remarks>
-        public Int32 Version { get; private set; }
+        public Int32 Version { get; protected set; }
         /// <summary>
         /// Gets the distinguished name of the request subject.
         /// </summary>
-        public X500DistinguishedName SubjectName { get; private set; }
+        public X500DistinguishedName SubjectName { get; protected set; }
         /// <summary>
         /// Gets textual form of the distinguished name of the request subject.
         /// </summary>
@@ -52,7 +50,7 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
         /// This property supports only RSA or DSA keys, so it returns either an <see cref="RSACryptoServiceProvider"/> or a
         /// <see cref="DSACryptoServiceProvider"/> object that represents the public key.</para>
         /// </remarks>
-        public PublicKey PublicKey { get; private set; }
+        public PublicKey PublicKey { get; protected set; }
         /// <summary>
         /// Gets a collection of <see cref="X509Extension"/> objects included in the request.
         /// </summary>
@@ -67,20 +65,20 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
         /// </summary>
         /// <remarks>The object identifier <see cref="Oid">(Oid)</see> identifies the type of signature
         /// algorithm used by the certificate request.</remarks>
-        public Oid SignatureAlgorithm { get; private set; }
+        public Oid SignatureAlgorithm { get; protected set; }
         /// <summary>
         /// Gets request signature status. Returns <strong>True</strong> if signature is valid, <strong>False</strong> otherwise.
         /// </summary>
-        public Boolean SignatureIsValid { get; private set; }
+        public Boolean SignatureIsValid { get; protected set; }
         /// <summary>
         /// Gets the raw data of a certificate request.
         /// </summary>
-        public virtual Byte[] RawData { get; private set; }
+        public Byte[] RawData { get; private set; }
 
         protected void Decode(Byte[] rawData) {
+            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             var blob = new SignedContentBlob(rawData, ContentBlobType.SignedBlob);
             // at this point we can set signature algorithm and populate RawData
-            RawData = rawData;
             SignatureAlgorithm = blob.SignatureAlgorithm.AlgorithmId;
             Asn1Reader asn = new Asn1Reader(blob.ToBeSignedData);
             getVersion(asn);
@@ -92,14 +90,14 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
             if (asn.Tag == 0xa0) {
                 getAttributes(asn);
             }
-
+            RawData = rawData;
         }
         void getVersion(Asn1Reader asn) {
-            asn.MoveNext();
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
             Version = (Int32)(Asn1Utils.DecodeInteger(asn.GetTagRawData()) + 1);
         }
         void getSubject(Asn1Reader asn) {
-            asn.MoveNextCurrentLevel();
+            asn.MoveNextCurrentLevelAndExpectTags(0x30);
             if (asn.PayloadLength != 0) {
                 SubjectName = new X500DistinguishedName(asn.GetTagRawData());
             }
@@ -111,9 +109,8 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
         void getAttributes(Asn1Reader asn) {
             asn.MoveNext();
             if (asn.PayloadLength == 0) { return; }
-
             do {
-                var attribute = X509Attribute.Decode(asn.GetTagRawData());
+                X509Attribute attribute = X509Attribute.Decode(asn.GetTagRawData());
                 if (attribute.Oid.Value == X509CertExtensions.X509CertificateExtensions) {
                     //Extensions
                     Extensions.Decode(attribute.RawData);
