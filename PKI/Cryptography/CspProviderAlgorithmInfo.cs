@@ -1,8 +1,9 @@
 ﻿using System;
 using CERTENROLLLib;
+using PKI.ServiceProviders;
 using PKI.Utils;
 
-namespace PKI.ServiceProviders {
+namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// The <strong>CspProviderAlgorithmInfo</strong> class represents an algorithm implemented by a cryptographic
     /// provider. Providers are separate modules that implement encryption, hashing, signing, and key exchange

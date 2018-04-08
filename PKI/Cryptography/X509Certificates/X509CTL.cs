@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using PKI;
-using PKI.Exceptions;
 using PKI.ManagedAPI;
 using PKI.Structs;
 using PKI.Utils;
@@ -15,15 +14,11 @@ namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
     /// Represents a X.509 Certificate Trust List (CTL).
     /// </summary>
-    public class X509CTL {
+    public class X509CTL : IDisposable {
         Wincrypt.CTL_INFO CTLInfo;
         readonly Boolean _isGeneric;
         readonly List<X509Extension> _listExtensions = new List<X509Extension>();
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="X509CTL"/> class. 
-        /// </summary>
-        public X509CTL() { _isGeneric = false; }
         /// <summary>
         /// Initializes a new instance of the <see cref="X509CTL"/> class using the path to a CTL file. 
         /// </summary>
@@ -94,24 +89,18 @@ namespace System.Security.Cryptography.X509Certificates {
         /// Gets a handle to a Microsoft Cryptographic API CTL context described by an unmanaged
         /// <strong>CTL_CONTEXT</strong> structure.
         /// </summary>
-        public IntPtr Handle { get; private set; }
+        public SafeCTLHandleContext Handle { get; private set; }
         /// <summary>
         /// Gets the raw data of a certificate trust list.
         /// </summary>
         public Byte[] RawData { get; private set; }
 
-        void get_handle(Byte[] rawData) {
-            Handle = Crypt32.CertCreateCTLContext(65537, rawData, (UInt32)rawData.Length);
-            if (Handle.Equals(IntPtr.Zero)) {
-                throw new Exception("Unable to retieve context. The data is invalid.");
-            }
-        }
-        void get_ctlinfo() {
-            Wincrypt.CTL_CONTEXT CTLContext = (Wincrypt.CTL_CONTEXT)Marshal.PtrToStructure(Handle, typeof(Wincrypt.CTL_CONTEXT));
+        void getCtlinfo() {
+            Wincrypt.CTL_CONTEXT CTLContext = (Wincrypt.CTL_CONTEXT)Marshal.PtrToStructure(Handle.DangerousGetHandle(), typeof(Wincrypt.CTL_CONTEXT));
             CTLInfo = (Wincrypt.CTL_INFO)Marshal.PtrToStructure(CTLContext.pCtlInfo, typeof(Wincrypt.CTL_INFO));
             Version = (Int32)CTLInfo.dwVersion + 1;
         }
-        void get_usages() {
+        void getUsages() {
             SubjectUsage = new OidCollection();
             if (CTLInfo.SubjectUsage.cUsageIdentifier > 0) {
                 IntPtr rgpszUseageIdentifier = CTLInfo.SubjectUsage.rgpszUseageIdentifier;
@@ -122,7 +111,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 }
             }
         }
-        void get_identifier() {
+        void getIdentifier() {
             if (CTLInfo.ListIdentifier.cbData != 0) {
                 Byte[] rawString = new Byte[CTLInfo.ListIdentifier.cbData];
                 Marshal.Copy(CTLInfo.ListIdentifier.pbData, rawString, 0, rawString.Length);
@@ -131,7 +120,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 ListIdentifier = Asn1Utils.DecodeBMPString(rawString);
             }
         }
-        void get_serial() {
+        void getSerial() {
             StringBuilder SB = new StringBuilder();
             Byte[] seqnumber = new Byte[CTLInfo.SequenceNumber.cbData];
             Marshal.Copy(CTLInfo.SequenceNumber.pbData, seqnumber, 0, seqnumber.Length);
@@ -139,7 +128,7 @@ namespace System.Security.Cryptography.X509Certificates {
             foreach (Byte item in seqnumber) { SB.Append($"{item:x2}"); }
             SequenceNumber = SB.ToString();
         }
-        void get_ctlentries() {
+        void getCtlEntries() {
             if (CTLInfo.cCTLEntry > 0) {
                 Entries = new X509CTLEntryCollection();
                 IntPtr rgCTLEntry = CTLInfo.rgCTLEntry;
@@ -169,7 +158,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 }
             }
         }
-        void get_extensions() {
+        void getExtensions() {
             if (CTLInfo.cExtension > 0) {
                 Wincrypt.CERT_EXTENSIONS extstruct = new Wincrypt.CERT_EXTENSIONS {
                     rgExtension = CTLInfo.rgExtension,
@@ -178,27 +167,22 @@ namespace System.Security.Cryptography.X509Certificates {
                 _listExtensions.AddRange(CryptographyUtils.DecodeX509ExtensionCollection2(extstruct));
             }
         }
-        void get_algorithm() {
+        void getAlgorithm() {
             SubjectAlgorithm = new Oid(CTLInfo.SubjectAlgorithm.pszObjId);
         }
-        void release_context() {
-            Crypt32.CertFreeCTLContext(Handle);
-        }
         void m_import(Byte[] rawData) {
-            if (!Handle.Equals(IntPtr.Zero)) {
-                release_context();
-            }
-            get_handle(rawData);
-            get_ctlinfo();
-            get_usages();
-            get_identifier();
-            get_serial();
+            RawData = rawData;
+            Dispose();
+            GetSafeContext();
+            getCtlinfo();
+            getUsages();
+            getIdentifier();
+            getSerial();
             ThisUpdate = DateTime.FromFileTime(CTLInfo.ThisUpdate);
             NextUpdate = DateTime.FromFileTime(CTLInfo.NextUpdate);
-            get_ctlentries();
-            get_extensions();
-            get_algorithm();
-            RawData = rawData;
+            getCtlEntries();
+            getExtensions();
+            getAlgorithm();
         }
 
         #region generation functions
@@ -270,34 +254,12 @@ namespace System.Security.Cryptography.X509Certificates {
         }
         #endregion
 
-        void SetSequenceNumber(String number) {
-            if (_isGeneric) { throw new InvalidOperationException(); }
-            if (String.IsNullOrEmpty(number)) { number = "01"; }
-        }
-        void SetSubjectUsage(Oid subjectUsage) {
-            if (_isGeneric) { throw new InvalidOperationException(); }
-            if (subjectUsage == null || String.IsNullOrEmpty(subjectUsage.Value)) {
-
-            }
-        }
-        void SetExtensions(X509ExtensionCollection extensions) {
-            if (_isGeneric) { throw new InvalidOperationException(); }
-            if (extensions == null) { throw new ArgumentNullException(nameof(extensions)); }
-        }
-        void ImportCertificates(X509Certificate2Collection certs) {
-            if (_isGeneric) { throw new InvalidOperationException(); }
-            if (certs == null) { throw new ArgumentNullException(nameof(certs)); }
-        }
-        void ImportCertificates(X509Certificate2[] certs) {
-            if (_isGeneric) { throw new InvalidOperationException(); }
-            if (certs == null) { throw new ArgumentNullException(nameof(certs)); }
-        }
         /// <summary>
         /// Resets the state of an X509CTL.
         /// </summary>
         /// <remarks>This method can be used to reset the state of the CTL. It also frees any resources associated with the CTL.</remarks>
         public void Reset() {
-            if (!Handle.Equals(IntPtr.Zero)) { release_context(); }
+            Dispose();
             Version = 0;
             SubjectUsage = null;
             SequenceNumber = null;
@@ -306,7 +268,6 @@ namespace System.Security.Cryptography.X509Certificates {
             Entries.Clear();
             Entries = null;
             _listExtensions.Clear();
-            Handle = IntPtr.Zero;
             RawData = null;
         }
         /// <summary>
@@ -318,13 +279,42 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <permission cref="SecurityPermission">
         ///     The immediate caller must have SecurityPermission/UnmanagedCode to use this method
         /// </permission>
-        public SafeCTLHandleContext GetSafeContext() {
-            if (!Handle.Equals(IntPtr.Zero)) {
-                SafeCTLHandleContext safeContext = Crypt32.CertDuplicateCTLContext(Handle);
+        public void GetSafeContext() {
+            if (Handle.IsInvalid || Handle.IsClosed) {
+                Handle = Crypt32.CertCreateCTLContext(65537, RawData, (UInt32)RawData.Length);
                 GC.KeepAlive(this);
-                return safeContext;
             }
-            throw new UninitializedObjectException();
         }
+        /// <summary>
+        /// Displays a X.509 Certificate Revocation List UI dialog.
+        /// </summary>
+        public void ShowUI() {
+            Boolean mustRelease = false;
+            if (Handle.IsInvalid || Handle.IsClosed) {
+                mustRelease = true;
+                GetSafeContext();
+            }
+            CryptUI.CryptUIDlgViewContext(3, Handle.DangerousGetHandle(), IntPtr.Zero, "Certificate Trust List", 0, 0);
+            if (mustRelease) {
+                Dispose();
+            }
+        }
+
+        #region IDisposable
+        void Dispose(Boolean disposing) {
+            if (disposing) {
+                Handle.Dispose();
+            }
+        }
+        /// <inheritdoc />
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        /// <inheritdoc />
+        ~X509CTL() {
+            Dispose(false);
+        }
+        #endregion
     }
 }

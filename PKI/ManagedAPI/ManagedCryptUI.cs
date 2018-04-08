@@ -21,8 +21,7 @@ namespace PKI.ManagedAPI {
         /// <param name="ctl">An object to display.</param>
         [Obsolete("Use X509CTL.ShowUI() method instead.", true)]
         public static void DisplayCTL(X509CTL ctl) {
-            if (IntPtr.Zero.Equals(ctl.Handle)) { return; }
-            CryptUI.CryptUIDlgViewContext(3, ctl.Handle, IntPtr.Zero, "Certificate Trust List", 0, 0);
+            ctl.ShowUI();
         }
     }
 }

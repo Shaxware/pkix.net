@@ -499,8 +499,22 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <summary>
         /// Disposes unmanaged resources held by current object. This method do not dispose managed resources.
         /// </summary>
-        public void Dispose() {
-            Handle.Dispose();
+
+        #region IDisposable
+        void Dispose(Boolean disposing) {
+            if (disposing) {
+                Handle.Dispose();
+            }
         }
+        /// <inheritdoc />
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        /// <inheritdoc />
+        ~X509CRL2() {
+            Dispose(false);
+        }
+        #endregion
     }
 }

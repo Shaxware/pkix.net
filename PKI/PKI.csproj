@@ -111,10 +111,10 @@
     <Compile Include="Cryptography\X509Certificates\X509NextCRLPublishExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509RevocationReasons.cs" />
     <Compile Include="Cryptography\SignedContentBlob.cs" />
-    <Compile Include="ServiceProviders\CspProviderAlgorithmInfo.cs" />
-    <Compile Include="ServiceProviders\CspProviderAlgorithmInfoCollection.cs" />
-    <Compile Include="ServiceProviders\CspProviderInfoCollection.cs" />
-    <Compile Include="ServiceProviders\CspProviderInfo.cs" />
+    <Compile Include="Cryptography\CspProviderAlgorithmInfo.cs" />
+    <Compile Include="Cryptography\CspProviderAlgorithmInfoCollection.cs" />
+    <Compile Include="Cryptography\CspProviderInfoCollection.cs" />
+    <Compile Include="Cryptography\CspProviderInfo.cs" />
     <Compile Include="Structs\CertConfigConstants.cs" />
     <Compile Include="Structs\SignatureOids.cs" />
     <Compile Include="Structs\X509CertExtensions.cs" />

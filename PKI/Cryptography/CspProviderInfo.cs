@@ -2,9 +2,10 @@
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using CERTENROLLLib;
+using PKI.ServiceProviders;
 using PKI.Utils;
 
-namespace PKI.ServiceProviders {
+namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// The <strong>CspProviderInfo</strong> class provides access to general information about a cryptographic provider.
     /// </summary>

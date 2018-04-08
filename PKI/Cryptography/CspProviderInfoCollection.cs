@@ -4,7 +4,7 @@ using CERTENROLLLib;
 using PKI.Base;
 using PKI.Utils;
 
-namespace PKI.ServiceProviders {
+namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// Represents a collection of <see cref="CspProviderInfo"/> objects.
     /// </summary>

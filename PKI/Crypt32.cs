@@ -41,14 +41,14 @@ namespace PKI {
         #endregion
         #region CTL functions
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        internal static extern IntPtr CertCreateCTLContext(
+        internal static extern SafeCTLHandleContext CertCreateCTLContext(
             [In]    UInt32 dwMsgAndCertEncodingType,
             [In]    Byte[] pbCtlEncoded,
             [In]    UInt32 cbCtlEncoded
         );
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern SafeCTLHandleContext CertDuplicateCTLContext(
-            [In] IntPtr pCtlContext
+            [In] SafeCTLHandleContext pCtlContext
         );
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
