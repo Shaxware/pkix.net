@@ -4,8 +4,8 @@ using System.Text;
 using PKI;
 using PKI.ManagedAPI;
 using PKI.Structs;
-using PKI.Utils.CLRExtensions;
 using SysadminsLV.PKI.Cryptography.X509CertificateRequests;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace System.Security.Cryptography.X509CertificateRequests {
     /// <summary>

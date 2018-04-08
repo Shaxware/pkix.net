@@ -5,14 +5,16 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Win32.SafeHandles;
+using PKI;
 using PKI.Exceptions;
 using PKI.Structs;
-using PKI.Utils.CLRExtensions;
+using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
-namespace PKI.Utils {
+namespace SysadminsLV.PKI.Tools.MessageOperations {
     /// <summary>
     /// Represents the utility which can be used to sign arbitrary data or verify existing signatures by using
     /// asymmetric encryption.

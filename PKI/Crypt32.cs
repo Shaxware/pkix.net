@@ -15,7 +15,7 @@ namespace PKI {
     public static class Crypt32 {
         #region CRL functions
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        internal static extern IntPtr CertCreateCRLContext(
+        internal static extern SafeCRLHandleContext CertCreateCRLContext(
             [In] UInt32 dwCertEncodingType,
             [In] Byte[] pbCrlEncoded,
             [In] UInt32 cbCrlEncoded

@@ -102,7 +102,9 @@
     <Compile Include="Cryptography\X509Certificates\X509CertificatePolicyConstraintsExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificatePolicyMappingsExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificatePropertyType.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CrlBuilder.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CRLDistributionPoint.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CrlType.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CrossCertificateDistributionPointsExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509EnrollmentPropertyInfo.cs" />
     <Compile Include="Cryptography\X509Certificates\X509NameConstraintsExtension.cs" />
@@ -117,7 +119,7 @@
     <Compile Include="Structs\SignatureOids.cs" />
     <Compile Include="Structs\X509CertExtensions.cs" />
     <Compile Include="Utils\CLRExtensions\PublicKeyExtensions.cs" />
-    <Compile Include="Utils\MessageSigner.cs" />
+    <Compile Include="Tools\MessageOperations\MessageSigner.cs" />
     <Compile Include="Utils\ServiceOperationResult.cs" />
     <Compile Include="Utils\IServiceOperationResult.cs" />
     <Compile Include="Utils\CLRExtensions\OidExtensions.cs" />
@@ -262,7 +264,7 @@
     <Compile Include="Utils\EnumFlags.cs" />
     <Compile Include="Utils\Networking.cs" />
     <Compile Include="Utils\CryptoRegistry.cs" />
-    <Compile Include="Utils\SignaturePadding.cs" />
+    <Compile Include="Tools\MessageOperations\SignaturePadding.cs" />
     <Compile Include="Utils\Wildcard.cs" />
     <Compile Include="Utils\WMI.cs" />
     <Compile Include="Utils\PSErrorSourceEnum.cs" />
@@ -303,6 +305,9 @@
     <Content Include="_ExternalReferences\Interop.CERTCLILib.dll" />
     <Content Include="_ExternalReferences\Interop.CERTENROLLLib.dll" />
     <Content Include="_ExternalReferences\SysadminsLV.Asn1Parser.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Win32\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,4 +1,4 @@
-﻿namespace PKI.Utils {
+﻿namespace SysadminsLV.PKI.Tools.MessageOperations {
     /// <summary>
     /// Represents supported digital signature schemes.
     /// </summary>

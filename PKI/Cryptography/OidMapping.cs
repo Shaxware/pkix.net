@@ -1,6 +1,6 @@
-﻿using PKI.Utils.CLRExtensions;
+﻿using System.Collections.Generic;
 using SysadminsLV.Asn1Parser;
-using System.Collections.Generic;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace System.Security.Cryptography {
     /// <summary>
@@ -77,7 +77,7 @@ namespace System.Security.Cryptography {
         public String Format(Boolean multiline) {
             return multiline
                 ? $"Issuer Domain={IssuerDomainOid.Format(false)}\r\nSubject Domain={SubjectDomainOid.Format(false)}"
-	            : $"Issuer Domain={IssuerDomainOid.Format(false)}, Subject Domain={SubjectDomainOid.Format(false)}";
+                : $"Issuer Domain={IssuerDomainOid.Format(false)}, Subject Domain={SubjectDomainOid.Format(false)}";
         }
     }
 }

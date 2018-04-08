@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using PKI.Exceptions;
-using PKI.ManagedAPI;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
@@ -146,9 +146,11 @@ namespace System.Security.Cryptography.X509Certificates {
             if (asn.Tag == (Byte)Asn1Type.UTCTime) { RevocationDate = Asn1Utils.DecodeUTCTime(asn.GetTagRawData()); }
             if (asn.Tag == (Byte)Asn1Type.Generalizedtime) { RevocationDate = Asn1Utils.DecodeGeneralizedTime(asn.GetTagRawData()); }
             if (asn.MoveNext()) {
-                X509Extension ext = Crypt32Managed.DecodeX509Extensions(asn.GetTagRawData())[X509CertExtensions.X509CRLReasonCode];
-                if (ext != null) {
-                    ReasonCode = ext.RawData[2];
+                var extensions = new X509ExtensionCollection();
+                extensions.Decode(asn.GetTagRawData());
+                X509Extension crlReason = extensions[X509CertExtensions.X509CRLReasonCode];
+                if (crlReason != null) {
+                    ReasonCode = crlReason.RawData[2];
                 }
             }
             RawData = rawData;
@@ -195,7 +197,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 X509ExtensionCollection exts = new X509ExtensionCollection();
                 X509Extension CRlReasonCode = new X509Extension("2.5.29.21", reasonEnum, false);
                 exts.Add(CRlReasonCode);
-                rawData.AddRange(Crypt32Managed.EncodeX509Extensions(exts));
+                rawData.AddRange(exts.Encode());
             }
             return Asn1Utils.Encode(rawData.ToArray(), 48);
         }

@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using PKI.Structs;
-using PKI.Utils;
+using SysadminsLV.PKI.Tools.MessageOperations;
 
 namespace PKI {
     static class nCrypt {

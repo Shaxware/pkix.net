@@ -6,10 +6,12 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI.Structs;
+using PKI.Utils;
+using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
-namespace PKI.Utils.CLRExtensions {
+namespace SysadminsLV.PKI.Utils.CLRExtensions {
     static class PublicKeyExtensions {
         // all magic numbers are for public keys only.
         const Int32 RSA_MAGIC        = 0x31415352;

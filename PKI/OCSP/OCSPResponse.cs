@@ -5,12 +5,13 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI.ManagedAPI;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography;
+using SysadminsLV.PKI.Tools.MessageOperations;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace PKI.OCSP {
     #region Oids
@@ -250,7 +251,8 @@ namespace PKI.OCSP {
             if (tbsResponseData.NextCurrentLevelOffset != 0) {
                 tbsResponseData.MoveNextCurrentLevel();
                 if (tbsResponseData.Tag == 161) {
-                    X509ExtensionCollection exts = Crypt32Managed.DecodeX509Extensions(tbsResponseData.GetPayload());
+                    X509ExtensionCollection exts = new X509ExtensionCollection();
+                    exts.Decode(tbsResponseData.GetPayload());
                     foreach (X509Extension item in exts) {
                         _listExtensions.Add(CryptographyUtils.ConvertExtension(item));
                         if (_listExtensions[_listExtensions.Count - 1].Oid.Value == X509CertExtensions.X509OcspNonce) {

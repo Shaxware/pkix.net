@@ -7,13 +7,12 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using PKI.Exceptions;
-using PKI.ManagedAPI;
 using PKI.Structs;
-using PKI.Utils;
-using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography;
+using SysadminsLV.PKI.Tools.MessageOperations;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace PKI.OCSP {
     /// <summary>
@@ -193,7 +192,7 @@ namespace PKI.OCSP {
             tbsRequest.AddRange(RequestList.Encode());
             if (Nonce) {
                 _listExtensions.Add(new X509NonceExtension());
-                Byte[] extensionsbytes = Asn1Utils.Encode(Crypt32Managed.EncodeX509Extensions(Extensions), 162);
+                Byte[] extensionsbytes = Asn1Utils.Encode(Extensions.Encode(), 162);
                 tbsRequest.AddRange(extensionsbytes);
                 NonceValue = _listExtensions[_listExtensions.Count - 1].Format(false).Trim();
             }

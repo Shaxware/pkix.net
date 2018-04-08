@@ -5,6 +5,7 @@ namespace PKI.Structs {
     /// Contains OIDs for most commonly used X.509 certificate and certificate revocation list
     /// extensions.
     /// </summary>
+    /// <remarks>Do not rely on this class until further notice. It is going to change at some point.</remarks>
     public static class X509CertExtensions {
         public const String X509CertificateExtensions           = "1.2.840.113549.1.9.14";
         public const String X509CertTemplateInfoV2              = "1.3.6.1.4.1.311.20.2";

@@ -3,25 +3,25 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
-namespace PKI.Utils.CLRExtensions {
-	/// <summary>
-	/// Contains CLR extensions to <see cref="BigInteger"/> class.
-	/// </summary>
-	public static class BigIntegerExtensions {
-		/// <summary>
-		/// Gets a byte array of the current instance of <see cref="BigInteger"/> object in a little-endian byte order.
-		/// </summary>
-		/// <param name="bigInteger">Current <see cref="BigInteger"/> object.</param>
-		/// <returns></returns>
-		public static Byte[] ToLittleEndianByteArray(this BigInteger bigInteger) {
-			return bigInteger.ToByteArray().Reverse().ToArray();
-		}
-		/// <summary>
-		/// Initializes a <see cref="BigInteger"/> object from a binary bit string.
-		/// </summary>
-		/// <param name="bigInteger">Current <see cref="BigInteger"/> object.</param>
-		/// <param name="bitString">Binary bit string.</param>
-		public static void FromBitString(this BigInteger bigInteger, String bitString) {
+namespace SysadminsLV.PKI.Utils.CLRExtensions {
+    /// <summary>
+    /// Contains CLR extensions for <see cref="BigInteger"/> class.
+    /// </summary>
+    public static class BigIntegerExtensions {
+        /// <summary>
+        /// Gets a byte array of the current instance of <see cref="BigInteger"/> object in a little-endian byte order.
+        /// </summary>
+        /// <param name="bigInteger">Current <see cref="BigInteger"/> object.</param>
+        /// <returns></returns>
+        public static Byte[] ToLittleEndianByteArray(this BigInteger bigInteger) {
+            return bigInteger.ToByteArray().Reverse().ToArray();
+        }
+        /// <summary>
+        /// Initializes a <see cref="BigInteger"/> object from a binary bit string.
+        /// </summary>
+        /// <param name="bigInteger">Current <see cref="BigInteger"/> object.</param>
+        /// <param name="bitString">Binary bit string.</param>
+        internal static void FromBitString(this BigInteger bigInteger, String bitString) {
             BigInteger res = 0;
             foreach (Char c in bitString) {
                 if (c != '0' && c != '1') { throw new ArgumentException("The bit string is invalid."); }
@@ -30,11 +30,11 @@ namespace PKI.Utils.CLRExtensions {
             }
             bigInteger = res;
         }
-		/// <summary>
-		/// Converts current value of the <see cref="BigInteger"/> class to a binary string.
-		/// </summary>
-		/// <param name="bigint">Current <see cref="BigInteger"/> object.</param>
-		/// <returns>Binary string.</returns>
+        /// <summary>
+        /// Converts current value of the <see cref="BigInteger"/> class to a binary string.
+        /// </summary>
+        /// <param name="bigint">Current <see cref="BigInteger"/> object.</param>
+        /// <returns>Binary string.</returns>
         public static string ToBinaryString(this BigInteger bigint) {
             var bytes = bigint.ToByteArray();
             var idx = bytes.Length - 1;
@@ -60,16 +60,16 @@ namespace PKI.Utils.CLRExtensions {
 
             return base2.ToString();
         }
-		/// <summary>
-		/// Returns the number of '1' or '0' bits in the current <see cref="BigInteger"/> object.
-		/// </summary>
-		/// <param name="bigInteger">Current <see cref="BigInteger"/> object.</param>
-		/// <param name="ones">
-		/// <strong>True</strong> if the count of '1' should be calculated. <strong>False</strong> if the count of
-		/// '0' should be calculated.
-		/// </param>
-		/// <returns>A number of '1' or '0' bits.</returns>
-		public static BigInteger GetEnabledBitCount(this BigInteger bigInteger, Boolean ones = true) {
+        /// <summary>
+        /// Returns the number of '1' or '0' bits in the current <see cref="BigInteger"/> object.
+        /// </summary>
+        /// <param name="bigInteger">Current <see cref="BigInteger"/> object.</param>
+        /// <param name="ones">
+        /// <strong>True</strong> if the count of '1' should be calculated. <strong>False</strong> if the count of
+        /// '0' should be calculated.
+        /// </param>
+        /// <returns>A number of '1' or '0' bits.</returns>
+        public static BigInteger GetEnabledBitCount(this BigInteger bigInteger, Boolean ones = true) {
             BigInteger count = 0;
             BigInteger internalValue = bigInteger;
             while (internalValue > 0) {

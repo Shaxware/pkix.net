@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
-using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace SysadminsLV.PKI.Cryptography {
     /// <summary>

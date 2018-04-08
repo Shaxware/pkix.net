@@ -11,6 +11,7 @@ using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace PKI.ManagedAPI {
     /// <summary>
@@ -22,6 +23,7 @@ namespace PKI.ManagedAPI {
                 return sr.ReadToEnd();
             }
         }
+
         #region converters
         /// <summary>
         /// Converts input string to a byte array. See <strong>Remarks</strong> for more details.
@@ -131,6 +133,7 @@ namespace PKI.ManagedAPI {
             throw new Win32Exception(Marshal.GetLastWin32Error());
         }
         #endregion
+
         #region PFX tools
         /// <summary>
         /// Attempts to decode the outer layer of a BLOB as a PFX packet
@@ -187,6 +190,7 @@ namespace PKI.ManagedAPI {
             throw new ArgumentNullException(nameof(rawData));
         }
         #endregion
+
         /// <summary>
         /// Decodes an ASN.1-encoded byte array that represents complete X509Extension object to an instance of
         /// <see cref="X509Extension"/> instance.
@@ -195,6 +199,7 @@ namespace PKI.ManagedAPI {
         /// <returns>Decoded <see cref="X509Extension"/> object.</returns>
         /// <exception cref="ArgumentNullException"><strong>rawData</strong> parameter is null reference.</exception>
         /// <exception cref="Asn1InvalidTagException">Byte array do not represent requested object.</exception>
+        [Obsolete("Use X509ExtensionExtensions.Decode static method instead.", true)]
         public static X509Extension DecodeX509Extension(Byte[] rawData) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             Asn1Reader asn = new Asn1Reader(rawData);
@@ -222,6 +227,7 @@ namespace PKI.ManagedAPI {
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="UninitializedObjectException"></exception>
+        [Obsolete("Use X509Extension.Encode extension method instead.", true)]
         public static Byte[] EncodeX509Extension(X509Extension extension) {
             if (extension == null) { throw new ArgumentNullException(nameof(extension)); }
             if (String.IsNullOrEmpty(extension.Oid.Value)) { throw new UninitializedObjectException(); }
@@ -239,16 +245,11 @@ namespace PKI.ManagedAPI {
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidDataException"></exception>
+        [Obsolete("Use X509ExtensionCollection.Decode extension method.", true)]
         public static X509ExtensionCollection DecodeX509Extensions(Byte[] rawData) {
-            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
-            Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
-            X509ExtensionCollection exts = new X509ExtensionCollection();
-            if (!asn.MoveNext() || asn.NextOffset == 0) { return exts; }
-            do {
-                exts.Add(DecodeX509Extension(asn.GetTagRawData()));
-            } while (asn.MoveNextCurrentLevel());
-            return exts;
+            var extensions = new X509ExtensionCollection();
+            extensions.Decode(rawData);
+            return extensions;
         }
         /// <summary>
         /// 
@@ -257,14 +258,9 @@ namespace PKI.ManagedAPI {
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         /// <returns></returns>
+        [Obsolete("Use X509ExtensionCollection.Encode extension method.", true)]
         public static Byte[] EncodeX509Extensions(X509ExtensionCollection extensions) {
-            if (extensions == null) { throw new ArgumentNullException(nameof(extensions)); }
-            if (extensions.Count < 1) { throw new ArgumentException("Sequence is empty."); }
-            List<Byte> rawData = new List<Byte>();
-            foreach (X509Extension e in extensions) {
-                rawData.AddRange(EncodeX509Extension(e));
-            }
-            return Asn1Utils.Encode(rawData.ToArray(), 48);
+            return extensions.Encode();
         }
     }
 }
