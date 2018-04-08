@@ -7,7 +7,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI.Structs;
 using PKI.Utils;
-using PKI.Utils.CLRExtensions;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
