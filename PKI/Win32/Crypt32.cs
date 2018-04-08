@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.Win32.SafeHandles;
 using PKI.Structs;
 
-namespace PKI {
+namespace SysadminsLV.PKI.Win32 {
     /// <summary>
     /// Contains only unmanaged function p/invoke definitions which are defined in <strong>Crypt32.dll</strong> library.
     /// </summary>

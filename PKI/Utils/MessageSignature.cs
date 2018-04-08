@@ -9,6 +9,7 @@ using Microsoft.Win32.SafeHandles;
 using PKI.Exceptions;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Win32;
 
 namespace PKI.Utils {
     #region OIDs

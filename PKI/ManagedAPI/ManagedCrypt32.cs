@@ -12,6 +12,7 @@ using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Utils.CLRExtensions;
+using SysadminsLV.PKI.Win32;
 
 namespace PKI.ManagedAPI {
     /// <summary>

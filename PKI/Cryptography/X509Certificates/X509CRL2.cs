@@ -10,6 +10,7 @@ using SysadminsLV.PKI.Cryptography;
 using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Tools.MessageOperations;
 using SysadminsLV.PKI.Utils.CLRExtensions;
+using SysadminsLV.PKI.Win32;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>

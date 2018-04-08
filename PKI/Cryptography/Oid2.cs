@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using PKI;
 using PKI.Structs;
 using PKI.Utils;
+using SysadminsLV.PKI.Win32;
 
 namespace System.Security.Cryptography {
     /// <summary>

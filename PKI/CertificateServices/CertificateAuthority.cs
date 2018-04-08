@@ -13,12 +13,13 @@ using PKI.Security;
 using PKI.Security.AccessControl;
 using PKI.Structs;
 using PKI.Utils;
+using SysadminsLV.PKI.Win32;
 
 namespace PKI.CertificateServices {
-	/// <summary>
-	/// The class represents Certification Authority (<strong>CA</strong>) object and contains related properties and methods.
-	/// </summary>
-	public class CertificateAuthority {
+    /// <summary>
+    /// The class represents Certification Authority (<strong>CA</strong>) object and contains related properties and methods.
+    /// </summary>
+    public class CertificateAuthority {
 		CCertAdmin CertAdmin = new CCertAdmin();
 		readonly CCertConfig _certConfig = new CCertConfig();
 		Boolean foundInDs;

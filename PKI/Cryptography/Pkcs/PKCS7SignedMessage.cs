@@ -8,10 +8,10 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509CertificateRequests;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI;
 using PKI.ManagedAPI;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Win32;
 
 namespace SysadminsLV.PKI.Cryptography.Pkcs {
     /// <summary>

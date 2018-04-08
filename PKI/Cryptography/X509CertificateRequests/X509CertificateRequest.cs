@@ -1,11 +1,11 @@
 ﻿using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI;
 using PKI.ManagedAPI;
 using PKI.Structs;
 using SysadminsLV.PKI.Cryptography.X509CertificateRequests;
 using SysadminsLV.PKI.Utils.CLRExtensions;
+using SysadminsLV.PKI.Win32;
 
 namespace System.Security.Cryptography.X509CertificateRequests {
     /// <summary>

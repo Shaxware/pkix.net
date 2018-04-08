@@ -1,6 +1,6 @@
 ﻿using System.Security.Permissions;
 using Microsoft.Win32.SafeHandles;
-using PKI;
+using SysadminsLV.PKI.Win32;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>

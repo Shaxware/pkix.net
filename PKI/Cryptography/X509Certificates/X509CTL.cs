@@ -9,6 +9,7 @@ using PKI.ManagedAPI;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Win32;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>

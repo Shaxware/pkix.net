@@ -9,6 +9,7 @@ using CERTENROLLLib;
 using Microsoft.Win32.SafeHandles;
 using PKI.Structs;
 using PKI.Utils;
+using SysadminsLV.PKI.Win32;
 
 namespace PKI.ServiceProviders {
     /// <summary>
