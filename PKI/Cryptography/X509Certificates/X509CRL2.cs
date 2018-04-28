@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Numerics;
 using System.Text;
-using PKI;
 using PKI.Exceptions;
 using PKI.ManagedAPI;
 using PKI.Structs;
@@ -497,17 +496,13 @@ namespace System.Security.Cryptography.X509Certificates {
                 Dispose();
             }
         }
-        /// <summary>
-        /// Disposes unmanaged resources held by current object. This method do not dispose managed resources.
-        /// </summary>
-
         #region IDisposable
         void Dispose(Boolean disposing) {
             if (disposing) {
                 Handle.Dispose();
             }
         }
-        /// <inheritdoc />
+        /// <inheritdoc cref="IDisposable.Dispose"/>
         public void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);

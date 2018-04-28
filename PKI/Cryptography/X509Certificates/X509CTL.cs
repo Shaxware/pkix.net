@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using PKI;
 using PKI.ManagedAPI;
 using PKI.Structs;
 using PKI.Utils;
@@ -307,7 +306,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 Handle.Dispose();
             }
         }
-        /// <inheritdoc />
+        /// <inheritdoc cref="IDisposable.Dispose"/>
         public void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);

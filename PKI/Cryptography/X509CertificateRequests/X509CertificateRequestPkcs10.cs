@@ -13,7 +13,14 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
     /// Represents a managed PKCS #10 request.
     /// </summary>
     public class X509CertificateRequestPkcs10 {
-
+        /// <summary>
+        /// Initializes a new empty instance of <strong>X509CertificateRequestPkcs10</strong> class.
+        /// </summary>
+        /// <remarks>
+        /// This constructor is useful for inheritors when PKCS#10 is not directly available to inheritors and they
+        /// need to perform extra actions to get the right data. Once get, use <see cref="Decode"/> protected method
+        /// to populate the data.
+        /// </remarks>
         protected X509CertificateRequestPkcs10() { }
         /// <summary>
         /// Initializes a new instance of <strong>X509CertificateRequestPkcs10</strong> class from ASN.1-encoded
@@ -74,7 +81,12 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
         /// Gets the raw data of a certificate request.
         /// </summary>
         public Byte[] RawData { get; private set; }
-
+        /// <summary>
+        /// Populates current object with data from ASN.1-encoded byte array that represents encoded PKCS#10
+        /// certificate request.
+        /// </summary>
+        /// <param name="rawData">ASN.1-encoded byte array.</param>
+        /// <exception cref="ArgumentNullException"><strong>rawData</strong> parameter is null.</exception>
         protected void Decode(Byte[] rawData) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             var blob = new SignedContentBlob(rawData, ContentBlobType.SignedBlob);

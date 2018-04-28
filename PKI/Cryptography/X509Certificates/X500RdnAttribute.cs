@@ -83,7 +83,7 @@ namespace System.Security.Cryptography.X509Certificates {
             encodingTag = tag;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="AsnEncodedData.Format(Boolean)"/>
         public override String Format(Boolean multiLine) {
             if (RawData == null || RawData.Length == 0) {
                 return base.Format(multiLine);

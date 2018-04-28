@@ -7,7 +7,15 @@ using System.Text;
 using PKI.Structs;
 
 namespace PKI.Utils {
+    /// <summary>
+    /// Contains helper methods for cryptographic objects.
+    /// </summary>
     public static class CryptographyUtils {
+        /// <summary>
+        /// Converts default instance of <see cref="X509Extension"/> class to a specific extension implementation object.
+        /// </summary>
+        /// <param name="extension">Default instance of <see cref="X509Extension"/> class.</param>
+        /// <returns>Explicit extension implementation if defined, otherwise, the same object is returned.</returns>
         public static X509Extension ConvertExtension(X509Extension extension) {
             AsnEncodedData asndata = new AsnEncodedData(extension.Oid, extension.RawData);
             switch (extension.Oid.Value) {
@@ -63,6 +71,11 @@ namespace PKI.Utils {
                     return extension;
             }
         }
+        /// <summary>
+        /// Converts a default instance of <see cref="X509Attribute"/> class to a specific atrribute implementation object. 
+        /// </summary>
+        /// <param name="attribute">Default instance of <see cref="X509Attribute"/> class.</param>
+        /// <returns>Explicit attribute implementation if defined, otherwise, the same object is returned.</returns>
         public static X509Attribute ConvertAttribute(X509Attribute attribute) {
             // reserved for future use
             switch (attribute.Oid.Value) {
@@ -70,26 +83,71 @@ namespace PKI.Utils {
                     return attribute;
             }
         }
+        /// <summary>
+        /// Tests whether the running operating system supports Cryptography Next Generation (CNG).
+        /// </summary>
+        /// <returns>
+        /// <strong>True</strong> if running operating system supports Cryptography Next Generation (CNG),
+        /// otherwise <strong>False</strong>.
+        /// </returns>
+        /// <remarks>
+        /// Windows operating systems starting with Windows Vista/Windows Server 2008 always return <strong>True</strong>.
+        /// </remarks>
         public static Boolean TestCNGCompat() {
             return Environment.OSVersion.Version.Major >= 6;
         }
+        /// <summary>
+        /// Tests whether running operating system is compatible with OLE automation.
+        /// </summary>
+        /// <returns>
+        /// <strong>True</strong> if running operating system is compatible with OLE automation,
+        /// otherwise <strong>False</strong>.
+        /// </returns>
+        /// <remarks>
+        /// Windows operating systems starting with Windows 8.1/Windows Server 2012 R2 return <strong>True</strong>.
+        /// </remarks>
         public static Boolean TestOleCompat() {
             if (Environment.OSVersion.Version.Major < 6) { return false; }
             return Environment.OSVersion.Version.Major != 6 || Environment.OSVersion.Version.Minor >= 3;
         }
+        /// <summary>
+        /// Tests whether running operating system is compatible with ADCS Web Services.
+        /// </summary>
+        /// <returns>
+        /// <strong>True</strong> if running operating system supports ADCS Web Services, otherwise <strong>False</strong>.
+        /// </returns>
+        /// <remarks>
+        /// Windows operating systems starting with Windows7/Windows Server 2008 R2 return <strong>True</strong>.
+        /// </remarks>
         public static Boolean TestCepCompat() {
             if (Environment.OSVersion.Version.Major < 6) { return false; }
             return Environment.OSVersion.Version.Major != 6 || Environment.OSVersion.Version.Minor != 0;
         }
-        public static void ReleaseCom(Object ComObject) {
+        /// <summary>
+        /// Releases all references to a Runtime Callable Wrapper (RCW) by setting its reference count to 0.
+        /// </summary>
+        /// <param name="ComObject">The RCW to be released.</param>
+        public static void ReleaseCom(params Object[] ComObject) {
             Marshal.FinalReleaseComObject(ComObject);
         }
+        /// <summary>
+        /// Converts unicode DER string to ASN.1-encoded byte array.
+        /// </summary>
+        /// <param name="str">Unicode string.</param>
+        /// <returns>ASN.1-encoded byte array.</returns>
+        /// <remarks>This method is necessary for ADCS interoperability.</remarks>
         public static Byte[] DecodeDerString(String str) {
             if (String.IsNullOrEmpty(str)) {
                 throw new ArgumentNullException(nameof(str));
             }
             return Encoding.Unicode.GetBytes(str);
         }
+        /// <summary>
+        /// Converts ASN.1-encoded byte array to unicode string.
+        /// </summary>
+        /// <param name="rawData">ASN.1-encoded byte array.</param>
+        /// <returns>Unicode string.</returns>
+        /// <remarks>This method is necessary for ADCS interoperability.</remarks>
         public static String EncodeDerString(Byte[] rawData) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             if (rawData.Length == 0) { throw new ArgumentException("The vlue is empty"); }
@@ -107,7 +165,7 @@ namespace PKI.Utils {
             }
             return sb.ToString();
         }
-        public static IEnumerable<X509Extension> DecodeX509ExtensionCollection2(Wincrypt.CERT_EXTENSIONS extstruct) {
+        internal static IEnumerable<X509Extension> DecodeX509ExtensionCollection2(Wincrypt.CERT_EXTENSIONS extstruct) {
             return decode_extstruct(extstruct).ToArray();
         }
 
