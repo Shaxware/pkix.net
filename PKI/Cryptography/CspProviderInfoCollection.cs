@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using CERTENROLLLib;
-using PKI.Base;
 using PKI.Utils;
 
 namespace SysadminsLV.PKI.Cryptography {

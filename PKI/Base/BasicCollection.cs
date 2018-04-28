@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using PKI.Utils;
 
-namespace PKI.Base {
+namespace SysadminsLV.PKI {
     /// <summary>
     /// Represents a strongly-typed collection of <see cref="T"/> objects.
     /// </summary>

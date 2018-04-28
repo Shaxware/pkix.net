@@ -1,5 +1,5 @@
 ﻿using System;
-using PKI.Base;
+using SysadminsLV.PKI;
 
 namespace PKI.ServiceProviders {
     /// <summary>

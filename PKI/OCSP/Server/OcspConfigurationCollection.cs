@@ -1,4 +1,4 @@
-﻿using PKI.Base;
+﻿using SysadminsLV.PKI;
 
 namespace PKI.OCSP.Server {
     /// <summary>

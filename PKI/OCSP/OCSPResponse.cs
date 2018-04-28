@@ -330,7 +330,7 @@ namespace PKI.OCSP {
             }
         }
         void verifyResponses() {
-            if (Responses.Cast<OCSPSingleResponse>()
+            if (Responses
                 .Any(item => item.ThisUpdate > DateTime.Now || (item.NextUpdate != null && item.NextUpdate < DateTime.Now))) {
                 ResponseErrorInformation += (Int32)OCSPResponseComplianceError.UpdateNotTimeValid;
             }

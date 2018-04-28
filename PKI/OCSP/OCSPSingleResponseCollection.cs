@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using PKI.Base;
+using SysadminsLV.PKI;
 
 namespace PKI.OCSP {
     /// <summary>

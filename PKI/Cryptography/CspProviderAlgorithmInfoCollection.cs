@@ -1,6 +1,4 @@
-﻿using PKI.Base;
-
-namespace SysadminsLV.PKI.Cryptography {
+﻿namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// Represents a collection of <see cref="CspProviderAlgorithmInfo"/> objects.
     /// </summary>

@@ -1,5 +1,5 @@
-﻿using PKI.Base;
-using PKI.Utils;
+﻿using PKI.Utils;
+using SysadminsLV.PKI;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
