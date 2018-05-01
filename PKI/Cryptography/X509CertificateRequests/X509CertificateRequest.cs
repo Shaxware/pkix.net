@@ -19,7 +19,7 @@ namespace System.Security.Cryptography.X509CertificateRequests {
         /// </summary>
         /// <param name="rawData">A byte array containing data from a certificate request.</param>
         public X509CertificateRequest(Byte[] rawData) {
-            FullRequestRawData = rawData;
+            RawData = rawData;
             m_initialize();
         }
         /// <summary>
@@ -44,21 +44,17 @@ namespace System.Security.Cryptography.X509CertificateRequests {
         /// Gets external PKCS7/CMC envelope. External envelope is aplicable only for PKCS7/CMC requests.
         /// </summary>
         public X509CertificateRequestCmc ExternalData { get; private set; }
-        /// <summary>
-        /// Gets the raw data of a certificate request.
-        /// </summary>
-        public Byte[] FullRequestRawData { get; private set; }
 
         void getBinaryData(String path) {
-            FullRequestRawData = Crypt32Managed.CryptFileToBinary(path);
+            RawData = Crypt32Managed.CryptFileToBinary(path);
         }
         void m_initialize() {
             // at this point RawData is not null
             try {
-                Decode(FullRequestRawData);
+                Decode(RawData);
                 RequestType = X509CertificateRequestType.PKCS10;
             } catch {
-                X509CertificateRequestCmc cmc = new X509CertificateRequestCmc(FullRequestRawData);
+                X509CertificateRequestCmc cmc = new X509CertificateRequestCmc(RawData);
                 Version = cmc.Content.Version;
                 SubjectName = cmc.Content.SubjectName;
                 PublicKey = cmc.Content.PublicKey;

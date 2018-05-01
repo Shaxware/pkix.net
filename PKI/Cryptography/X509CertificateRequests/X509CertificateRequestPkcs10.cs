@@ -80,7 +80,7 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
         /// <summary>
         /// Gets the raw data of a certificate request.
         /// </summary>
-        public Byte[] RawData { get; private set; }
+        public Byte[] RawData { get; protected set; }
         /// <summary>
         /// Populates current object with data from ASN.1-encoded byte array that represents encoded PKCS#10
         /// certificate request.
