@@ -61,19 +61,19 @@ namespace SysadminsLV.PKI.Cryptography {
         public Asn1BitString Signature { get; set; }
 
         internal Byte[] GetRawSignature() {
-            if (SignatureAlgorithm.AlgorithmId.FriendlyName.ToUpper().Contains("RSA")) {
-                return Signature.Value;
+            if (SignatureAlgorithm.AlgorithmId.FriendlyName.ToUpper().Contains("DSA")) {
+                Asn1Reader asn = new Asn1Reader(Signature.Value);
+                asn.MoveNext();
+                List<Byte> r = asn.GetPayload().ToList();
+                if (r[0] == 0) { r.RemoveAt(0); }
+                asn.MoveNext();
+                List<Byte> s = asn.GetPayload().ToList();
+                if (s[0] == 0) { s.RemoveAt(0); }
+                var signature = new List<Byte>(r);
+                signature.AddRange(s);
+                return signature.ToArray();
             }
-            Asn1Reader asn = new Asn1Reader(Signature.Value);
-            asn.MoveNext();
-            List<Byte> r = asn.GetPayload().ToList();
-            if (r[0] == 0) { r.RemoveAt(0); }
-            asn.MoveNext();
-            List<Byte> s = asn.GetPayload().ToList();
-            if (s[0] == 0) { s.RemoveAt(0); }
-            var signature = new List<Byte>(r);
-            signature.AddRange(s);
-            return signature.ToArray();
+            return Signature.Value;
         }
 
         void m_decode(Byte[] rawData) {

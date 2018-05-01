@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI.ManagedAPI;
 using PKI.Structs;
+using SysadminsLV.PKI.Cryptography.Pkcs;
 using SysadminsLV.PKI.Cryptography.X509CertificateRequests;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 using SysadminsLV.PKI.Win32;
@@ -56,8 +57,7 @@ namespace System.Security.Cryptography.X509CertificateRequests {
             try {
                 Decode(FullRequestRawData);
                 RequestType = X509CertificateRequestType.PKCS10;
-            }
-            catch {
+            } catch {
                 X509CertificateRequestCmc cmc = new X509CertificateRequestCmc(FullRequestRawData);
                 Version = cmc.Content.Version;
                 SubjectName = cmc.Content.SubjectName;
@@ -98,8 +98,8 @@ namespace System.Security.Cryptography.X509CertificateRequests {
         /// <remarks>
         /// If the certificate request type is <strong>PKCS#7</strong>, this method returns textual
         /// representation only for embedded <strong>PKCS#10</strong> certificate request. For full
-        /// PKCS#7 dump use the <see cref="PKCS7SignedMessage.ToString()">ToString</see> method of the
-        /// <see cref="PKCS7SignedMessage"/> class.
+        /// PKCS#7 dump use the <see cref="SignedPkcs7{T}.ToString()">ToString</see> method of the
+        /// <see cref="SignedPkcs7{T}"/> class.
         /// </remarks>
         public override String ToString() {
             StringBuilder SB = new StringBuilder();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -25,7 +26,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
     /// </remarks>
     public class MessageSigner : IDisposable {
         const String MSFT_KSP_NAME = "Microsoft Software Key Storage Provider";
-        Boolean disposed, isCng;
+        Boolean disposed, isCng, nullSigned;
         SafeNCryptKeyHandle phPrivKey = new SafeNCryptKeyHandle();
         SafeNCryptKeyHandle phPubKey = new SafeNCryptKeyHandle();
         KeyType keyType;
@@ -168,23 +169,45 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         void mapSignatureAlgorithmToHashAlgorithm(String signatureOid, Asn1Reader asn) {
             switch (signatureOid) {
                 // md5
+                case AlgorithmOids.MD5:
+                    nullSigned = true;
+                    HashingAlgorithm = new Oid2(signatureOid, false);
+                    break;
                 case AlgorithmOids.MD5_RSA:
                     HashingAlgorithm = new Oid2(AlgorithmOids.MD5, false);
                     break;
                 // sha1
+                case AlgorithmOids.SHA1:
+                    nullSigned = true;
+                    HashingAlgorithm = new Oid2(signatureOid, false);
+                    break;
                 case AlgorithmOids.SHA1_ECDSA:
                 case AlgorithmOids.SHA1_RSA:
                 case AlgorithmOids.SHA1_DSA:
                     HashingAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
                     break;
                 // sha256
+                case AlgorithmOids.SHA256:
+                    nullSigned = true;
+                    HashingAlgorithm = new Oid2(signatureOid, false);
+                    break;
                 case AlgorithmOids.SHA256_ECDSA:
                 case AlgorithmOids.SHA256_RSA:
                     HashingAlgorithm = new Oid2(AlgorithmOids.SHA256, false);
                     break;
+                // sha384
+                case AlgorithmOids.SHA384:
+                    nullSigned = true;
+                    HashingAlgorithm = new Oid2(signatureOid, false);
+                    break;
                 case AlgorithmOids.SHA384_ECDSA:
                 case AlgorithmOids.SHA384_RSA:
                     HashingAlgorithm = new Oid2(AlgorithmOids.SHA384, false);
+                    break;
+                // sha512
+                case AlgorithmOids.SHA512:
+                    nullSigned = true;
+                    HashingAlgorithm = new Oid2(signatureOid, false);
                     break;
                 case AlgorithmOids.SHA512_ECDSA:
                 case AlgorithmOids.SHA512_RSA:
@@ -459,6 +482,11 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         #endregion
 
         #region signature validation
+        Boolean verifyNullSigned(Byte[] hash, Byte[] signature) {
+            if (hash.Length != signature.Length) { return false; }
+            // performs exact binary comparison
+            return !hash.Where((t, index) => t != signature[index]).Any();
+        }
         Boolean verifyHashEcDsa(Byte[] hash, Byte[] signature) {
             Int32 hresult = nCrypt.NCryptVerifySignature(phPubKey, IntPtr.Zero, hash, hash.Length, signature,
                 signature.Length, 0);
@@ -557,6 +585,10 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         public Boolean VerifyHash(Byte[] hash, Byte[] signature) {
             if (hash == null) { throw new ArgumentNullException(nameof(hash)); }
             if (signature == null) { throw new ArgumentNullException(nameof(signature)); }
+
+            if (nullSigned) {
+                return verifyNullSigned(hash, signature);
+            }
             switch (keyType) {
                 case KeyType.EcDsa:
                     return verifyHashEcDsa(hash, signature);
