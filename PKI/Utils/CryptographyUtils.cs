@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -128,7 +129,10 @@ namespace PKI.Utils {
         /// </summary>
         /// <param name="ComObject">The RCW to be released.</param>
         public static void ReleaseCom(params Object[] ComObject) {
-            Marshal.FinalReleaseComObject(ComObject);
+            if (ComObject == null) { return; }
+            foreach (Object rcw in ComObject.Where(x => x != null)) {
+                Marshal.FinalReleaseComObject(rcw);
+            }
         }
         /// <summary>
         /// Converts unicode DER string to ASN.1-encoded byte array.
