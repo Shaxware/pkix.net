@@ -74,5 +74,27 @@ namespace PKI.Structs {
         public const Int32 KRADispNotloaded = 0x00000004; // The certificate is not loaded
         public const Int32 KRADispInvalid   = 0x00000005; // The certificate is invalid
         #endregion
+
+        #region ICertView
+        public const Int32 CVRC_COLUMN_SCHEMA = 0;
+        public const Int32 CVRC_COLUMN_RESULT = 1;
+        public const Int32 CVRC_COLUMN_VALUE  = 2;
+        public const Int32 CVRC_COLUMN_MASK   = 0xfff;
+
+        public const Int32 CVR_SORT_NONE    = 0;
+        public const Int32 CVR_SORT_ASCEND  = 1;
+        public const Int32 CVR_SORT_DESCEND = 2;
+
+        public const Int32 CV_OUT_BASE64HEADER        = 0x0;
+        public const Int32 CV_OUT_BASE64              = 0x1;
+        public const Int32 CV_OUT_BINARY              = 0x2;
+        public const Int32 CV_OUT_BASE64REQUESTHEADER = 0x3;
+        public const Int32 CV_OUT_HEX                 = 0x4;
+        public const Int32 CV_OUT_HEXASCII            = 0x5;
+        public const Int32 CV_OUT_BASE64X509CRLHEADER = 0x9;
+        public const Int32 CV_OUT_HEXADDR             = 0xA;
+        public const Int32 CV_OUT_HEXASCIIADDR        = 0xB;
+        public const Int32 CV_OUT_HEXRAW              = 0xC;
+        #endregion
     }
 }
