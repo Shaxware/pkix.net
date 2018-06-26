@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Win32;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// <summary>
@@ -15,10 +14,6 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// Gets or sets registry value name of the setting;
         /// </summary>
         public String ValueName { get; set; }
-        /// <summary>
-        /// Gets or sets the registry value type.
-        /// </summary>
-        public RegistryValueKind ValueType { get; set; }
         /// <summary>
         /// Gets or sets value associated with the current setting. When reading from ADCS configuration,
         /// <see cref="AdcsConfigurationEntry"/> object will populate this member with value. Implementers

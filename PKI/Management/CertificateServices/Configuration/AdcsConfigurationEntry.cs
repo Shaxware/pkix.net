@@ -10,12 +10,13 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// grouped from a set of single 
     /// </summary>
     abstract class AdcsConfigurationEntry {
-        readonly String _configString;
-        readonly String _name;
+        readonly String _computer;
+        readonly CryptoRegistry _configProvider;
 
         protected AdcsConfigurationEntry(CertificateAuthority certificateAuthority) {
-            _configString = certificateAuthority.ConfigString;
-            _name = certificateAuthority.Name;
+            _computer = certificateAuthority.ComputerName;
+            String name = certificateAuthority.Name;
+            _configProvider = new CryptoRegistry(certificateAuthority.ComputerName, name);
             DisplayName = certificateAuthority.DisplayName;
             ComputerName = certificateAuthority.ComputerName;
         }
@@ -35,26 +36,22 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         public Boolean IsModified { get; protected set; }
 
         void readRemoteRegistry(AdcsInternalConfigPath entry) {
-            String node = getRawNode(entry.NodePath);
-            entry.Value = CryptoRegistry.GetRReg(entry.ValueName, _name, ComputerName, node);
+            entry.Value = _configProvider.GetRemoteRegistryValue(entry.NodePath, entry.ValueName);
         }
         void readRpcDcom(AdcsInternalConfigPath entry) {
-            entry.Value = CryptoRegistry.GetRegFallback(_configString, entry.NodePath, entry.ValueName);
+            entry.Value = _configProvider.GetRpcDcomValue(entry.NodePath, entry.ValueName);
         }
         void writeRemoteRegistry(AdcsInternalConfigPath entry) {
-
+            _configProvider.SetRemoteRegistryValue(entry);
         }
         void writeRpcDcom(AdcsInternalConfigPath entry) {
-
+            _configProvider.SetRpcDcomValue(entry);
         }
         void deleteRemoteRegistry(AdcsInternalConfigPath entry) {
 
         }
         void deleteRpcDcom(AdcsInternalConfigPath entry) {
 
-        }
-        static String getRawNode(String relativeNode) {
-            return @"System\CurrentControlSet\Services\CertSvc\Configuration\" + relativeNode;
         }
 
         /// <summary>
@@ -76,17 +73,21 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// be thrown.
         /// </remarks>
         public virtual void ReadConfig() {
-            if (CryptoRegistry.Ping(ComputerName)) {
-
-            } else if (CertificateAuthority.Ping(ComputerName)) {
-
+            if (_configProvider.PingRemoteRegistry()) {
+                foreach (AdcsInternalConfigPath entry in RegEntries) {
+                    readRemoteRegistry(entry);
+                }
+            } else if (_configProvider.PingRpcDcom()) {
+                foreach (AdcsInternalConfigPath entry in RegEntries) {
+                    readRpcDcom(entry);
+                }
             } else {
                 throw new ServerUnavailableException(DisplayName);
             }
-            
         }
         /// <summary>
-        /// Saves current configuration back to 
+        /// Saves current configuration back to CA configuration. This method is based on registry configuration.
+        /// For custom configurations implementers must override this method.
         /// </summary>
         /// <param name="restartRequired">
         /// Indiciates whether Certification Authority service restart is required when at least one property is
@@ -102,23 +103,34 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// be thrown.
         /// </remarks>
         public virtual Boolean SaveChanges(Boolean restartRequired) {
-            if (CryptoRegistry.Ping(ComputerName)) {
-
-            } else if (CertificateAuthority.Ping(ComputerName)) {
-
+            if (!IsModified) { return false; }
+            if (_configProvider.PingRemoteRegistry()) {
+                foreach (AdcsInternalConfigPath entry in RegEntries) {
+                    readRemoteRegistry(entry);
+                }
+            } else if (_configProvider.PingRpcDcom()) {
+                foreach (AdcsInternalConfigPath entry in RegEntries) {
+                    readRpcDcom(entry);
+                }
             } else {
                 throw new ServerUnavailableException(DisplayName);
             }
-            return false;
+
+            if (restartRequired) {
+                CertificateAuthority.Restart(_computer);
+            }
+            return true;
         }
 
         /// <summary>
-        /// 
+        /// Deletes specified configuration entry from CA server. This method is not implemented and reserved for
+        /// future use.
         /// </summary>
         /// <param name="restartRequired">
         /// Indiciates whether Certification Authority service restart is required when at least one property is
         /// successfully commited to CA registry.
         /// </param>
+        /// <exception cref="NotImplementedException">The method is not implemented.</exception>
         /// <remarks>
         /// This method attempts to write registry by using remote registry. If remote registry fails, ADCS DCOM
         /// registry access is attempted. If both methods fails, a <see cref="ServerUnavailableException"/> will
@@ -126,9 +138,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// </remarks>
         public virtual void DeleteConfig(Boolean restartRequired) {
             if (CryptoRegistry.Ping(ComputerName)) {
-
+                throw new NotImplementedException();
             } else if (CertificateAuthority.Ping(ComputerName)) {
-
+                throw new NotImplementedException();
             } else {
                 throw new ServerUnavailableException(DisplayName);
             }
