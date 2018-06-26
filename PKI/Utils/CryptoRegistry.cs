@@ -25,7 +25,7 @@ namespace PKI.Utils {
         public CryptoRegistry(String computerName, String caSanitizedName) {
             _computer = computerName;
             _configString = $@"{_computer}\{caSanitizedName}";
-            _node = $@"System\CurrentControlSet\Services\CertSvc\Configuration\{_configString}\";
+            _node = $@"System\CurrentControlSet\Services\CertSvc\Configuration\{caSanitizedName}\";
         }
         public Boolean PingRemoteRegistry() {
             try {
