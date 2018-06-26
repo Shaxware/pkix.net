@@ -9,11 +9,22 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// Represents a Certification Authority configuration composite setting. Some settings can be logically
     /// grouped from a set of single 
     /// </summary>
-    abstract class AdcsConfigurationEntry {
+    public abstract class AdcsConfigurationEntry {
         readonly String _computer;
         readonly CryptoRegistry _configProvider;
-
+        /// <summary>
+        /// Initializes a new instance of <strong>AdcsConfigurationEntry</strong> from Certification Authority object.
+        /// </summary>
+        /// <param name="certificateAuthority">
+        /// Certificate Authority object associated with configuration object.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>certificateAuthority</strong> parameter is null.
+        /// </exception>
         protected AdcsConfigurationEntry(CertificateAuthority certificateAuthority) {
+            if (certificateAuthority == null) {
+                throw new ArgumentNullException(nameof(certificateAuthority));
+            }
             _computer = certificateAuthority.ComputerName;
             String name = certificateAuthority.Name;
             _configProvider = new CryptoRegistry(certificateAuthority.ComputerName, name);
@@ -58,7 +69,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// Gets a list of registry settings associated with a current composite configuration entry.
         /// Inheritors are responsible for list maintenance.
         /// </summary>
-        protected ISet<AdcsInternalConfigPath> RegEntries { get; } = new HashSet<AdcsInternalConfigPath>();
+        protected IList<AdcsInternalConfigPath> RegEntries { get; } = new List<AdcsInternalConfigPath>();
 
         /// <summary>
         /// Reads config from CA registry based on requested registry entries in <see cref="RegEntries"/> collection.
@@ -72,7 +83,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// registry access is attempted. If both methods fails, a <see cref="ServerUnavailableException"/> will
         /// be thrown.
         /// </remarks>
-        public virtual void ReadConfig() {
+        protected virtual void ReadConfig() {
             if (_configProvider.PingRemoteRegistry()) {
                 foreach (AdcsInternalConfigPath entry in RegEntries) {
                     readRemoteRegistry(entry);
@@ -106,16 +117,17 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
             if (!IsModified) { return false; }
             if (_configProvider.PingRemoteRegistry()) {
                 foreach (AdcsInternalConfigPath entry in RegEntries) {
-                    readRemoteRegistry(entry);
+                    writeRemoteRegistry(entry);
                 }
             } else if (_configProvider.PingRpcDcom()) {
                 foreach (AdcsInternalConfigPath entry in RegEntries) {
-                    readRpcDcom(entry);
+                    writeRpcDcom(entry);
                 }
             } else {
                 throw new ServerUnavailableException(DisplayName);
             }
 
+            IsModified = false;
             if (restartRequired) {
                 CertificateAuthority.Restart(_computer);
             }

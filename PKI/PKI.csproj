@@ -77,6 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Management\CertificateServices\Configuration\AdcsConfigurationEntry.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\AdcsDcomSecurityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AdcsInternalConfigPath.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
