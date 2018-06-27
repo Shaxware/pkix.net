@@ -8,6 +8,14 @@
         /// </summary>
         Invalid,
         /// <summary>
+        /// Period is measured in seconds.
+        /// </summary>
+        Seconds,
+        /// <summary>
+        /// Period is measured in minutes.
+        /// </summary>
+        Minutes,
+        /// <summary>
         /// Period is measured in hours.
         /// </summary>
         Hours,
