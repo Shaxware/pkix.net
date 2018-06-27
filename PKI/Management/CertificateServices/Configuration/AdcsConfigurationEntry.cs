@@ -93,6 +93,8 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
                     readRpcDcom(entry);
                 }
             } else {
+                var e = new ServerUnavailableException(DisplayName);
+                e.Data.Add(nameof(e.Source), OfflineSource.DCOM | OfflineSource.Registry);
                 throw new ServerUnavailableException(DisplayName);
             }
         }
