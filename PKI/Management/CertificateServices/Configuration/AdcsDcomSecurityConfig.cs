@@ -15,7 +15,6 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         public AdcsDcomSecurityConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
             RegEntries.Add(new AdcsInternalConfigPath { ValueName = "InterfaceFlags" });
             ReadConfig();
-            Console.WriteLine("val: " + RegEntries[0].Value);
             flag = (InterfaceFlagEnum)RegEntries[0].Value;
             _caVersion = certificateAuthority.Version;
         }
