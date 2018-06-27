@@ -95,7 +95,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
             } else {
                 var e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM | OfflineSource.Registry);
-                throw new ServerUnavailableException(DisplayName);
+                throw e;
             }
         }
         /// <summary>
@@ -126,7 +126,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
                     writeRpcDcom(entry);
                 }
             } else {
-                throw new ServerUnavailableException(DisplayName);
+                var e = new ServerUnavailableException(DisplayName);
+                e.Data.Add(nameof(e.Source), OfflineSource.DCOM | OfflineSource.Registry);
+                throw e;
             }
 
             IsModified = false;
@@ -156,7 +158,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
             } else if (CertificateAuthority.Ping(ComputerName)) {
                 throw new NotImplementedException();
             } else {
-                throw new ServerUnavailableException(DisplayName);
+                var e = new ServerUnavailableException(DisplayName);
+                e.Data.Add(nameof(e.Source), OfflineSource.DCOM | OfflineSource.Registry);
+                throw e;
             }
         }
     }
