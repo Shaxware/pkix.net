@@ -80,6 +80,7 @@
     <Compile Include="Management\CertificateServices\Configuration\AdcsDcomSecurityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AdcsInternalConfigPath.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AdcsValidityUnit.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\AuthorityInformationAccessConfigUri.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CACrlValidityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CAIssuedCertValidityConfig.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
