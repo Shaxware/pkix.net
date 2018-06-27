@@ -30,9 +30,15 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// Gets or sets validity period of issued certificates. Period value is measured in units specified in
         /// <see cref="ValidityPeriodUnits"/> member.
         /// </summary>
+        /// <exception cref="ArgumentException">
+        /// The value is either, zero or negative integer.
+        /// </exception>
         public Int32 ValidityPeriod {
             get => (Int32)_period.Value;
             set {
+                if (value < 1) {
+                    throw new ArgumentException("The value must be nonzero, positive integer.");
+                }
                 if ((Int32)_period.Value != value) {
                     _period.Value = value;
                     IsModified = true;
@@ -42,6 +48,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// <summary>
         /// Gets or sets validity period unit measure.
         /// </summary>
+        /// <remarks><strong>Invalid</strong> unit type is not allowed in this member's setter.</remarks>
         public AdcsValidityUnit ValidityPeriodUnits {
             get {
                 Enum.TryParse(_units.Value.ToString(), true, out AdcsValidityUnit unit);
