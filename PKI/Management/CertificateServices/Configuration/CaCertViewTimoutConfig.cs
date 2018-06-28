@@ -1,18 +1,17 @@
 ﻿using System;
 using PKI.CertificateServices;
-using SysadminsLV.PKI.Management.CertificateServices.Configuration;
 
-namespace PKI.Management.CertificateServices.Configuration {
+namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// <summary>
     /// Represents ADCS database timeout settings. There are two types of timeouts: idle timeout and
     /// connection timeout. When idle timeout is reached, a new connection to CA database must be created.
     /// When connection timeout is reached, a new connection to CA database must be created.
     /// </summary>
-    public sealed class CaCertViewTimoutConfig : AdcsConfigurationEntry {
+    public sealed class CACertViewTimoutConfig : AdcsConfigurationEntry {
         readonly AdcsInternalConfigPath _idleTimeout, _ageTimeout;
 
         /// <inheritdoc />
-        public CaCertViewTimoutConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
+        public CACertViewTimoutConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
             _idleTimeout = new AdcsInternalConfigPath { ValueName = "ViewIdleMinutes" };
             _ageTimeout = new AdcsInternalConfigPath { ValueName = "ViewAgeMinutes" };
             ReadConfig();
