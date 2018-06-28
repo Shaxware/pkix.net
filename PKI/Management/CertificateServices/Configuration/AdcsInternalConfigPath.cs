@@ -16,7 +16,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         public String ValueName { get; set; }
         /// <summary>
         /// Gets or sets value associated with the current setting. When reading from ADCS configuration,
-        /// <see cref="AdcsConfigurationEntry"/> object will populate this member with value. Implementers
+        /// <see cref="AdcsCAConfigurationEntry"/> object will populate this member with value. Implementers
         /// can use this value for presentation and management purposes. When writing back to ADCS configuration,
         /// implementers are responsible to provide registry-based compatible value to this member.
         /// </summary>
