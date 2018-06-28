@@ -9,7 +9,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// Represents a Certification Authority configuration composite setting. Some settings can be logically
     /// grouped from a set of single 
     /// </summary>
-    public abstract class AdcsConfigurationEntry {
+    public abstract class AdcsCAConfigurationEntry {
         readonly String _computer;
         readonly CryptoRegistry _configProvider;
         /// <summary>
@@ -21,7 +21,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// <exception cref="ArgumentNullException">
         /// <strong>certificateAuthority</strong> parameter is null.
         /// </exception>
-        protected AdcsConfigurationEntry(CertificateAuthority certificateAuthority) {
+        protected AdcsCAConfigurationEntry(CertificateAuthority certificateAuthority) {
             if (certificateAuthority == null) {
                 throw new ArgumentNullException(nameof(certificateAuthority));
             }

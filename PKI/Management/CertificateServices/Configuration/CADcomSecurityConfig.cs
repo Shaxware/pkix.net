@@ -7,12 +7,12 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// Contains security configuration of CA management
     /// (<strong>ICertAdmin</strong>) and enrollment (<strong>ICertRequest</strong>) RPC/DCOM interfaces.
     /// </summary>
-    public sealed class AdcsDcomSecurityConfig : AdcsConfigurationEntry {
+    public sealed class CADcomSecurityConfig : AdcsCAConfigurationEntry {
         readonly String _caVersion;
         InterfaceFlagEnum flag;
 
         /// <inheritdoc />
-        public AdcsDcomSecurityConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
+        public CADcomSecurityConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
             RegEntries.Add(new AdcsInternalConfigPath { ValueName = "InterfaceFlags" });
             ReadConfig();
             flag = (InterfaceFlagEnum)RegEntries[0].Value;
@@ -33,7 +33,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// <summary>
         /// Restores default management interface flags on a specified Certification Authority. The method do not
         /// writes default flags to a configuration. After calling this method call
-        /// <see cref="AdcsConfigurationEntry.SaveChanges(Boolean)">SaveChanges</see> method to write values back to
+        /// <see cref="AdcsCAConfigurationEntry.SaveChanges(Boolean)">SaveChanges</see> method to write values back to
         /// a configuration.
         /// </summary>
         /// <remarks>The following default flags are defined depending on an operating system:
