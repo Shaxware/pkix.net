@@ -83,6 +83,7 @@
     <Compile Include="Management\CertificateServices\Configuration\AuthorityInformationAccessConfigUri.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CACrlValidityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CAIssuedCertValidityConfig.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\CrlDistributionPointUri.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="CertificateServices\DB\AdcsDbManager.cs" />

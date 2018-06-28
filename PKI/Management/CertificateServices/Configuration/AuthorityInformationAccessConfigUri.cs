@@ -4,9 +4,10 @@ using System.Text.RegularExpressions;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// <summary>
-    /// Represents an AuthorityInformationAccess URL object. An object contains URL information and URL publication settings.
-    /// An URL indicates how clients can obtain presented certificate's issuer certificate, or how to locate authoritative OCSP responder. These URLs
-    /// are generally used for certificate chain building purposes to determine whether the presented certificate came from trusted CA.
+    /// Represents an AuthorityInformationAccess URL object. An object contains URL information and URL
+    /// publication settings. An URL indicates how clients can obtain presented certificate's issuer certificate,
+    /// or how to locate authoritative OCSP responder. These URLs are generally used for certificate chain building
+    /// purposes to determine whether the presented certificate came from trusted CA.
     /// </summary>
     public class AuthorityInformationAccessConfigUri {
         readonly Regex _regex = new Regex("(1|2|32):(.+)", RegexOptions.Compiled);
@@ -20,12 +21,12 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// using URL string.
         /// </summary>
         /// <param name="uri">An URL that points to a publication location including file name.
-        /// See <see cref="URI"/> property for variable replacement tokens
+        /// See <see cref="URI"/> property for variable replacement tokens.
         /// </param>
         /// <exception cref="ArgumentNullException">The <strong>uri</strong> parameter is null or empty.</exception>
         /// <remarks>
-        /// <p>Only absolute (local), UNC paths and LDAP:// URLs are supported for CRT file publishing.</p>
-        /// <p>Only LDAP:// and HTTP:// URLs are supported for CRT file retrieval.</p>
+        /// <p>Only absolute (local), UNC paths and LDAP URLs are supported for CRT file publishing.</p>
+        /// <p>Only LDAP and HTTP URLs are supported for CRT file retrieval.</p>
         /// </remarks>
         public AuthorityInformationAccessConfigUri(String uri) {
             if (String.IsNullOrWhiteSpace(uri)) {
@@ -33,36 +34,64 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
             }
             Match match = _regex.Match(uri);
             if (match.Success) {
-                var flag = Convert.ToInt32(match.Groups[1].Value);
+                Int32 flag = Convert.ToInt32(match.Groups[1].Value);
+                ServerPublish = (flag & 1) > 0;
+                IncludeToExtension = (flag & 2) > 0;
+                OCSP = (flag & 32) > 0;
                 URI = match.Groups[2].Value;
-                if ((flag & 1) > 0) {
-                    ServerPublish = true;
-                }
-                if ((flag & 2) > 0) {
-                    IncludeToExtension = true;
-                }
-                if ((flag & 32) > 0) {
-                    OCSP = true;
-                }
             } else {
                 URI = uri;
             }
-
         }
 
         /// <summary>
         /// Gets or sets a publication URL. Can be local path, UNC, LDAP or HTTP path.
-        /// <p>for example, an URL can be: 3:http://pki.company.com/AIA/%2_%3%4.crt </p>
         /// See <strong>Remarks</strong> for detailed URL structure.
         /// </summary>
-        /// <remarks>The following replacement tokens are defined for AIA URL variables:
-        /// <p>%1 -  &lt;ServerDNSName&gt; (The DNS name of the certification authority server).</p>
-        /// <p>%2 -  &lt;ServerShortName&gt; (The NetBIOS name of the certification authority server).</p>
-        /// <p>%3 -  &lt;CaName&gt; (The name of the certification authority);</p>
-        /// <p>%4 -  &lt;CertificateName&gt; (The renewal extension of the certification authority).</p>
-        /// <p>%6 -  &lt;ConfigurationContainer&gt; (The location of the Configuration container in Active Directory).</p>
-        /// <p>%7 -  &lt;CATruncatedName&gt; (The "sanitized" name of the certification authority, truncated to 32 characters with a hash on the end).</p>
-        /// <p>%11 - &lt;CAObjectClass&gt; - (The object class identifier for a certification authority, used when publishing to an LDAP URL).</p>
+        /// <remarks>
+        /// The following replacement tokens are defined for AIA URL variables:
+        /// <list type="table">
+        ///     <listheader>
+        ///         <term>Registry Variable</term>
+        ///         <term>Config Variable</term>
+        ///         <description>Description</description>
+        ///     </listheader>
+        ///     <item>
+        ///         <term>%1</term>
+        ///         <term>&lt;ServerDNSName&gt;</term>
+        ///         <description>DNS name of the certification authority server</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>%2</term>
+        ///         <term>&lt;ServerShortName&gt;</term>
+        ///         <description>NetBIOS name of the certification authority server</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>%3</term>
+        ///         <term>&lt;CaName&gt;</term>
+        ///         <description>Name of the certification authority</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>%4</term>
+        ///         <term>&lt;CRLNameSuffix&gt;</term>
+        ///         <description>Renewal index of CA certificate. Blank for initial CA certificate and zero-based index of CA certificate in parentheses.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>%6</term>
+        ///         <term>&lt;ConfigurationContainer&gt;</term>
+        ///         <description>Location of the Configuration container in Active Directory</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>%7</term>
+        ///         <term>&lt;CATruncatedName&gt;</term>
+        ///         <description>"sanitized" name of the certification authority, truncated to 32 characters with a hash on the end</description>
+        ///     </item>     
+        ///     <item>
+        ///         <term>%11</term>
+        ///         <term>&lt;CAObjectClass&gt;</term>
+        ///         <description>Active Directory object class identifier for a certification authority, used when publishing to an LDAP URL</description>
+        ///     </item>
+        /// </list>
         /// </remarks>
         public String URI { get; set; }
         /// <summary>
@@ -108,11 +137,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
             if (ServerPublish) {
                 flag |= 1;
             }
-
             if (IncludeToExtension) {
                 flag |= 2;
             }
-
             if (OCSP) {
                 flag |= 32;
             }
@@ -120,9 +147,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
             return $"{flag}:{URI}";
         }
         /// <summary>
-        /// Returns a string representation of the current AIA object. (Overrides Object.ToString().)
+        /// Returns a string representation of the current AIA URI object.
         /// </summary>
-        /// <returns>A string representation of the current AIA object.</returns>
+        /// <returns>A string representation of the current AIA URI object.</returns>
         public override String ToString() {
             return ConfigURI;
         }
