@@ -7,7 +7,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// connection timeout. When idle timeout is reached, a new connection to CA database must be created.
     /// When connection timeout is reached, a new connection to CA database must be created.
     /// </summary>
-    public sealed class CACertViewTimoutConfig : AdcsConfigurationEntry {
+    public sealed class CACertViewTimoutConfig : AdcsCAConfigurationEntry {
         readonly AdcsInternalConfigPath _idleTimeout, _ageTimeout;
 
         /// <inheritdoc />

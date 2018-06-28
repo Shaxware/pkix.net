@@ -14,7 +14,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// <item>Validity period specified in certificate request.</item>
     /// </list> 
     /// </remarks>
-    public sealed class CAIssuedCertValidityConfig : AdcsConfigurationEntry {
+    public sealed class CAIssuedCertValidityConfig : AdcsCAConfigurationEntry {
         readonly AdcsInternalConfigPath _period, _units;
 
         /// <inheritdoc />

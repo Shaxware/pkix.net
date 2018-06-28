@@ -20,7 +20,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// How ThisUpdate, NextUpdate and NextCRLPublish are calculated (v2)</see>
     /// </para>
     /// </remarks>
-    public sealed class CACrlValidityConfig : AdcsConfigurationEntry {
+    public sealed class CACrlValidityConfig : AdcsCAConfigurationEntry {
         readonly AdcsInternalConfigPath _basePeriod, _baseUnits, _baseOverlapPeriod, _baseOverlapUnits,
                                         _deltaPeriod, _deltaUnits, _deltaOverlapPeriod, _deltaOverlapUnits;
         /// <inheritdoc />
