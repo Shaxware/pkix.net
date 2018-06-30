@@ -83,7 +83,7 @@
     <Compile Include="Management\CertificateServices\Configuration\AuthorityInformationAccessConfigUri.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CACertViewTimoutConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CACrlValidityConfig.cs" />
-    <Compile Include="Management\CertificateServices\Configuration\CACryptographyConfig.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\CASigningCryptographyConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CAIssuedCertValidityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CrlDistributionPointConfigUri.cs" />
     <Compile Include="Win32\AdvAPI.cs" />

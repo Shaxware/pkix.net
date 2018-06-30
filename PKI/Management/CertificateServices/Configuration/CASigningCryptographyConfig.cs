@@ -17,7 +17,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// </list>
     /// </para>
     /// </summary>
-    public sealed class CACryptographyConfig : AdcsCAConfigurationEntry {
+    public sealed class CASigningCryptographyConfig : AdcsCAConfigurationEntry {
         const String Node = "CSP";
         readonly AdcsInternalConfigPath _prov, _provType, _cngPubAlg, _cngHalg, _halg, _altSig;
 
@@ -26,7 +26,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         Oid2 hashAlg = new Oid2(AlgorithmOids.SHA1, OidGroupEnum.HashAlgorithm);
 
         /// <inheritdoc />
-        public CACryptographyConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
+        public CASigningCryptographyConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
             // only these supported systems do not support CNG
             if (certificateAuthority.Version == "2000" || certificateAuthority.Version == "2003") {
                 SupportsCng = false;
