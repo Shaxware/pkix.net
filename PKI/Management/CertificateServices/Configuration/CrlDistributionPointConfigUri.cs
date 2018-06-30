@@ -12,13 +12,17 @@ namespace PKI.Management.CertificateServices.Configuration {
         String uri;
 
         /// <summary>
-        /// Initializes a new instance of <strong>CrlDistributionPointUri</strong> class.
+        /// Initializes a new instance of <strong>CrlDistributionPointConfigUri</strong> class.
         /// </summary>
         public CrlDistributionPointConfigUri() { }
         /// <summary>
-        /// 
+        /// Initializes a new instance of the <strong>CrlDistributionPointConfigUri</strong> class
+        /// using URL string.
         /// </summary>
-        /// <param name="uri"></param>
+        /// <param name="uri">
+        /// An URL that points to a publication location including file name.
+        /// See <see cref="URI"/> property for variable replacement tokens.
+        /// </param>
         /// <exception cref="ArgumentNullException">
         /// <strong>uri</strong> parameter is null or empty string.
         /// </exception>
@@ -28,14 +32,14 @@ namespace PKI.Management.CertificateServices.Configuration {
             }
             Match match = _regex.Match(uri);
             if (match.Success) {
-                Int32 flag = Convert.ToInt32(match.Groups[1].Value);
-                URI = match.Groups[2].Value;
-                CRLPublish = (flag & 1) > 0;
-                AddToCertCDP = (flag & 2) > 0;
+                Int32 flag       = Convert.ToInt32(match.Groups[1].Value);
+                URI              = match.Groups[2].Value;
+                CRLPublish       = (flag & 1) > 0;
+                AddToCertCDP     = (flag & 2) > 0;
                 AddToFreshestCRL = (flag & 4) > 0;
-                AddToCrlcdp = (flag & 8) > 0;
-                DeltaCRLPublish = (flag & 64) > 0;
-                IDP = (flag & 128) > 0;
+                AddToCrlcdp      = (flag & 8) > 0;
+                DeltaCRLPublish  = (flag & 64) > 0;
+                IDP              = (flag & 128) > 0;
             } else {
                 URI = uri;
             }

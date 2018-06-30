@@ -20,7 +20,8 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// Initializes a new instance of the <strong>AuthorityInformationAccessConfigUri</strong> class
         /// using URL string.
         /// </summary>
-        /// <param name="uri">An URL that points to a publication location including file name.
+        /// <param name="uri">
+        /// An URL that points to a publication location including file name.
         /// See <see cref="URI"/> property for variable replacement tokens.
         /// </param>
         /// <exception cref="ArgumentNullException">The <strong>uri</strong> parameter is null or empty.</exception>
@@ -34,11 +35,11 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
             }
             Match match = _regex.Match(uri);
             if (match.Success) {
-                Int32 flag = Convert.ToInt32(match.Groups[1].Value);
-                ServerPublish = (flag & 1) > 0;
+                Int32 flag         = Convert.ToInt32(match.Groups[1].Value);
+                ServerPublish      = (flag & 1) > 0;
                 IncludeToExtension = (flag & 2) > 0;
-                OCSP = (flag & 32) > 0;
-                URI = match.Groups[2].Value;
+                OCSP               = (flag & 32) > 0;
+                URI                = match.Groups[2].Value;
             } else {
                 URI = uri;
             }
