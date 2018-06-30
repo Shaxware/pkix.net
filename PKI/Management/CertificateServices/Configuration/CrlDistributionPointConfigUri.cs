@@ -7,14 +7,14 @@ namespace PKI.Management.CertificateServices.Configuration {
     /// <summary>
     /// Represents CRLDistributionPoint URL object. An object contains URL information and URL publication settings.
     /// </summary>
-    public class CrlDistributionPointUri {
+    public class CrlDistributionPointConfigUri {
         readonly Regex _regex = new Regex("(1|2|4|8|64|128):(.+)", RegexOptions.Compiled);
         String uri;
 
         /// <summary>
         /// Initializes a new instance of <strong>CrlDistributionPointUri</strong> class.
         /// </summary>
-        public CrlDistributionPointUri() { }
+        public CrlDistributionPointConfigUri() { }
         /// <summary>
         /// 
         /// </summary>
@@ -22,7 +22,7 @@ namespace PKI.Management.CertificateServices.Configuration {
         /// <exception cref="ArgumentNullException">
         /// <strong>uri</strong> parameter is null or empty string.
         /// </exception>
-        public CrlDistributionPointUri(String uri) {
+        public CrlDistributionPointConfigUri(String uri) {
             if (String.IsNullOrWhiteSpace(uri)) {
                 throw new ArgumentNullException(nameof(uri));
             }
