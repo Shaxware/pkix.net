@@ -76,6 +76,11 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Management\ActiveDirectory\DsAiaContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsAiaEntry.cs" />
+    <Compile Include="Management\ActiveDirectory\DsContainerType.cs" />
+    <Compile Include="Management\ActiveDirectory\DsPkiContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="CertificateServices\DB\AdcsDbManager.cs" />
@@ -253,7 +258,7 @@
     <Compile Include="Structs\Certbcli.cs" />
     <Compile Include="Structs\nCrypt2.cs" />
     <Compile Include="Structs\Wincrypt.cs" />
-    <Compile Include="Utils\ActiveDirectory.cs" />
+    <Compile Include="Utils\DsUtils.cs" />
     <Compile Include="Exceptions\OfflineSource.cs" />
     <Compile Include="Exceptions\ServerUnavailableException.cs" />
     <Compile Include="Exceptions\UninitializedObjectException.cs" />

@@ -34,16 +34,16 @@ namespace PKI.CertificateTemplates {
 		public Int32 KeyLength { get; private set; }
 
 		void InitializeDs() {
-			if (((Int32)_entry[ActiveDirectory.PropPkiPKeyFlags] & (Int32)PrivateKeyFlags.RequireKeyArchival) > 0) {
+			if (((Int32)_entry[DsUtils.PropPkiPKeyFlags] & (Int32)PrivateKeyFlags.RequireKeyArchival) > 0) {
 				KeyArchival = true;
-				String ap = (String)_entry[ActiveDirectory.PropPkiRaAppPolicy];
+				String ap = (String)_entry[DsUtils.PropPkiRaAppPolicy];
 				if (ap != null && ap.Contains("`")) {
 					String[] splitstring = { "`" };
 					String[] strings = ap.Split(splitstring, StringSplitOptions.RemoveEmptyEntries);
 					for (Int32 index = 0; index < strings.Length; index += 3) {
 						switch (strings[index]) {
-							case ActiveDirectory.PropPkiSymAlgo: EncryptionAlgorithm = new Oid(strings[index + 2]); break;
-							case ActiveDirectory.PropPkiSymLength: KeyLength = Convert.ToInt32(strings[index + 2]); break;
+							case DsUtils.PropPkiSymAlgo: EncryptionAlgorithm = new Oid(strings[index + 2]); break;
+							case DsUtils.PropPkiSymLength: KeyLength = Convert.ToInt32(strings[index + 2]); break;
 						}
 					}
 				}

@@ -156,8 +156,8 @@ namespace PKI.CertificateServices {
         String Active { get; set; }
 
         void lookInDs(String computerName) {
-            if (!ActiveDirectory.Ping()) { return; }
-            if (!computerName.Contains(".")) { computerName = computerName + "." + ActiveDirectory.GetCurrentDomainName(); }
+            if (!DsUtils.Ping()) { return; }
+            if (!computerName.Contains(".")) { computerName = computerName + "." + DsUtils.GetCurrentDomainName(); }
             _certConfig.Reset(0); //TODO
             while (_certConfig.Next() >= 0) {
                 Int32 flags = Convert.ToInt32(_certConfig.GetField(CertConfigConstants.FieldFlags));
@@ -304,12 +304,12 @@ namespace PKI.CertificateServices {
             }
         }
         void getInfoFromDs() {
-            if (IsEnterprise && ActiveDirectory.Ping()) {
+            if (IsEnterprise && DsUtils.Ping()) {
                 if (_certConfig.GetField(CertConfigConstants.FieldCommonName) == Name) {
                     String cn = "CN=" + _certConfig.GetField(CertConfigConstants.FieldSanitizedShortName) +
                         ",CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,DC=" +
-                        ActiveDirectory.GetForestName().Replace(".", ",DC=");
-                    DistinguishedName = (String)ActiveDirectory.GetEntryProperty(cn, ActiveDirectory.PropDN);
+                        DsUtils.GetForestName().Replace(".", ",DC=");
+                    DistinguishedName = (String)DsUtils.GetEntryProperty(cn, DsUtils.PropDN);
                     DisplayName = _certConfig.GetField(CertConfigConstants.FieldCommonName);
                     try {
                         String wes = _certConfig.GetField(CertConfigConstants.FieldEnrollmentServers);
@@ -360,7 +360,7 @@ namespace PKI.CertificateServices {
                 case "CAServerName": return ComputerName;
                 case "ServerShortName": return ComputerName.Split('.')[0];
                 case "CommonName": return Name;
-                case "CATruncatedName": return ActiveDirectory.GetSanitizedName(Name);
+                case "CATruncatedName": return DsUtils.GetSanitizedName(Name);
                 case "ConfigurationContainer": return (String)CryptoRegistry.GetRReg("DSConfigDN", Name, ComputerName);
                 default: return String.Empty;
             }
@@ -592,7 +592,7 @@ namespace PKI.CertificateServices {
                 }
                 value = uris.ToArray();
             }
-            ActiveDirectory.SetEntryProperty(DistinguishedName, ActiveDirectory.PropPkiEnrollmentServers, value);
+            DsUtils.SetEntryProperty(DistinguishedName, DsUtils.PropPkiEnrollmentServers, value);
         }
         /// <summary>
         /// Gets the access control list (<strong>ACL</strong>) for the current Certification Authority.
@@ -706,7 +706,7 @@ namespace PKI.CertificateServices {
         /// Wildcard characters: * and ? are accepted.</param>
         /// <returns>Enterprise Certification Authority collection.</returns>
         public static CertificateAuthority[] EnumEnterpriseCAs(String findType, String findValue) {
-            if (!ActiveDirectory.Ping()) { throw new Exception("Non-domain environments are not supported."); }
+            if (!DsUtils.Ping()) { throw new Exception("Non-domain environments are not supported."); }
             List<CertificateAuthority> CAs = new List<CertificateAuthority>();
             CCertConfig certConfig = new CCertConfig();
 
