@@ -150,6 +150,18 @@ namespace PKI.CertificateServices {
         /// Gets or sets an array of Certification Authority's web services URI.
         /// </summary>
         public CESUri[] EnrollmentServiceURI { get; set; }
+        /// <summary>
+        /// Gets the CA OS version:
+        /// <list type="bullet">
+        ///     <item>2000</item>
+        ///     <item>2003</item>
+        ///     <item>2008</item>
+        ///     <item>2008R2</item>
+        ///     <item>2012</item>
+        ///     <item>2012R2</item>
+        ///     <item>2016</item>
+        /// </list>
+        /// </summary>
         internal String Version { get; private set; }
         internal String Sku { get; private set; }
         internal Boolean IsEnterprise { get; private set; }

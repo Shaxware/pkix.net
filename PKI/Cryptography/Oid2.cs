@@ -35,7 +35,7 @@ namespace System.Security.Cryptography {
         /// If registration information is found in Active Directory, <strong>DistinguishedName</strong> parameter contains
         /// directory path to a OID registration entry.
         /// </remarks>
-        public Oid2(String oid, Boolean searchInDirectory) : this(oid, OidGroupEnum.AllGroups, searchInDirectory) { }
+        public Oid2(String oid, Boolean searchInDirectory = true) : this(oid, OidGroupEnum.AllGroups, searchInDirectory) { }
         /// <summary>
         /// Initializes a new instance of the Oid2 class using the specified Oid friendly name or value, OID registration group and search conditions.
         /// </summary>
@@ -43,7 +43,7 @@ namespace System.Security.Cryptography {
         /// <param name="group">Specifies the OID registration group to search.</param>
         /// <param name="searchInDirectory">Specifies whether to search for an object identifier in Active Directory. If the machine is not
         /// domain-joined, an OID is searched by using local registration information.</param>
-        public Oid2(String oid, OidGroupEnum group, Boolean searchInDirectory) {
+        public Oid2(String oid, OidGroupEnum group, Boolean searchInDirectory = true) {
             try {
                 CryptoConfig.EncodeOID(oid);
                 _searchBy = "ByValue";
@@ -523,6 +523,12 @@ namespace System.Security.Cryptography {
                 return false;
             }
             return valid.Contains((Int32)group) && unregisterDS(oids[0].Value, group);
+        }
+        /// <inheritdoc />
+        public override String ToString() {
+            return String.IsNullOrEmpty(FriendlyName)
+                ? Value
+                : $"{FriendlyName} ({Value})";
         }
     }
 }
