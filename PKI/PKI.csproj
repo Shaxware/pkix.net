@@ -81,6 +81,7 @@
     <Compile Include="Management\ActiveDirectory\DsCertificateEntry.cs" />
     <Compile Include="Management\ActiveDirectory\DsCertificateType.cs" />
     <Compile Include="Management\ActiveDirectory\DsContainerType.cs" />
+    <Compile Include="Management\ActiveDirectory\DsKraContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsPkiContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
