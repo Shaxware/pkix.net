@@ -76,8 +76,10 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Management\ActiveDirectory\DsCrlEntry.cs" />
     <Compile Include="Management\ActiveDirectory\DsAiaContainer.cs" />
-    <Compile Include="Management\ActiveDirectory\DsAiaEntry.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCertificateEntry.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCertificateType.cs" />
     <Compile Include="Management\ActiveDirectory\DsContainerType.cs" />
     <Compile Include="Management\ActiveDirectory\DsPkiContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />

@@ -34,6 +34,10 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// </summary>
         public DsContainerType ContainerType { get; protected set; }
         /// <summary>
+        /// Indicates whether the container contents was changed.
+        /// </summary>
+        public Boolean IsModified { get; protected set; }
+        /// <summary>
         /// Gets or sets a base path to this object in Active Directory.
         /// </summary>
         protected String BaseEntryPath {
@@ -149,7 +153,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             return true;
         }
         protected DirectoryEntry AddSubContainer(String parentPath, String name, String schemaClassName) {
-            var entry  = new DirectoryEntry(parentPath);
+            var entry = new DirectoryEntry(parentPath);
             return entry.Children.Add(name, schemaClassName);
         }
 
