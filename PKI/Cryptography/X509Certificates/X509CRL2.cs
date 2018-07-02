@@ -82,6 +82,10 @@ namespace System.Security.Cryptography.X509Certificates {
         /// algorithm used by the CRL.</remarks>
         public Oid SignatureAlgorithm { get; private set; }
         /// <summary>
+        /// Gets the CRL sequential number.
+        /// </summary>
+        public BigInteger CRLNumber { get; private set; }
+        /// <summary>
         /// Gets a collection of <see cref="X509Extension">X509Extension</see> objects.
         /// </summary>
         /// <remarks><p>Version 1 CRLs do not support extensions and this property is always empty for them.</p>
@@ -203,6 +207,8 @@ namespace System.Security.Cryptography.X509Certificates {
             if (Extensions[X509CertExtensions.X509DeltaCRLIndicator] != null) {
                 Type = X509CrlType.DeltaCrl;
             }
+            var crlNumExt = (X509CRLNumberExtension)Extensions[X509CertExtensions.X509CRLNumber];
+            CRLNumber = crlNumExt?.CRLNumber ?? 0;
         }
         void m_import(Byte[] rawData) {
             Reset();
@@ -496,6 +502,35 @@ namespace System.Security.Cryptography.X509Certificates {
                 Dispose();
             }
         }
+        /// <inheritdoc />
+        public override Boolean Equals(Object obj) {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
+            return Equals((X509CRL2)obj);
+        }
+        protected Boolean Equals(X509CRL2 other) {
+            return Version == other.Version
+                   && Type == other.Type
+                   && IssuerName.Equals(other.IssuerName)
+                   && ThisUpdate.Equals(other.ThisUpdate)
+                   && CRLNumber.Equals(other.CRLNumber);
+        }
+        /// <inheritdoc />
+        public override Int32 GetHashCode() {
+            unchecked {
+                Int32 hashCode = Version;
+                hashCode = (hashCode * 397) ^ (Int32)Type;
+                hashCode = (hashCode * 397) ^ IssuerName.GetHashCode();
+                hashCode = (hashCode * 397) ^ ThisUpdate.GetHashCode();
+                hashCode = (hashCode * 397) ^ CRLNumber.GetHashCode();
+                return hashCode;
+            }
+        }
+
         #region IDisposable
         void Dispose(Boolean disposing) {
             if (disposing) {
