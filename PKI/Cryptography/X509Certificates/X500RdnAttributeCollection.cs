@@ -15,10 +15,10 @@ namespace System.Security.Cryptography.X509Certificates {
         public Byte[] Encode() {
             List<Byte> rawData = new List<Byte>();
             if (_list.Count == 0) {
-                return null;
+                return new Byte[] { 48, 0 };
             }
-            foreach (X500RdnAttribute item in _list) {
-                rawData.AddRange(Asn1Utils.Encode(item.RawData, 49));
+            for (Int32 i = _list.Count - 1; i >= 0; i--) {
+                rawData.AddRange(Asn1Utils.Encode(_list[i].RawData, 49));
             }
             return Asn1Utils.Encode(rawData.ToArray(), 48);
         }
@@ -26,6 +26,12 @@ namespace System.Security.Cryptography.X509Certificates {
         /// Decodes ASN.1 encoded byte array to an array of <see cref="X500RdnAttribute"/> objects.
         /// </summary>
         /// <param name="rawData">ASN.1-encoded byte array.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>rawData</strong> parameter is null.
+        /// </exception>
+        /// <exception cref="AccessViolationException">
+        /// The collection is read-only and cannot be modified.
+        /// </exception>
         /// <exception cref="Asn1InvalidTagException">
         /// The data in the <strong>rawData</strong> parameter is not valid array of <see cref="X500RdnAttribute"/> objects.
         /// </exception>
@@ -48,14 +54,17 @@ namespace System.Security.Cryptography.X509Certificates {
                 }
                 _list.Add(new X500RdnAttribute(asn.GetPayload()));
             } while (asn.MoveNextCurrentLevel());
+            // reverse list to get attributes from leaf to root.
+            _list.Reverse();
         }
         /// <summary>
-        /// 
+        /// Converts current collection to an instance of <see cref="X500DistinguishedName"/> class.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An instance of <see cref="X500DistinguishedName"/> class.</returns>
         public X500DistinguishedName ToDistinguishedName() {
-            if (_list.Count == 0) { throw new InvalidOperationException("Current collection contains no elements."); }
-            return new X500DistinguishedName(Encode());
+            return _list.Count == 0
+                ? new X500DistinguishedName(new Byte[] { 48, 0 })
+                : new X500DistinguishedName(Encode());
         }
         /// <summary>
         /// Closes current collection state and makes it read-only. The collection cannot be modified further.
