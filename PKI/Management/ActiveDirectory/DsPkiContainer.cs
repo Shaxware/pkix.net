@@ -47,7 +47,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 // do not throw exception if such object doesn't exist in Active Directory. It should be
                 // created during SaveChanges method call.
                 try {
-                    BaseEntry = new DirectoryEntry($"LDAP://{BaseEntryPath}{_pkiConfigContext}");
+                    BaseEntry = new DirectoryEntry($"LDAP://{DsPath}");
                 } catch { }
 
             }
@@ -56,6 +56,34 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// Gets an instance of <see cref="DirectoryEntry"/> object associated with a current PKI container.
         /// </summary>
         protected DirectoryEntry BaseEntry { get; set; }
+
+        protected DirectoryEntry AddChild(String name, String dsObjectClass) {
+            DirectoryEntry entry = BaseEntry.Children.Add($"CN={name}", dsObjectClass);
+            entry.Properties["cn"].Add(name);
+            switch (dsObjectClass.ToLower()) {
+                case "certificationAuthority":
+                    fillCAMandatoryAttributes(entry);
+                    break;
+                case "mspki-privatekeyrecoveryagent":
+                    fillKRAMandatoryAttributes(entry);
+                    break;
+            }
+            entry.CommitChanges();
+            entry.RefreshCache();
+            return entry;
+        }
+
+        static void fillCAMandatoryAttributes(DirectoryEntry entry) {
+            // fill mandatory properties: [MS-ADSC] §2.16 https://msdn.microsoft.com/en-us/library/cc221720.aspx
+            entry.Properties["cACertificate"].Add(new Byte[] { 0 });
+            entry.Properties["certificateRevocationList"].Add(new Byte[] { 0 });
+            entry.Properties["authorityRevocationList"].Add(new Byte[] { 0 });
+        }
+        static void fillKRAMandatoryAttributes(DirectoryEntry entry) {
+            // fill mandatory properties: [MS-ADSC] §2.170 https://msdn.microsoft.com/en-us/library/cc221673.aspx
+            entry.Properties["userCertificate"].Add(new Byte[] { 0 });
+        }
+
 
         /// <summary>
         /// Gets a property from an Active Directory object.
@@ -169,6 +197,26 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// be granted delegated permissions to write to configuration naming context.
         /// </remarks>
         public abstract void SaveChanges(Boolean forceDelete);
+
+        /// <summary>
+        /// Gets a specified Active Directory PKI container.
+        /// </summary>
+        /// <param name="containerType">AD PKI container to query.</param>
+        /// <returns>
+        /// AD PKI container.
+        /// </returns>
+        public static DsPkiContainer GetAdPkicontainer(DsContainerType containerType) {
+            switch (containerType) {
+                case DsContainerType.NTAuth:
+                    return new DsNTAuthContainer();
+                case DsContainerType.AIA:
+                    return new DsAiaContainer();
+                case DsContainerType.KRA:
+                    return new DsKraContainer();
+                default:
+                    throw new ArgumentException("Specified container type is not supported");
+            }
+        }
 
 
         #region IDisposable

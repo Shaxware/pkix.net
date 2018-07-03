@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using PKI.Exceptions;
 using PKI.Management.ActiveDirectory;
 using PKI.Structs;
@@ -10,22 +12,31 @@ using PKI.Utils;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
+    /// <summary>
+    /// Represents intermediate CA certificate container in Active Directory. This container is used by domain members
+    /// to build certificate chains with CAs defined by organization. In addition, this container stores
+    /// cross-certificates when organization establishes a qualified trust with other organizations.
+    /// </summary>
     public class DsAiaContainer : DsPkiContainer {
         readonly ISet<DsCertificateEntry> _list = new HashSet<DsCertificateEntry>();
         readonly ISet<String> _toBeAdded = new HashSet<String>();
         readonly ISet<String> _toBeRemoved = new HashSet<String>();
         readonly IDictionary<String, List<DsCertificateEntry>> _dsList = new Dictionary<String, List<DsCertificateEntry>>(StringComparer.OrdinalIgnoreCase);
 
-        public DsAiaContainer() {
-            ContainerType = DsContainerType.NTAuth;
+        internal DsAiaContainer() {
+            ContainerType = DsContainerType.AIA;
             BaseEntryPath = "CN=AIA";
             readChildren();
         }
 
+        /// <summary>
+        /// Gets an array of certificates stored in AIA container.
+        /// </summary>
         public DsCertificateEntry[] Certificates => _list.OrderBy(x => x.Name).ToArray();
 
         void readChildren() {
             foreach (DirectoryEntry child in BaseEntry.Children) {
+                String childName = child.Properties["cn"][0].ToString();
                 foreach (DsCertificateType type in new[] { DsCertificateType.CACertificate, DsCertificateType.CrossCertificate }) {
                     List<DsCertificateEntry> items = readCertsFromDsAttribute(child, type);
                     // add to global list
@@ -33,10 +44,10 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                         _list.Add(item);
                     }
                     // add to child-specific list.
-                    if (_dsList.ContainsKey(child.Name)) {
-                        _dsList[child.Name].AddRange(items);
+                    if (_dsList.ContainsKey(childName)) {
+                        _dsList[childName].AddRange(items);
                     } else {
-                        _dsList.Add(child.Name, items);
+                        _dsList.Add(childName, items);
                     }
                 }
             }
@@ -60,7 +71,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             Byte[][] rawData = GetEntryProperty<Byte[]>(entry, attribute);
             // x.Length > 1 is necessary, because empty value contains a 1 byte element inside
             return rawData.Where(x => x.Length > 1)
-                .Select(bytes => new DsCertificateEntry(entry.Name, new X509Certificate2(bytes), type))
+                .Select(bytes => new DsCertificateEntry(entry.Properties["cn"][0].ToString(), new X509Certificate2(bytes), type))
                 .ToList();
         }
         IEnumerable<String> getUpdateList() {
@@ -74,11 +85,13 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             }
             return namesToProcess;
         }
-        Boolean checkDelete(DirectoryEntry entry) {
+        Boolean checkDelete(DirectoryEntry entry, String entryName) {
+
             // if there was at least one removal and DS entry is empty from any certificate,
             // delete DS entry. Otherwise do nothing
-            if (_toBeRemoved.Contains(entry.Name) && _dsList[entry.Name].Count == 0) {
+            if (_toBeRemoved.Contains(entryName) && _dsList[entryName].Count == 0) {
                 BaseEntry.Children.Remove(entry);
+                BaseEntry.CommitChanges();
                 return true;
             }
             return false;
@@ -104,6 +117,16 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 fullSubject = fromCert.IssuerName;
             }
             X500RdnAttributeCollection tokens = fullSubject.GetRdnAttributes();
+            // if subject is empty, calculate SHA1 hash over subject name's raw data (48, 0)
+            if (tokens.Count == 0) {
+                var sb = new StringBuilder();
+                using (SHA1 hasher = SHA1.Create()) {
+                    foreach (Byte b in hasher.ComputeHash(fullSubject.RawData)) {
+                        sb.AppendFormat("{0:x2}", b);
+                    }
+                }
+                return sb.ToString();
+            }
             return DsUtils.GetSanitizedName(tokens[0].Value);
         }
 
@@ -168,24 +191,31 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             // this list contains only entries we need to update.
             IEnumerable<String> namesToProcess = getUpdateList();
             foreach (String name in namesToProcess) {
-                // if no such entry exists, create it.
-                DirectoryEntry dsEntry = DirectoryEntry.Exists($"LDAP://CN={name},{BaseEntryPath}")
-                    ? new DirectoryEntry($"LDAP://CN={name},{BaseEntryPath}")
-                    : BaseEntry.Children.Add(name, "certificationAuthority");
+                DirectoryEntry dsEntry = DirectoryEntry.Exists($"LDAP://CN={name},{DsPath}")
+                    ? new DirectoryEntry($"LDAP://CN={name},{DsPath}")
+                    // if no such entry exists, create it.
+                    : AddChild($"CN={name}", "certificationAuthority");
                 // if we elected to delete empty entries --> check them
-                if (forceDelete && checkDelete(dsEntry)) {
+                if (forceDelete && checkDelete(dsEntry, name)) {
                     continue;
                 }
                 // write CA certificates
                 dsEntry.Properties["cACertificate"].Clear();
-                foreach (DsCertificateEntry entry in _dsList[name].Where(x => x.CertificateType == DsCertificateType.CACertificate)) {
-                    dsEntry.Properties["cACertificate"].Add(entry.Certificate.RawData);
+                DsCertificateEntry[] caCerts = _dsList[name].Where(x => x.CertificateType == DsCertificateType.CACertificate).ToArray();
+                // cACertificate is mandatory attribute
+                if (!caCerts.Any()) {
+                    dsEntry.Properties["cACertificate"].Add(new Byte[] { 0 });
+                } else {
+                    foreach (DsCertificateEntry entry in caCerts) {
+                        dsEntry.Properties["cACertificate"].Add(entry.Certificate.RawData);
+                    }
                 }
                 // write cross-certificates
                 dsEntry.Properties["crossCertificatePair"].Clear();
                 foreach (DsCertificateEntry entry in _dsList[name].Where(x => x.CertificateType == DsCertificateType.CrossCertificate)) {
                     dsEntry.Properties["crossCertificatePair"].Add(entry.Certificate.RawData);
                 }
+                dsEntry.CommitChanges();
             }
             // clear processing lists
             _toBeAdded.Clear();

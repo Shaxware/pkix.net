@@ -2,19 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using PKI.Exceptions;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
     /// <summary>
     /// Represents NTAuth certificate store in Active Directory. This store contains CA certificates that are
     /// eligible to issue client authentication and logon certificates and perform client key archival on CA server.
     /// </summary>
-    public class DsNTAuthContainer : DsPkiContainer {
+    public sealed class DsNTAuthContainer : DsPkiContainer {
         readonly List<X509Certificate2> _certs = new List<X509Certificate2>();
         /// <summary>
         /// Initializes a new instance of <strong>DsNTAuthContainer</strong> object.
         /// </summary>
-        public DsNTAuthContainer() {
+        internal DsNTAuthContainer() {
             ContainerType = DsContainerType.NTAuth;
             BaseEntryPath = "CN=NTAuthCertificates";
             if (BaseEntry == null) { return; }
