@@ -5,7 +5,8 @@ using SysadminsLV.PKI;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
-    /// Represents a collection of <see cref="X500RdnAttribute"/> objects.
+    /// Represents a collection of <see cref="X500RdnAttribute"/> objects. For display purposes RDN attributes
+    /// are stored in this collection in reverse order than they stored in binary form.
     /// </summary>
     public class X500RdnAttributeCollection : BasicCollection<X500RdnAttribute> {
         /// <summary>
