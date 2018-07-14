@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
-using System.Security.Cryptography.X509Certificates;
-using PKI.Exceptions;
-using PKI.Management.ActiveDirectory;
 using PKI.Utils;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
@@ -113,73 +110,6 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 }
             }
             return list.ToArray();
-        }
-        /// <summary>
-        /// Safely adds certificate to a collection. If certificate already exist in the collection, it is not added.
-        /// </summary>
-        /// <param name="certs">A collection to add the certificate to.</param>
-        /// <param name="cert">A certificate object to add to collection.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <strong>certs</strong> or <strong>cert</strong> parameter is null.
-        /// </exception>
-        /// <exception cref="UninitializedObjectException">
-        /// Certificate object in <strong>cert</strong> parameter is not properly initialized.
-        /// </exception>
-        /// <returns>
-        /// <strong>True</strong> if certificate was added, otherwise <strong>False</strong>. If certificate in
-        /// <strong>cert</strong> parameter is already presented in NTAuth store, it is not added again and
-        /// the method returns <strong>False</strong>.
-        /// </returns>
-        /// <remarks>
-        /// After required object manipulations, it is necessary to call <see cref="SaveChanges"/> method to
-        /// commit changes back to Active Directory.
-        /// </remarks>
-        protected Boolean SafeAddCertToCollection(IList<X509Certificate2> certs, X509Certificate2 cert) {
-            if (cert == null) {
-                throw new ArgumentNullException(nameof(cert));
-            }
-            if (certs == null) {
-                throw new ArgumentNullException(nameof(certs));
-            }
-            if (cert.RawData == null) {
-                throw new UninitializedObjectException();
-            }
-            if (certs.Contains(cert)) {
-                return false;
-            }
-            certs.Add(cert);
-            return true;
-        }
-        /// <summary>
-        /// Removes certificate from a specified collection.
-        /// </summary>
-        /// <param name="certs">A collection to remove the certificate from.</param>
-        /// <param name="cert">Certificate to remove.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <strong>certs</strong> or <strong>cert</strong> parameter is null.
-        /// </exception>
-        /// <exception cref="UninitializedObjectException">
-        /// Certificate object in <strong>cert</strong> parameter is not properly initialized.
-        /// </exception> 
-        /// <returns>
-        /// <strong>True</strong> if certificate was found and deleted, otherwise <strong>False</strong>.
-        /// </returns>
-        /// <remarks>
-        /// After required object manipulations, it is necessary to call <see cref="SaveChanges"/> method to
-        /// commit changes back to Active Directory.
-        /// </remarks>
-        protected static Boolean SafeRemoveCertFromCollection(IList<X509Certificate2> certs, X509Certificate2 cert) {
-            if (cert == null) {
-                throw new ArgumentNullException(nameof(cert));
-            }
-            if (cert.RawData == null) {
-                throw new UninitializedObjectException();
-            }
-            if (!certs.Contains(cert)) {
-                return false;
-            }
-            certs.Remove(cert);
-            return true;
         }
         protected DirectoryEntry AddSubContainer(String parentPath, String name, String schemaClassName) {
             var entry = new DirectoryEntry(parentPath);

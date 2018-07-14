@@ -4,7 +4,6 @@ using System.DirectoryServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using PKI.Exceptions;
-using PKI.Management.ActiveDirectory;
 using PKI.Structs;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
@@ -13,9 +12,12 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
     /// to locate key recovery agent certificates when implementing key archival functionality.
     /// </summary>
     public sealed class DsKraContainer : DsPkiCertContainer {
+        const String dsObjectClass = "msPKI-PrivateKeyRecoveryAgent";
+
         internal DsKraContainer() {
             ContainerType = DsContainerType.KRA;
             BaseEntryPath = "CN=KRA";
+            DsObjectClasses.Add(dsObjectClass);
             ReadChildren(new[] { DsCertificateType.UserCertificate});
         }
         
@@ -43,9 +45,13 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// Adds key recovery agent (KRA) certificate to Active Directory.
         /// </summary>
         /// <param name="cert">Key recovery agent certificate to add.</param>
-        /// <returns>
-        /// <strong>True</strong> if 
-        /// </returns>
+        /// <exception cref="UninitializedObjectException">
+        /// <strong>cert</strong> parameter is not valid X.509 certificate object.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>cert</strong> parameter is null.
+        /// </exception>
+        /// <inheritdoc cref="DsPkiCertContainer.AddCertificateEntry" section="returns|remarks/*"/>
         public Boolean AddCertificate(X509Certificate2 cert) {
             if (cert == null) {
                 throw new ArgumentNullException(nameof(cert));
@@ -58,8 +64,13 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             }
             String containerName = GetContainerName(cert);
             var entry = new DsCertificateEntry(containerName, cert, DsCertificateType.UserCertificate);
-            return AddCertificate(entry);
+            return AddCertificateEntry(entry);
         }
+        /// <summary>
+        /// Removes KRA certificate from the current KRA container.
+        /// </summary>
+        /// <param name="entry">CA certificate to remove</param>
+        /// <inheritdoc cref="DsPkiCertContainer.RemoveCertificateEntry" section="exception|returns|remarks/*"/>
         public Boolean RemoveCertificate(DsCertificateEntry entry) {
             return RemoveCertificateEntry(entry);
         }
@@ -73,7 +84,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 // if no such entry exists, create it.
                 DirectoryEntry dsEntry = DirectoryEntry.Exists($"LDAP://CN={name},{DsPath}")
                     ? new DirectoryEntry($"LDAP://CN={name},{DsPath}")
-                    : AddChild($"CN={name}", "msPKI-PrivateKeyRecoveryAgent");
+                    : AddChild($"CN={name}", dsObjectClass);
                 // if we elected to delete empty entries --> check them
                 if (forceDelete && CheckDelete(dsEntry, name)) {
                     continue;

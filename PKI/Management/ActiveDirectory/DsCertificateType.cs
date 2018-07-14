@@ -1,4 +1,4 @@
-﻿namespace PKI.Management.ActiveDirectory {
+﻿namespace SysadminsLV.PKI.Management.ActiveDirectory {
     public enum DsCertificateType {
         UserCertificate,
         CACertificate,

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Security.Cryptography.X509Certificates;
-using PKI.Management.ActiveDirectory;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
     /// <summary>

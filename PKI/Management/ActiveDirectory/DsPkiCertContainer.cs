@@ -7,10 +7,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI.Structs;
 using PKI.Utils;
-using SysadminsLV.PKI.Management.ActiveDirectory;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
-namespace PKI.Management.ActiveDirectory {
+namespace SysadminsLV.PKI.Management.ActiveDirectory {
     /// <summary>
     /// Represents a base class for certificate-based containers in Active Directory. This class implements common
     /// operations associated with certificate-based container management.
@@ -29,7 +28,8 @@ namespace PKI.Management.ActiveDirectory {
         /// Gets insternal list of all certificates in the current container grouped by DS object name.
         /// </summary>
         protected IDictionary<String, List<DsCertificateEntry>> DsList { get; } = new Dictionary<String, List<DsCertificateEntry>>(StringComparer.OrdinalIgnoreCase);
-        
+        protected ISet<String> DsObjectClasses { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+
         // reads certificates of specified type from specified DS object.
         List<DsCertificateEntry> readCertsFromDsAttribute(DirectoryEntry entry, DsCertificateType type) {
             String attribute;
@@ -74,7 +74,22 @@ namespace PKI.Management.ActiveDirectory {
         /// </summary>
         /// <param name="certTypes">Specifies a collection of certificate types to read.</param>
         protected void ReadChildren(DsCertificateType[] certTypes) {
-            foreach (DirectoryEntry child in BaseEntry.Children) {
+            var entries = new List<DirectoryEntry>();
+            // handle NTAuth container, because it doesn't have childrens.
+            if (ContainerType == DsContainerType.NTAuth) {
+                foreach (DirectoryEntry child in BaseEntry.Parent.Children) {
+                    entries.Add(child);
+                }
+            } else {
+                foreach (DirectoryEntry child in BaseEntry.Children) {
+                    entries.Add(child);
+                }
+            }
+            foreach (DirectoryEntry child in entries) {
+                // read only entries of specified DS object class
+                if (!DsObjectClasses.Contains(child.SchemaClassName)) {
+                    continue;
+                }
                 String childName = child.Properties["cn"][0].ToString();
                 foreach (DsCertificateType type in certTypes) {
                     List<DsCertificateEntry> items = readCertsFromDsAttribute(child, type);
@@ -126,11 +141,17 @@ namespace PKI.Management.ActiveDirectory {
         /// Adds new certificate entry to internal list.
         /// </summary>
         /// <param name="entry">Certificate entry to add.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>entry</strong> parameter is null.
+        /// </exception>
         /// <returns>
         /// <strong>True</strong> if this is a new certificate and no duplicates exist. If certificate entry
         /// already exists in internal list, method returns <strong>False</strong>.
         /// </returns>
-        protected Boolean AddCertificate(DsCertificateEntry entry) {
+        protected Boolean AddCertificateEntry(DsCertificateEntry entry) {
+            if (entry == null) {
+                throw new ArgumentNullException(nameof(entry));
+            }
             if (_list.Contains(entry)) { return false; }
             // mutually exclusive. entry cannot be added and removed at the same time.
             _toBeAdded.Add(entry.Name);
@@ -148,6 +169,9 @@ namespace PKI.Management.ActiveDirectory {
         /// Removes certificate from internal list.
         /// </summary>
         /// <param name="entry">Certificate entry to remove.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>entry</strong> parameter is null.
+        /// </exception>
         /// <returns>
         /// <strong>True</strong> if specified certificate entry was found, otherwise <strong>False</strong>.
         /// </returns>
