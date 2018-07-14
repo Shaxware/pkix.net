@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Security.Cryptography.X509Certificates;
 using PKI.Exceptions;
+using PKI.Management.ActiveDirectory;
 using PKI.Utils;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
@@ -57,7 +58,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// </summary>
         protected DirectoryEntry BaseEntry { get; set; }
 
-        protected DirectoryEntry AddChild(String name, String dsObjectClass) {
+        protected DirectoryEntry AddChild(String name, String dsObjectClass, String cdpContainer = null) {
             DirectoryEntry entry = BaseEntry.Children.Add($"CN={name}", dsObjectClass);
             entry.Properties["cn"].Add(name);
             switch (dsObjectClass.ToLower()) {
@@ -211,6 +212,8 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                     return new DsNTAuthContainer();
                 case DsContainerType.AIA:
                     return new DsAiaContainer();
+                case DsContainerType.RootCA:
+                    return new DsRootCaContainer();
                 case DsContainerType.KRA:
                     return new DsKraContainer();
                 default:

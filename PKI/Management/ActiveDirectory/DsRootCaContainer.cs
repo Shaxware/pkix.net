@@ -4,43 +4,35 @@ using System.DirectoryServices;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using PKI.Exceptions;
-using PKI.Management.ActiveDirectory;
+using SysadminsLV.PKI.Management.ActiveDirectory;
 
-namespace SysadminsLV.PKI.Management.ActiveDirectory {
+namespace PKI.Management.ActiveDirectory {
     /// <summary>
-    /// Represents intermediate CA certificate container in Active Directory. This container is used by domain members
-    /// to build certificate chains with CAs defined by organization. In addition, this container stores
-    /// cross-certificates when organization establishes a qualified trust with other organizations.
+    /// Represents trusted Root CA certificate container in Active Directory. This container is used by domain members
+    /// to build certificate chains with trusted root CAs defined by organization.
     /// </summary>
-    public class DsAiaContainer : DsPkiCertContainer {
-        internal DsAiaContainer() {
-            ContainerType = DsContainerType.AIA;
-            BaseEntryPath = "CN=AIA";
-            ReadChildren(new[] { DsCertificateType.CACertificate, DsCertificateType.CrossCertificate });
+    public class DsRootCaContainer : DsPkiCertContainer {
+        internal DsRootCaContainer() {
+            ContainerType = DsContainerType.RootCA;
+            BaseEntryPath = "CN=Certification Authorities";
+            ReadChildren(new[] { DsCertificateType.CACertificate });
         }
 
         /// <summary>
-        /// Adds CA certificate to AIA entry as CA certificate or cross-certificate. The type is determined by <strong>type</strong>
+        /// Adds CA certificate to RootCA entry in Active Directory. The type is determined by <strong>type</strong>
         /// parameter.
-        /// <para>
-        /// <strong>Note:</strong> 'userCertificate' type is not supported by this method.
-        /// </para>
         /// </summary>
-        /// <param name="cert">CA certificate to add.</param>
-        /// <param name="type">Certificate type. Can be either 'CACertificate' or 'CrossCertificate'.</param>
+        /// <param name="cert">Root CA certificate to add.</param>
         /// <inheritdoc cref="DsPkiContainer.SafeAddCertToCollection" section="exception|returns|remarks/*"/>
-        public Boolean AddCertificate(X509Certificate2 cert, DsCertificateType type) {
+        public Boolean AddCertificate(X509Certificate2 cert) {
             if (cert == null) {
                 throw new ArgumentNullException(nameof(cert));
             }
             if (cert.RawData == null) {
                 throw new UninitializedObjectException();
             }
-            if (type == DsCertificateType.UserCertificate) {
-                throw new ArgumentException("Specified type is not supported.");
-            }
             String containerName = GetContainerName(cert);
-            var entry = new DsCertificateEntry(containerName, cert, type);
+            var entry = new DsCertificateEntry(containerName, cert, DsCertificateType.CACertificate);
             return AddCertificate(entry);
         }
         /// <summary>
@@ -76,11 +68,6 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                     foreach (DsCertificateEntry entry in caCerts) {
                         dsEntry.Properties["cACertificate"].Add(entry.Certificate.RawData);
                     }
-                }
-                // write cross-certificates
-                dsEntry.Properties["crossCertificatePair"].Clear();
-                foreach (DsCertificateEntry entry in DsList[name].Where(x => x.CertificateType == DsCertificateType.CrossCertificate)) {
-                    dsEntry.Properties["crossCertificatePair"].Add(entry.Certificate.RawData);
                 }
                 dsEntry.CommitChanges();
             }

@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Security.Cryptography.X509Certificates;
-using PKI.Management.ActiveDirectory;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
     /// <summary>
     /// Represents a certificate object in Active Directory.
     /// </summary>
     public class DsCrlEntry {
-        internal DsCrlEntry(String name, X509CRL2 certificate, DsCertificateType type) {
+        internal DsCrlEntry(String name, X509CRL2 crl) {
             Name = name;
-            CRL = certificate;
+            CRL = crl;
         }
 
         /// <summary>
