@@ -56,10 +56,10 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         protected DirectoryEntry BaseEntry { get; set; }
 
         protected DirectoryEntry AddChild(String name, String dsObjectClass, String cdpContainer = null) {
-            DirectoryEntry entry = BaseEntry.Children.Add($"CN={name}", dsObjectClass);
-            entry.Properties["cn"].Add(name);
+            DirectoryEntry entry = BaseEntry.Children.Add(name, dsObjectClass);
+            entry.Properties["cn"].Add(name.Replace("CN=", null));
             switch (dsObjectClass.ToLower()) {
-                case "certificationAuthority":
+                case "certificationauthority":
                     fillCAMandatoryAttributes(entry);
                     break;
                 case "mspki-privatekeyrecoveryagent":
