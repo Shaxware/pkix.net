@@ -144,8 +144,12 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                     return new DsAiaContainer();
                 case DsContainerType.RootCA:
                     return new DsRootCaContainer();
+                case DsContainerType.CertificateTemplates:
+                    return new DsCertTemplateContainer();
                 case DsContainerType.KRA:
                     return new DsKraContainer();
+                case DsContainerType.EnrollmentServices:
+                    return new DsCertEnrollContainer();
                 default:
                     throw new ArgumentException("Specified container type is not supported");
             }
