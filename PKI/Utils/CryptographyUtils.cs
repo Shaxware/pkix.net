@@ -20,6 +20,8 @@ namespace PKI.Utils {
         public static X509Extension ConvertExtension(X509Extension extension) {
             AsnEncodedData asndata = new AsnEncodedData(extension.Oid, extension.RawData);
             switch (extension.Oid.Value) {
+                case X509CertExtensions.X509CAVersion:
+                    return new X509CAVersionExtension(asndata, extension.Critical);
                 case X509CertExtensions.X509NextCRLPublish:
                     return new X509NextCRLPublishExtension(asndata, extension.Critical);
                 case X509CertExtensions.X509CertificateTemplate:
