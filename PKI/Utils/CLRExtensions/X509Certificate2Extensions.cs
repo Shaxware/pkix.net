@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.Win32.SafeHandles;
 using PKI.Exceptions;
+using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.PKI.Win32;
 
@@ -145,6 +148,63 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             }
             properties.Close();
             return properties;
+        }
+        /// <summary>
+        /// Deletes private key material associated with a X.509 certificate from file system or hardware storage.
+        /// </summary>
+        /// <param name="cert">An instance of X.509 certificate.</param>
+        /// <returns>
+        /// <strong>True</strong> if associated private key was found and successully deleted, otherwise <strong>False</strong>.
+        /// </returns>
+        public static Boolean DeletePrivateKey(this X509Certificate2 cert) {
+            UInt32              pdwKeySpec             = 0;
+            Boolean             pfCallerFreeProv       = false;
+            SafeNCryptKeyHandle phCryptProvOrNCryptKey = new SafeNCryptKeyHandle();
+            if (!Crypt32.CryptAcquireCertificatePrivateKey(
+                cert.Handle,
+                Wincrypt.CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
+                IntPtr.Zero,
+                ref phCryptProvOrNCryptKey,
+                ref pdwKeySpec,
+                ref pfCallerFreeProv)) { return false; }
+            return pdwKeySpec == UInt32.MaxValue
+                ? deleteCngKey(phCryptProvOrNCryptKey)
+                : deleteLegacyKey(cert.PrivateKey);
+        }
+        static Boolean deleteLegacyKey(AsymmetricAlgorithm privateKey) {
+            if (privateKey == null) { return false; }
+            String keyContainer;
+            String provName;
+            UInt32 provType;
+            switch (privateKey) {
+                case RSACryptoServiceProvider _:
+                    keyContainer = ((RSACryptoServiceProvider) privateKey).CspKeyContainerInfo.KeyContainerName;
+                    provName = ((RSACryptoServiceProvider)privateKey).CspKeyContainerInfo.ProviderName;
+                    provType = (UInt32) ((RSACryptoServiceProvider)privateKey).CspKeyContainerInfo.ProviderType;
+                    break;
+                case DSACryptoServiceProvider _:
+                    keyContainer = ((DSACryptoServiceProvider)privateKey).CspKeyContainerInfo.KeyContainerName;
+                    provName = ((DSACryptoServiceProvider)privateKey).CspKeyContainerInfo.ProviderName;
+                    provType = (UInt32) ((DSACryptoServiceProvider)privateKey).CspKeyContainerInfo.ProviderType;
+                    break;
+                default:
+                    privateKey.Dispose();
+                    return false;
+            }
+            IntPtr phProv = IntPtr.Zero;
+            var status = AdvAPI.CryptAcquireContext(
+                ref phProv,
+                keyContainer,
+                provName,
+                provType,
+                Wincrypt.CRYPT_DELETEKEYSET);
+            privateKey.Dispose();
+            return status;
+        }
+        static Boolean deleteCngKey(SafeNCryptKeyHandle phKey) {
+            var hresult = nCrypt.NCryptDeleteKey(phKey, 0);
+            phKey.Dispose();
+            return hresult == 0;
         }
     }
 }
