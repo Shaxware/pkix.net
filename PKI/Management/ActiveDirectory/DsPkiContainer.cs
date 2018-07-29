@@ -54,9 +54,16 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// Gets an instance of <see cref="DirectoryEntry"/> object associated with a current PKI container.
         /// </summary>
         protected DirectoryEntry BaseEntry { get; set; }
-
-        protected DirectoryEntry AddChild(String name, String dsObjectClass, String cdpContainer = null) {
-            DirectoryEntry entry = BaseEntry.Children.Add(name, dsObjectClass);
+        /// <summary>
+        /// Adds new entry under specified or current container.
+        /// </summary>
+        /// <param name="entry">Specifies the optional entry parent. If it is null, current DS object is used.</param>
+        /// <param name="name">Specifies the name for new child.</param>
+        /// <param name="dsObjectClass">Specifies the DS object class for new child.</param>
+        /// <returns>Added child DS object.</returns>
+        protected DirectoryEntry AddChild(DirectoryEntry entry, String name, String dsObjectClass) {
+            var parentEntry = entry ?? BaseEntry;
+            entry = parentEntry.Children.Add(name, dsObjectClass);
             entry.Properties["cn"].Add(name.Replace("CN=", null));
             switch (dsObjectClass.ToLower()) {
                 case "certificationauthority":
@@ -64,6 +71,9 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                     break;
                 case "mspki-privatekeyrecoveryagent":
                     fillKRAMandatoryAttributes(entry);
+                    break;
+                case "crldistributionpoint":
+                    fillCRLMandatoryAttributes(entry);
                     break;
             }
             entry.CommitChanges();
@@ -80,6 +90,10 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         static void fillKRAMandatoryAttributes(DirectoryEntry entry) {
             // fill mandatory properties: [MS-ADSC] §2.170 https://msdn.microsoft.com/en-us/library/cc221673.aspx
             entry.Properties["userCertificate"].Add(new Byte[] { 0 });
+        }
+        static void fillCRLMandatoryAttributes(DirectoryEntry entry) {
+            // fill mandatory properties: [MS-ADSC] §2.28 https://msdn.microsoft.com/en-us/library/cc221829.aspx
+            entry.Properties["certificateRevocationList"].Add(new Byte[] { 0 });
         }
 
 
@@ -144,6 +158,8 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                     return new DsAiaContainer();
                 case DsContainerType.RootCA:
                     return new DsRootCaContainer();
+                case DsContainerType.CDP:
+                    return new DsCDPContainer();
                 case DsContainerType.CertificateTemplates:
                     return new DsCertTemplateContainer();
                 case DsContainerType.KRA:

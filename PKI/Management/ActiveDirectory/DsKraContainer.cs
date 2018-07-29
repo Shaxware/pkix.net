@@ -84,7 +84,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 // if no such entry exists, create it.
                 DirectoryEntry dsEntry = DirectoryEntry.Exists($"LDAP://CN={name},{DsPath}")
                     ? new DirectoryEntry($"LDAP://CN={name},{DsPath}")
-                    : AddChild($"CN={name}", dsObjectClass);
+                    : AddChild(null, $"CN={name}", dsObjectClass);
                 // if we elected to delete empty entries --> check them
                 if (forceDelete && CheckDelete(dsEntry, name)) {
                     continue;

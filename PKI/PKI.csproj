@@ -76,6 +76,8 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cryptography\X509Certificates\X509PublishedCRLLocationsExtension.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCDPContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsCertEnrollContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsCertTemplateContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsRootCaContainer.cs" />

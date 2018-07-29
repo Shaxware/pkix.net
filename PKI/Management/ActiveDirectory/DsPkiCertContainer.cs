@@ -152,11 +152,10 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             if (entry == null) {
                 throw new ArgumentNullException(nameof(entry));
             }
-            if (_list.Contains(entry)) { return false; }
+            if (!_list.Add(entry)) { return false; }
             // mutually exclusive. entry cannot be added and removed at the same time.
             _toBeAdded.Add(entry.Name);
             _toBeRemoved.Remove(entry.Name);
-            _list.Add(entry);
             if (DsList.ContainsKey(entry.Name)) {
                 DsList[entry.Name].Add(entry);
             } else {

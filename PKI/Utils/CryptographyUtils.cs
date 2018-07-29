@@ -32,6 +32,8 @@ namespace PKI.Utils {
                     return new X509ApplicationPolicyMappingsExtension(asndata);
                 case X509CertExtensions.X509ApplicationPolicyConstraints:
                     return new X509ApplicationPolicyConstraintsExtension(asndata);
+                case X509CertExtensions.X509PublishedCRLLocations:
+                    return new X509PublishedCRLLocationsExtension(asndata, extension.Critical);
                 case X509CertExtensions.X509AuthorityInformationAccess:
                     return new X509AuthorityInformationAccessExtension(asndata, extension.Critical);
                 case X509CertExtensions.X509OcspNonce:
