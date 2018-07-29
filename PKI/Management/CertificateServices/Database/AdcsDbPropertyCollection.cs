@@ -2,12 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace PKI.CertificateServices.DB {
+namespace SysadminsLV.PKI.Management.CertificateServices.Database {
     /// <summary>
     /// Contains a collection of ADCS database entry properties.
     /// </summary>
     public class AdcsDbPropertyCollection : IDictionary<String, Object> {
-        readonly IDictionary<String, Object> _dictionary = new Dictionary<String, Object>();
+        readonly IDictionary<String, Object> _dictionary = new Dictionary<String, Object>(StringComparer.InvariantCultureIgnoreCase);
         /// <summary>
         /// Returns an enumerator that iterates through the collection.
         /// </summary>

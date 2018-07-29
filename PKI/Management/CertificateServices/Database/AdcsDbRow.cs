@@ -1,5 +1,4 @@
 ﻿using System;
-using PKI.CertificateServices.DB;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Database {
     /// <summary>
