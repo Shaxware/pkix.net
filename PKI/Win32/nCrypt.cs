@@ -76,6 +76,12 @@ namespace SysadminsLV.PKI.Win32 {
             [Out] out UInt32 pcbResult,
             [In]              UInt32 dwFlags
         );
+        [DllImport("ncrypt.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        internal static extern Int32 NCryptDeleteKey(
+            [In] SafeNCryptKeyHandle hKey,
+            [In] UInt32 dwFlags
+        );
+
         // for ECDSA
         [DllImport("ncrypt.dll", SetLastError = true)]
         public static extern Int32 NCryptSignHash(
