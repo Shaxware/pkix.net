@@ -34,6 +34,17 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             AsnEncodedData encodedKey = new AsnEncodedData(pubKeyOid, new Asn1BitString(asn.GetTagRawData()).Value.ToArray());
             return new PublicKey(pubKeyOid, encodedParams, encodedKey);
         }
+        public static Byte[] Encode(this PublicKey publicKey) {
+            var rawData = new List<Byte>();
+            rawData.AddRange(new Asn1ObjectIdentifier(publicKey.Oid.Value).RawData);
+            rawData.AddRange(publicKey.EncodedParameters.RawData);
+            rawData.InsertRange(0, Asn1Utils.GetLengthBytes(rawData.Count));
+            rawData.Insert(0, 48);
+            rawData.AddRange(new Asn1BitString(publicKey.EncodedKeyValue.RawData, false).RawData);
+            return Asn1Utils.Encode(rawData.ToArray(), 48);
+        }
+
+
         public static String Format(this PublicKey publicKey) {
             StringBuilder sb = new StringBuilder();
             String keyParamsString = "";

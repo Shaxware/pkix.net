@@ -5,6 +5,7 @@ using PKI.Exceptions;
 using PKI.ManagedAPI;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography;
 using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Tools.MessageOperations;
@@ -150,9 +151,9 @@ namespace System.Security.Cryptography.X509Certificates {
                 if (!asn.MoveNextCurrentLevel()) { throw new Asn1InvalidTagException(); }
                 switch (asn.Tag) {
                     case (Byte)Asn1Type.UTCTime:
-                        ThisUpdate = Asn1Utils.DecodeUTCTime(asn.GetTagRawData());
+                        ThisUpdate = new Asn1UtcTime(asn.GetTagRawData()).Value;
                         break;
-                    case (Byte)Asn1Type.Generalizedtime:
+                    case (Byte)Asn1Type.GeneralizedTime:
                         ThisUpdate = Asn1Utils.DecodeGeneralizedTime(asn.GetTagRawData());
                         break;
                     default:
@@ -161,12 +162,12 @@ namespace System.Security.Cryptography.X509Certificates {
                 if (!asn.MoveNextCurrentLevel()) { return; }
                 switch (asn.Tag) {
                     case (Byte)Asn1Type.UTCTime:
-                    case (Byte)Asn1Type.Generalizedtime:
+                    case (Byte)Asn1Type.GeneralizedTime:
                         switch (asn.Tag) {
                             case (Byte)Asn1Type.UTCTime:
-                                NextUpdate = Asn1Utils.DecodeUTCTime(asn.GetTagRawData());
+                                NextUpdate = new Asn1UtcTime(asn.GetTagRawData()).Value;
                                 break;
-                            case (Byte)Asn1Type.Generalizedtime:
+                            case (Byte)Asn1Type.GeneralizedTime:
                                 NextUpdate = Asn1Utils.DecodeGeneralizedTime(asn.GetTagRawData());
                                 break;
                             default:

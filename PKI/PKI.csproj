@@ -76,6 +76,8 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cryptography\X509Certificates\X509CertificateBuilder.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509PrivateKeyBuilder.cs" />
     <Compile Include="Cryptography\X509Certificates\X509PublishedCRLLocationsExtension.cs" />
     <Compile Include="Management\ActiveDirectory\DsCDPContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsCertEnrollContainer.cs" />
@@ -319,6 +321,7 @@
     <Content Include="_ExternalReferences\Interop.CERTCLILib.dll" />
     <Content Include="_ExternalReferences\Interop.CERTENROLLLib.dll" />
     <Content Include="_ExternalReferences\SysadminsLV.Asn1Parser.dll" />
+    <Content Include="_ExternalReferences\SysadminsLV.Asn1Parser.XML" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

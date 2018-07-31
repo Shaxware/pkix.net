@@ -4,6 +4,7 @@ using System.Text;
 using PKI.Exceptions;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -142,9 +143,9 @@ namespace System.Security.Cryptography.X509Certificates {
             asn.MoveNext();
             SerialNumber = Asn1Utils.DecodeInteger(asn.GetTagRawData(), true);
             asn.MoveNext();
-            if (asn.Tag != (Byte)Asn1Type.UTCTime && asn.Tag != (Byte)Asn1Type.Generalizedtime) { throw new Asn1InvalidTagException(asn.Offset); }
-            if (asn.Tag == (Byte)Asn1Type.UTCTime) { RevocationDate = Asn1Utils.DecodeUTCTime(asn.GetTagRawData()); }
-            if (asn.Tag == (Byte)Asn1Type.Generalizedtime) { RevocationDate = Asn1Utils.DecodeGeneralizedTime(asn.GetTagRawData()); }
+            if (asn.Tag != (Byte)Asn1Type.UTCTime && asn.Tag != (Byte)Asn1Type.GeneralizedTime) { throw new Asn1InvalidTagException(asn.Offset); }
+            if (asn.Tag == (Byte)Asn1Type.UTCTime) { RevocationDate = new Asn1UtcTime(asn.GetTagRawData()).Value; }
+            if (asn.Tag == (Byte)Asn1Type.GeneralizedTime) { RevocationDate = Asn1Utils.DecodeGeneralizedTime(asn.GetTagRawData()); }
             if (asn.MoveNext()) {
                 var extensions = new X509ExtensionCollection();
                 extensions.Decode(asn.GetTagRawData());
