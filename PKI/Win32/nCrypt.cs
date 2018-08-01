@@ -46,8 +46,8 @@ namespace SysadminsLV.PKI.Win32 {
         );
         [DllImport("ncrypt.dll", SetLastError = true)]
         public static extern Int32 NCryptOpenKey(
-            [In] IntPtr hProvider,
-            [In, Out] ref IntPtr phKey,
+            [In] SafeNCryptProviderHandle hProvider,
+            [Out] out SafeNCryptKeyHandle phKey,
             [MarshalAs(UnmanagedType.LPWStr)] [In] String pszKeyName,
             [In] UInt32 dwLegacyKeySpec,
             [In] UInt32 dwFlags

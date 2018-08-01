@@ -54,7 +54,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         // generates SKI and optionally AKI
         void generateKeyIdentifiers(X509Certificate2 signer) {
             using (var hasher = SHA1.Create()) {
-                var hash = hasher.ComputeHash(PrivateKeyInfo.ExportPublicKey().EncodedKeyValue.RawData);
+                var hash = hasher.ComputeHash(PrivateKeyInfo.GetPublicKey().EncodedKeyValue.RawData);
                 var ext = new X509SubjectKeyIdentifierExtension(hash, false);
                 _extensions.Add(ext);
             }

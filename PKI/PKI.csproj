@@ -76,6 +76,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cryptography\IKeyInfo.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateBuilder.cs" />
     <Compile Include="Cryptography\X509Certificates\X509PrivateKeyBuilder.cs" />
     <Compile Include="Cryptography\X509Certificates\X509PublishedCRLLocationsExtension.cs" />

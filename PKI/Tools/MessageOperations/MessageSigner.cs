@@ -12,6 +12,7 @@ using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 using SysadminsLV.PKI.Win32;
 
@@ -31,8 +32,46 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         SafeNCryptKeyHandle phPubKey = new SafeNCryptKeyHandle();
         KeyType keyType;
         AsymmetricAlgorithm legacyKey;
+        readonly IKeyStorageInfo _keyInfo;
 
         MessageSigner() { }
+        MessageSigner(Oid2 hashAlgorithm, PublicKey pubKey) {
+            if (hashAlgorithm.OidGroup == OidGroupEnum.SignatureAlgorithm) {
+                mapSignatureAlgorithmToHashAlgorithm(hashAlgorithm.Value, null);
+            } else {
+                HashingAlgorithm = hashAlgorithm;
+            }
+            switch (pubKey.Oid.Value) {
+                case AlgorithmOids.RSA:
+                    switch (hashAlgorithm.Value) {
+                        case AlgorithmOids.MD5: // md5
+                            PssSaltByteCount = 16;
+                            break;
+                        case AlgorithmOids.SHA1: // sha1
+                            PssSaltByteCount = 20;
+                            break;
+                        case AlgorithmOids.SHA256: // sha256
+                            PssSaltByteCount = 32;
+                            break;
+                        case AlgorithmOids.SHA384: // sha384
+                            PssSaltByteCount = 48;
+                            break;
+                        case AlgorithmOids.SHA512: // sha512
+                            PssSaltByteCount = 64;
+                            break;
+                    }
+                    break;
+                case AlgorithmOids.DSA:
+                    // force SHA1 for DSA keys
+                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
+                    break;
+            }
+        }
+        internal MessageSigner(X509PrivateKeyBuilder keyBuilder, Oid2 hashAlgorithm)
+            : this(hashAlgorithm, keyBuilder.GetPublicKey()) {
+            _keyInfo = keyBuilder;
+        }
+        
         /// <summary>
         /// Initializes a new instance of the <strong>MessageSigner</strong> class from signer certificate and
         /// default hash algorithm. Default hash algorithm is SHA256.
@@ -76,43 +115,13 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         /// </list>
         /// Hash algorithm is ignored for DSA keys and is automatically set to 'SHA1'.
         /// </remarks>
-        public MessageSigner(X509Certificate2 signer, Oid2 hashAlgorithm) {
+        public MessageSigner(X509Certificate2 signer, Oid2 hashAlgorithm) : this(hashAlgorithm, signer.PublicKey) {
             if (signer == null) { throw new ArgumentNullException(nameof(signer)); }
             if (hashAlgorithm == null) { throw new ArgumentNullException(nameof(hashAlgorithm)); }
             if (IntPtr.Zero.Equals(signer.Handle)) { throw new UninitializedObjectException(); }
 
-            if (hashAlgorithm.OidGroup == OidGroupEnum.SignatureAlgorithm) {
-                mapSignatureAlgorithmToHashAlgorithm(hashAlgorithm.Value, null);
-            } else {
-                HashingAlgorithm = hashAlgorithm;
-            }
             SignerCertificate = signer;
-
-            switch (SignerCertificate.PublicKey.Oid.Value) {
-                case AlgorithmOids.RSA:
-                    switch (hashAlgorithm.Value) {
-                        case AlgorithmOids.MD5: // md5
-                            PssSaltByteCount = 16;
-                            break;
-                        case AlgorithmOids.SHA1: // sha1
-                            PssSaltByteCount = 20;
-                            break;
-                        case AlgorithmOids.SHA256: // sha256
-                            PssSaltByteCount = 32;
-                            break;
-                        case AlgorithmOids.SHA384: // sha384
-                            PssSaltByteCount = 48;
-                            break;
-                        case AlgorithmOids.SHA512: // sha512
-                            PssSaltByteCount = 64;
-                            break;
-                    }
-                    break;
-                case AlgorithmOids.DSA:
-                    // force SHA1 for DSA keys
-                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
-                    break;
-            }
+            PublicKeyAlgorithm = signer.PublicKey.Oid;
             acquirePublicKey(SignerCertificate.PublicKey);
         }
 
@@ -120,6 +129,10 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         /// Gets the certificate associated with the current instance of 
         /// </summary>
         public X509Certificate2 SignerCertificate { get; private set; }
+        /// <summary>
+        /// Gets public key algorithm.
+        /// </summary>
+        public Oid PublicKeyAlgorithm { get; private set; }
         /// <summary>
         /// Gets hashing algorithm that is used to calculate the hash during signing or signature verification
         /// processes.
@@ -257,15 +270,57 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         Boolean checkPublicKeyIsLoaded() {
             return !phPubKey.IsInvalid;
         }
+
         void acquirePrivateKey() {
             if (disposed) {
-                throw new ObjectDisposedException(nameof(SignerCertificate));
+                throw new ObjectDisposedException("PrivateKey");
             }
             // the key is already acquired, so skip key retrieval
             if (checkPrivateKeyIsLoaded()) { return; }
+
+            if (_keyInfo != null) {
+                acquirePrivateKeyFromKeyBuilder();
+            } else if (SignerCertificate != null) {
+                acquirePrivateKeyFromCert();
+            } else {
+                throw new CryptographicException("Private key source cannot found.");
+            }
+        }
+        void acquirePrivateKeyFromKeyBuilder() {
+            Int32 hresult = nCrypt.NCryptOpenStorageProvider(out SafeNCryptProviderHandle phProv, _keyInfo.ProviderName, 0);
+            if (hresult != 0) {
+                openLegacyPrivateKey();
+                return;
+            }
+            hresult = nCrypt.NCryptOpenKey(phProv, out phPrivKey, _keyInfo.KeyContainerName, 0, 0);
+            if (hresult != 0) {
+                throw new CryptographicException("Private key cannot be found.");
+            }
+            isCng = true;
+        }
+        void openLegacyPrivateKey() {
+            var cspParams = new CspParameters(_keyInfo.ProviderType, _keyInfo.ProviderName, _keyInfo.KeyContainerName);
+            switch (_keyInfo.PublicKeyAlgorithm.Value) {
+                case AlgorithmOids.RSA:
+                    legacyKey = new RSACryptoServiceProvider(cspParams);
+                    if (((RSACryptoServiceProvider) legacyKey).PublicOnly) {
+                        throw new CryptographicException("Private key cannot be found.");
+                    }
+                    break;
+                case AlgorithmOids.DSA:
+                    legacyKey = new DSACryptoServiceProvider(cspParams);
+                    if (((DSACryptoServiceProvider)legacyKey).PublicOnly) {
+                        throw new CryptographicException("Private key was not found");
+                    }
+                    break;
+                default:
+                    throw new CryptographicException("Key algorithm is not valid.");
+            }
+        }
+        void acquirePrivateKeyFromCert() {
             // the key is not acquired, so attempt to get it
-            UInt32 pdwKeySpec = 0;
-            Boolean pfCallerFreeProv = false;
+            UInt32              pdwKeySpec             = 0;
+            Boolean             pfCallerFreeProv       = false;
             SafeNCryptKeyHandle phCryptProvOrNCryptKey = new SafeNCryptKeyHandle();
             if (!Crypt32.CryptAcquireCertificatePrivateKey(
                 SignerCertificate.Handle,
