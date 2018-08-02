@@ -6,7 +6,7 @@ using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser.Universal;
 
-namespace SysadminsLV.PKI.Cryptography.X509Certificates {
+namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// Represents a managed X.509 private key generator.
     /// </summary>

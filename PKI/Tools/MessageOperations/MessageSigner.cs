@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Win32.SafeHandles;
+using PKI.Cryptography;
 using PKI.Exceptions;
 using PKI.Structs;
 using PKI.Utils;
