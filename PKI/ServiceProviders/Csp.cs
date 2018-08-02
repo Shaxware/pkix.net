@@ -107,7 +107,7 @@ namespace PKI.ServiceProviders {
             Hashtable interfaces = get_interfaces();
             CspCNGCollection csps = new CspCNGCollection();
 
-            Int32 retn = nCrypt.NCryptEnumStorageProviders(ref pImplCount, ref ppImplList, 0);
+            Int32 retn = NCrypt.NCryptEnumStorageProviders(ref pImplCount, ref ppImplList, 0);
             if (retn != 0) {
                 throw new Win32Exception(unchecked((Int32)retn));
             }
@@ -119,14 +119,14 @@ namespace PKI.ServiceProviders {
                 SB.Append(Name.pszName + ",");
             }
             String[] names = SB.ToString().Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            nCrypt.NCryptFreeBuffer(pvInput);
+            NCrypt.NCryptFreeBuffer(pvInput);
             foreach (String pszProviderName in names) {
                 ALG_ID_CNGCollection algs = new ALG_ID_CNGCollection();
-                retn = nCrypt.NCryptOpenStorageProvider(out SafeNCryptProviderHandle phProvider, pszProviderName, 0);
+                retn = NCrypt.NCryptOpenStorageProvider(out SafeNCryptProviderHandle phProvider, pszProviderName, 0);
                 if (retn == 0) {
                     Int32 pdwAlgCount = 0;
                     IntPtr ppAlgList = IntPtr.Zero;
-                    retn = nCrypt.NCryptEnumAlgorithms(phProvider, 0, ref pdwAlgCount, ref ppAlgList, 0);
+                    retn = NCrypt.NCryptEnumAlgorithms(phProvider, 0, ref pdwAlgCount, ref ppAlgList, 0);
                     if (retn != 0) {
                         throw new Win32Exception(unchecked((Int32)retn));
                     }
@@ -137,7 +137,7 @@ namespace PKI.ServiceProviders {
                         algs.Add(get_cngalgparams(AlgId, interfaces));
                         ppAlgList = (IntPtr)((UInt64)ppAlgList + (UInt32)Marshal.SizeOf(typeof(nCrypt2.NCryptAlgorithmName)));
                     }
-                    nCrypt.NCryptFreeBuffer(pvInput);
+                    NCrypt.NCryptFreeBuffer(pvInput);
                 }
                 csps.Add(new CspCNG(pszProviderName, String.Empty, algs));
             }

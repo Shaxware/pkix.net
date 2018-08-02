@@ -34,6 +34,12 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             AsnEncodedData encodedKey = new AsnEncodedData(pubKeyOid, new Asn1BitString(asn.GetTagRawData()).Value.ToArray());
             return new PublicKey(pubKeyOid, encodedParams, encodedKey);
         }
+        /// <summary>
+        /// Encodes public key to a ASN.1 compatible format that includes key algorithm, key algorithm parameters
+        /// and encoded key value.
+        /// </summary>
+        /// <param name="publicKey"></param>
+        /// <returns>ASN.1 encoded byte array.</returns>
         public static Byte[] Encode(this PublicKey publicKey) {
             var rawData = new List<Byte>();
             rawData.AddRange(new Asn1ObjectIdentifier(publicKey.Oid.Value).RawData);

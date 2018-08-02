@@ -156,25 +156,25 @@ namespace PKI.Utils {
             SafeNCryptKeyHandle phCryptProv = new SafeNCryptKeyHandle();
             UInt32 pdwKeySpec = 0;
             Boolean pfCallerFreeProv = false;
-            if (!Crypt32.CryptAcquireCertificatePrivateKey(certificate.Handle, Wincrypt.CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG, IntPtr.Zero, ref phCryptProv, ref pdwKeySpec, ref pfCallerFreeProv)) {
+            if (!Crypt32.CryptAcquireCertificatePrivateKey(certificate.Handle, Wincrypt.CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG, IntPtr.Zero, out phCryptProv, out pdwKeySpec, out pfCallerFreeProv)) {
                 throw new CryptographicException(Marshal.GetLastWin32Error());
             }
             // true -> CNG, false -> legacy
             if (pdwKeySpec == UInt32.MaxValue) {
                 Byte[] hashBytes = calculateHash(message, hashAlgorithm.FriendlyName, false);
                 try {
-                    Int32 hresult = nCrypt.NCryptSignHash(phCryptProv, IntPtr.Zero, hashBytes, hashBytes.Length, null, 0, out Int32 pcbResult, 0);
+                    Int32 hresult = NCrypt.NCryptSignHash(phCryptProv, IntPtr.Zero, hashBytes, hashBytes.Length, null, 0, out Int32 pcbResult, 0);
                     if (hresult != 0) {
                         throw new CryptographicException(hresult);
                     }
                     Byte[] pbSignature = new byte[pcbResult];
-                    hresult = nCrypt.NCryptSignHash(phCryptProv, IntPtr.Zero, hashBytes, hashBytes.Length, pbSignature, pbSignature.Length, out pcbResult, 0);
+                    hresult = NCrypt.NCryptSignHash(phCryptProv, IntPtr.Zero, hashBytes, hashBytes.Length, pbSignature, pbSignature.Length, out pcbResult, 0);
                     if (hresult != 0) {
                         throw new CryptographicException(hresult);
                     }
                     return pbSignature;
                 } finally {
-                    if (pfCallerFreeProv) { nCrypt.NCryptFreeObject(phCryptProv.DangerousGetHandle()); }
+                    if (pfCallerFreeProv) { NCrypt.NCryptFreeObject(phCryptProv.DangerousGetHandle()); }
                 }
             }
             if (pfCallerFreeProv) { AdvAPI.CryptReleaseContext(phCryptProv.DangerousGetHandle(), 0); }

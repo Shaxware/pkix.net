@@ -105,7 +105,7 @@ namespace SysadminsLV.PKI.Cryptography {
         /// <param name="signerInfo">Configured message signer object which is used to sign the data.</param>
         public void Sign(MessageSigner signerInfo) {
             var signature = signerInfo.SignData(ToBeSignedData).ToList();
-            if (signerInfo.SignerCertificate.PublicKey.Oid.Value == AlgorithmOids.RSA) {
+            if (signerInfo.PublicKeyAlgorithm.Value == AlgorithmOids.RSA) {
                 signature.Insert(0, 0);
                 Signature = new Asn1BitString(Asn1Utils.Encode(signature.ToArray(), 3));
             } else {

@@ -157,16 +157,13 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
         /// <strong>True</strong> if associated private key was found and successully deleted, otherwise <strong>False</strong>.
         /// </returns>
         public static Boolean DeletePrivateKey(this X509Certificate2 cert) {
-            UInt32              pdwKeySpec             = 0;
-            Boolean             pfCallerFreeProv       = false;
-            SafeNCryptKeyHandle phCryptProvOrNCryptKey = new SafeNCryptKeyHandle();
             if (!Crypt32.CryptAcquireCertificatePrivateKey(
                 cert.Handle,
                 Wincrypt.CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
                 IntPtr.Zero,
-                ref phCryptProvOrNCryptKey,
-                ref pdwKeySpec,
-                ref pfCallerFreeProv)) { return false; }
+                out SafeNCryptKeyHandle phCryptProvOrNCryptKey,
+                out UInt32 pdwKeySpec,
+                out Boolean _)) { return false; }
             return pdwKeySpec == UInt32.MaxValue
                 ? deleteCngKey(phCryptProvOrNCryptKey)
                 : deleteLegacyKey(cert.PrivateKey);
@@ -202,7 +199,7 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             return status;
         }
         static Boolean deleteCngKey(SafeNCryptKeyHandle phKey) {
-            var hresult = nCrypt.NCryptDeleteKey(phKey, 0);
+            var hresult = NCrypt.NCryptDeleteKey(phKey, 0);
             phKey.Dispose();
             return hresult == 0;
         }

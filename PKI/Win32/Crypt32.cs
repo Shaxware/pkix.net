@@ -259,18 +259,9 @@ namespace SysadminsLV.PKI.Win32 {
             [In]            IntPtr pCert,
             [In]            UInt32 dwFlags,
             [In, Optional]  IntPtr pvReserved,
-            [In, Out]ref IntPtr phCryptProv,
-            [In, Out]ref UInt32 pdwKeySpec,
-            [In, Out]ref Boolean pfCallerFreeProv
-        );
-        [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern Boolean CryptAcquireCertificatePrivateKey(
-            [In]            IntPtr pCert,
-            [In]            UInt32 dwFlags,
-            [In, Optional]  IntPtr pvReserved,
-            [In, Out] ref SafeNCryptKeyHandle phCryptProv,
-            [In, Out] ref UInt32 pdwKeySpec,
-            [In, Out] ref Boolean pfCallerFreeProv
+            [Out] out SafeNCryptKeyHandle phCryptProv,
+            [Out] out UInt32 pdwKeySpec,
+            [Out] out Boolean pfCallerFreeProv
         );
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern Boolean PFXIsPFXBlob(

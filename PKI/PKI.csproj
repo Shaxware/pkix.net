@@ -227,6 +227,7 @@
     <Compile Include="ManagedAPI\CryptEncoding.cs" />
     <Compile Include="ManagedAPI\ManagedCrypt32.cs" />
     <Compile Include="ManagedAPI\ManagedCryptUI.cs" />
+    <Compile Include="Win32\NCrypt.cs" />
     <Compile Include="Win32\Netapi32.cs" />
     <Compile Include="OCSP\Server\OcspRolesEnum.cs" />
     <Compile Include="OCSP\CertificateStatus.cs" />
@@ -309,7 +310,6 @@
     <Compile Include="Cryptography\X509Certificates\X509EncodingType.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CRLEntry.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CRL2.cs" />
-    <Compile Include="Win32\nCrypt.cs" />
     <Compile Include="Win32\CertAdm.cs" />
     <Compile Include="Win32\Kernel32.cs" />
     <Compile Include="Win32\Cryptnet.cs" />

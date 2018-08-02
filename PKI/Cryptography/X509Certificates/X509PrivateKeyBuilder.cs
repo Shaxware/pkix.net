@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using CERTENROLLLib;
 using PKI.Structs;
 using PKI.Utils;
+using SysadminsLV.Asn1Parser.Universal;
 
 namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// <summary>
@@ -65,9 +66,10 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// this flag is set to <strong>False</strong> and cannot be modified.
         /// </summary>
         public Boolean Exportable {
-            get => keyGen.ExportPolicy == X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_EXPORT_FLAG;
+            get => keyGen.ExportPolicy == X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_EXPORT_FLAG
+                   || keyGen.ExportPolicy == X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG;
             set => keyGen.ExportPolicy = value
-                ? X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_EXPORT_FLAG
+                ? X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_EXPORT_FLAG | X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG
                 : X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_EXPORT_NONE;
 
         }
@@ -101,8 +103,16 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             Oid algorithm = PublicKeyAlgorithm.FriendlyName.StartsWith("EC", StringComparison.OrdinalIgnoreCase)
                 ? new Oid(AlgorithmOids.ECC)
                 : PublicKeyAlgorithm;
-            var key = new AsnEncodedData(algorithm, Convert.FromBase64String(keyGen.ExportPublicKey().EncodedKey));
-            var param = new AsnEncodedData(algorithm, Convert.FromBase64String(keyGen.ExportPublicKey().EncodedParameters));
+            CX509PublicKey pubKey = keyGen.ExportPublicKey();
+            var key = new AsnEncodedData(algorithm, Convert.FromBase64String(pubKey.EncodedKey));
+            Byte[] paramBytes;
+            try {
+                paramBytes = Convert.FromBase64String(pubKey.EncodedParameters);
+            } catch {
+                paramBytes = new Asn1Null().RawData;
+            }
+            var param = new AsnEncodedData(algorithm, paramBytes);
+            CryptographyUtils.ReleaseCom(pubKey);
             return new PublicKey(algorithm, param, key);
         }
         /// <summary>
@@ -120,7 +130,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         public void Delete() {
             keyGen.Delete();
         }
-        
+
         #region IDisposable
         void releaseUnmanagedResources() {
             if (keyGen.Opened) {

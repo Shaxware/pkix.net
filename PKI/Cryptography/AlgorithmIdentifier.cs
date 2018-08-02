@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace SysadminsLV.PKI.Cryptography {
@@ -68,7 +69,7 @@ namespace SysadminsLV.PKI.Cryptography {
             RawData = rawData;
         }
         void m_encode(Oid oid, Byte[] parameters) {
-            Parameters = parameters;
+            Parameters = parameters ?? new Asn1Null().RawData;
             AlgorithmId = oid;
             List<Byte> rawBytes = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(oid));
             rawBytes.AddRange(Parameters);

@@ -36,12 +36,14 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
 
         MessageSigner() { }
         MessageSigner(Oid2 hashAlgorithm, PublicKey pubKey) {
+            PublicKeyAlgorithm = pubKey.Oid;
+            acquirePublicKey(pubKey);
             if (hashAlgorithm.OidGroup == OidGroupEnum.SignatureAlgorithm) {
                 mapSignatureAlgorithmToHashAlgorithm(hashAlgorithm.Value, null);
             } else {
                 HashingAlgorithm = hashAlgorithm;
             }
-            switch (pubKey.Oid.Value) {
+            switch (PublicKeyAlgorithm.Value) {
                 case AlgorithmOids.RSA:
                     switch (hashAlgorithm.Value) {
                         case AlgorithmOids.MD5: // md5
@@ -116,13 +118,17 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         /// Hash algorithm is ignored for DSA keys and is automatically set to 'SHA1'.
         /// </remarks>
         public MessageSigner(X509Certificate2 signer, Oid2 hashAlgorithm) : this(hashAlgorithm, signer.PublicKey) {
-            if (signer == null) { throw new ArgumentNullException(nameof(signer)); }
-            if (hashAlgorithm == null) { throw new ArgumentNullException(nameof(hashAlgorithm)); }
-            if (IntPtr.Zero.Equals(signer.Handle)) { throw new UninitializedObjectException(); }
+            if (signer == null) {
+                throw new ArgumentNullException(nameof(signer));
+            }
+            if (hashAlgorithm == null) {
+                throw new ArgumentNullException(nameof(hashAlgorithm));
+            }
+            if (IntPtr.Zero.Equals(signer.Handle)) {
+                throw new UninitializedObjectException();
+            }
 
             SignerCertificate = signer;
-            PublicKeyAlgorithm = signer.PublicKey.Oid;
-            acquirePublicKey(SignerCertificate.PublicKey);
         }
 
         /// <summary>
@@ -287,14 +293,14 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             }
         }
         void acquirePrivateKeyFromKeyBuilder() {
-            Int32 hresult = nCrypt.NCryptOpenStorageProvider(out SafeNCryptProviderHandle phProv, _keyInfo.ProviderName, 0);
+            Int32 hresult = NCrypt.NCryptOpenStorageProvider(out SafeNCryptProviderHandle phProv, _keyInfo.ProviderName, 0);
             if (hresult != 0) {
                 openLegacyPrivateKey();
                 return;
             }
-            hresult = nCrypt.NCryptOpenKey(phProv, out phPrivKey, _keyInfo.KeyContainerName, 0, 0);
+            hresult = NCrypt.NCryptOpenKey(phProv, out phPrivKey, _keyInfo.KeyContainerName, 0, 0);
             if (hresult != 0) {
-                throw new CryptographicException("Private key cannot be found.");
+                throw new CryptographicException(hresult);
             }
             isCng = true;
         }
@@ -303,7 +309,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             switch (_keyInfo.PublicKeyAlgorithm.Value) {
                 case AlgorithmOids.RSA:
                     legacyKey = new RSACryptoServiceProvider(cspParams);
-                    if (((RSACryptoServiceProvider) legacyKey).PublicOnly) {
+                    if (((RSACryptoServiceProvider)legacyKey).PublicOnly) {
                         throw new CryptographicException("Private key cannot be found.");
                     }
                     break;
@@ -319,16 +325,13 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         }
         void acquirePrivateKeyFromCert() {
             // the key is not acquired, so attempt to get it
-            UInt32              pdwKeySpec             = 0;
-            Boolean             pfCallerFreeProv       = false;
-            SafeNCryptKeyHandle phCryptProvOrNCryptKey = new SafeNCryptKeyHandle();
             if (!Crypt32.CryptAcquireCertificatePrivateKey(
                 SignerCertificate.Handle,
                 Wincrypt.CRYPT_ACQUIRE_ALLOW_NCRYPT_KEY_FLAG,
                 IntPtr.Zero,
-                ref phCryptProvOrNCryptKey,
-                ref pdwKeySpec,
-                ref pfCallerFreeProv)) {
+                out SafeNCryptKeyHandle phCryptProvOrNCryptKey,
+                out UInt32 pdwKeySpec,
+                out Boolean _)) {
                 throw new CryptographicException(Marshal.GetLastWin32Error());
             }
             if (pdwKeySpec == UInt32.MaxValue) {
@@ -358,13 +361,13 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
 
             // regardless of public key algorithm and provider, load public keys to CNG provider for unification
             // and wider signature formats and padding support.
-            Int32 hresult = nCrypt.NCryptOpenStorageProvider(out SafeNCryptProviderHandle phProvider, MSFT_KSP_NAME, 0);
+            Int32 hresult = NCrypt.NCryptOpenStorageProvider(out SafeNCryptProviderHandle phProvider, MSFT_KSP_NAME, 0);
             if (hresult != 0) {
                 throw new CryptographicException(hresult);
             }
 
             Byte[] blob = publicKey.GetCryptBlob();
-            hresult = nCrypt.NCryptImportKey(phProvider, IntPtr.Zero, "PUBLICBLOB", IntPtr.Zero, out phPubKey, blob,
+            hresult = NCrypt.NCryptImportKey(phProvider, IntPtr.Zero, "PUBLICBLOB", IntPtr.Zero, out phPubKey, blob,
                 blob.Length, 0);
             if (hresult != 0) {
                 throw new CryptographicException(hresult);
@@ -372,7 +375,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         }
         void getCngHandleFromLegacy(SafeHandle phCryptProvOrNCryptKey) {
             // attempt to translate legacy HCRYPTPROV handle to CNG key handle
-            Int32 hresult = nCrypt.NCryptTranslateHandle(
+            Int32 hresult = NCrypt.NCryptTranslateHandle(
                 IntPtr.Zero,
                 out SafeNCryptKeyHandle cngKey,
                 phCryptProvOrNCryptKey.DangerousGetHandle(),
@@ -478,7 +481,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
 
         // signing with CNG keys
         Byte[] signHashEcDsaCng(Byte[] hash) {
-            Int32 hresult = nCrypt.NCryptSignHash(
+            Int32 hresult = NCrypt.NCryptSignHash(
                 phPrivKey,
                 IntPtr.Zero,
                 hash,
@@ -492,7 +495,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             }
 
             Byte[] pbSignature = new Byte[pcbResult];
-            hresult = nCrypt.NCryptSignHash(
+            hresult = NCrypt.NCryptSignHash(
                 phPrivKey,
                 IntPtr.Zero,
                 hash,
@@ -511,14 +514,14 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             var pad = new nCrypt2.BCRYPT_PKCS1_PADDING_INFO {
                 pszAlgId = HashingAlgorithm.FriendlyName.ToUpper()
             };
-            return signHashCngGeneric(hash, pad, nCrypt.NCryptSignHash);
+            return signHashCngGeneric(hash, pad, NCrypt.NCryptSignHash);
         }
         Byte[] signHashRsaCngPss(Byte[] hash) {
             var pad = new nCrypt2.BCRYPT_PSS_PADDING_INFO {
                 pszAlgId = HashingAlgorithm.FriendlyName.ToUpper(),
                 cbSalt = PssSaltByteCount
             };
-            return signHashCngGeneric(hash, pad, nCrypt.NCryptSignHash);
+            return signHashCngGeneric(hash, pad, NCrypt.NCryptSignHash);
         }
         Byte[] signHashDsaCng(Byte[] hash) {
             return signHashEcDsa(hash);
@@ -543,7 +546,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             return !hash.Where((t, index) => t != signature[index]).Any();
         }
         Boolean verifyHashEcDsa(Byte[] hash, Byte[] signature) {
-            Int32 hresult = nCrypt.NCryptVerifySignature(phPubKey, IntPtr.Zero, hash, hash.Length, signature,
+            Int32 hresult = NCrypt.NCryptVerifySignature(phPubKey, IntPtr.Zero, hash, hash.Length, signature,
                 signature.Length, 0);
             return hresult == 0;
         }
@@ -560,14 +563,14 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             var pad = new nCrypt2.BCRYPT_PKCS1_PADDING_INFO {
                 pszAlgId = HashingAlgorithm.FriendlyName.ToUpper()
             };
-            return verifyHashGeneric(hash, signature, pad, nCrypt.NCryptVerifySignature);
+            return verifyHashGeneric(hash, signature, pad, NCrypt.NCryptVerifySignature);
         }
         Boolean verifyHashRsaPss(Byte[] hash, Byte[] signature) {
             var pad = new nCrypt2.BCRYPT_PSS_PADDING_INFO {
                 pszAlgId = HashingAlgorithm.FriendlyName.ToUpper(),
                 cbSalt = PssSaltByteCount
             };
-            return verifyHashGeneric(hash, signature, pad, nCrypt.NCryptVerifySignature);
+            return verifyHashGeneric(hash, signature, pad, NCrypt.NCryptVerifySignature);
         }
         #endregion
 
@@ -689,9 +692,12 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         /// </param>
         /// <returns>ASN-encoded algorithm identifier.</returns>
         public AlgorithmIdentifier GetAlgorithmIdentifier(Boolean alternate = false) {
+            if (SignatureAlgorithm == null) {
+                getSignatureAlgorithm();
+            }
             Oid algId = SignatureAlgorithm;
             List<Byte> parameters = new List<Byte>();
-            switch (SignerCertificate.PublicKey.Oid.Value) {
+            switch (PublicKeyAlgorithm.Value) {
                 case AlgorithmOids.ECC: // ECDSA
                     if (alternate) {
                         // specifiedECDSA

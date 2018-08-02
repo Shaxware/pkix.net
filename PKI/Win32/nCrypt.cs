@@ -5,7 +5,7 @@ using PKI.Structs;
 using SysadminsLV.PKI.Tools.MessageOperations;
 
 namespace SysadminsLV.PKI.Win32 {
-    static class nCrypt {
+    static class NCrypt {
         [DllImport("ncrypt.dll", SetLastError = true)]
         public static extern Int32 NCryptEnumStorageProviders(
             ref UInt32 pImplCount,

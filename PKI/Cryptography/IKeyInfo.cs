@@ -6,6 +6,7 @@ namespace SysadminsLV.PKI.Cryptography {
         String ProviderName { get; }
         Int32 ProviderType { get; }
         String KeyContainerName { get; }
+        Boolean MachineContext { get; }
         Oid PublicKeyAlgorithm { get; }
     }
 }
