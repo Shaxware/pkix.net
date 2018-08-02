@@ -154,7 +154,7 @@ namespace SysadminsLV.PKI.Win32 {
         public static extern Int32 NCryptTranslateHandle(
             [Out, Optional] IntPtr phProvider,
             [Out] out SafeNCryptKeyHandle phKey,
-            [In] IntPtr hLegacyProv,
+            [In] SafeHandle hLegacyProv,
             [In, Optional] IntPtr hLegacyKey,
             [In, Optional] UInt32 dwLegacyKeySpec,
             [In] Int32 dwFlags

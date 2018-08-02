@@ -378,9 +378,9 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             Int32 hresult = NCrypt.NCryptTranslateHandle(
                 IntPtr.Zero,
                 out SafeNCryptKeyHandle cngKey,
-                phCryptProvOrNCryptKey.DangerousGetHandle(),
+                phCryptProvOrNCryptKey,
                 IntPtr.Zero,
-                (UInt32)X509KeySpecFlags.AT_SIGNATURE,
+                (UInt32)X509KeySpecFlags.AT_NONE,
                 0);
             // release legacy HCRYPTPROV handle
             AdvAPI.CryptReleaseContext(phCryptProvOrNCryptKey.DangerousGetHandle(), 0);

@@ -11,26 +11,26 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// Represents a managed X.509 private key generator.
     /// </summary>
     public class X509PrivateKeyBuilder : IKeyStorageInfo, IDisposable {
-        IX509PrivateKey2 keyGen = new CX509PrivateKeyClass();
+        readonly IX509PrivateKey2 _keyGen = new CX509PrivateKeyClass();
 
         /// <summary>
         /// Gets or sets a legacy cryptographic service provider (CSP) or CNG key storage provider (KSP).
         /// </summary>
         public String ProviderName {
-            get => keyGen.ProviderName;
-            set => keyGen.ProviderName = value;
+            get => _keyGen.ProviderName;
+            set => _keyGen.ProviderName = value;
         }
         /// <summary>
         /// Gets provider type. Provider type is cryptographic service provider family and is used only with legacy
         /// CSP. This member is automatically populated after invoking <see cref="Create"/> method.
         /// </summary>
-        public Int32 ProviderType => (Int32)keyGen.ProviderType;
+        public Int32 ProviderType => (Int32)_keyGen.ProviderType;
         /// <summary>
         /// Gets or sets key container name that is used to store the key material within key provider.
         /// </summary>
         public String KeyContainerName {
-            get => keyGen.ContainerName;
-            set => keyGen.ContainerName = value;
+            get => _keyGen.ContainerName;
+            set => _keyGen.ContainerName = value;
         }
         /// <summary>
         /// Gets or sets public key algorithm. For CNG keys, key and curve name must be used. For example, "ECDSA_P256",
@@ -38,19 +38,19 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// a particular cryptographic service provider (CSP or KSP).
         /// </summary>
         public Oid PublicKeyAlgorithm {
-            get => new Oid(keyGen.Algorithm.Value);
+            get => new Oid(_keyGen.Algorithm.Value);
             set {
                 var coid = new CObjectIdClass();
                 coid.InitializeFromValue(value.Value);
-                keyGen.Algorithm = coid;
+                _keyGen.Algorithm = coid;
             }
         }
         /// <summary>
         /// Gets or sets a value that identifies whether a private key can be used for signing, or encryption, or both.
         /// </summary>
         public X509KeySpecFlags KeySpec {
-            get => (X509KeySpecFlags)keyGen.KeySpec;
-            set => keyGen.KeySpec = (X509KeySpec)value;
+            get => (X509KeySpecFlags)_keyGen.KeySpec;
+            set => _keyGen.KeySpec = (X509KeySpec)value;
         }
         /// <summary>
         /// Gets or sets asymmetric public key length in bits. For ellyptic curve cryptography (ECC), this member
@@ -58,17 +58,17 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// includes key length.
         /// </summary>
         public Int32 KeyLength {
-            get => keyGen.Length;
-            set => keyGen.Length = value;
+            get => _keyGen.Length;
+            set => _keyGen.Length = value;
         }
         /// <summary>
         /// Gets or sets the flag that indicates whether the private key is exportable or not. For hardware providers,
         /// this flag is set to <strong>False</strong> and cannot be modified.
         /// </summary>
         public Boolean Exportable {
-            get => keyGen.ExportPolicy == X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_EXPORT_FLAG
-                   || keyGen.ExportPolicy == X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG;
-            set => keyGen.ExportPolicy = value
+            get => _keyGen.ExportPolicy == X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_EXPORT_FLAG
+                   || _keyGen.ExportPolicy == X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG;
+            set => _keyGen.ExportPolicy = value
                 ? X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_EXPORT_FLAG | X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_PLAINTEXT_EXPORT_FLAG
                 : X509PrivateKeyExportFlags.XCN_NCRYPT_ALLOW_EXPORT_NONE;
 
@@ -77,22 +77,22 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// Gets or sets private key protection options when the key is accessded.
         /// </summary>
         public X509PrivateKeyProtection KeyProtection {
-            get => keyGen.KeyProtection;
-            set => keyGen.KeyProtection = value;
+            get => _keyGen.KeyProtection;
+            set => _keyGen.KeyProtection = value;
         }
         /// <summary>
         /// Gets or sets the value that indicates whether the key is stored in machine or current user context.
         /// </summary>
         public Boolean MachineContext {
-            get => keyGen.MachineContext;
-            set => keyGen.MachineContext = value;
+            get => _keyGen.MachineContext;
+            set => _keyGen.MachineContext = value;
         }
         /// <summary>
         /// Gets or sets an access control list to private key in a SDDL form.
         /// </summary>
         public String SecurityDescriptor {
-            get => keyGen.SecurityDescriptor;
-            set => keyGen.SecurityDescriptor = value;
+            get => _keyGen.SecurityDescriptor;
+            set => _keyGen.SecurityDescriptor = value;
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             Oid algorithm = PublicKeyAlgorithm.FriendlyName.StartsWith("EC", StringComparison.OrdinalIgnoreCase)
                 ? new Oid(AlgorithmOids.ECC)
                 : PublicKeyAlgorithm;
-            CX509PublicKey pubKey = keyGen.ExportPublicKey();
+            CX509PublicKey pubKey = _keyGen.ExportPublicKey();
             var key = new AsnEncodedData(algorithm, Convert.FromBase64String(pubKey.EncodedKey));
             Byte[] paramBytes;
             try {
@@ -120,7 +120,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// of this object are read-only and will throw exception when setter accessor is accessed.
         /// </summary>
         public void Create() {
-            keyGen.Create();
+            _keyGen.Create();
         }
         /// <summary>
         /// Deletes generated private key material from key storage. For software-based providers, the key is deleted
@@ -128,17 +128,15 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// provider is used, a PIN prompt dialog may appear.
         /// </summary>
         public void Delete() {
-            keyGen.Delete();
+            _keyGen.Delete();
         }
 
         #region IDisposable
         void releaseUnmanagedResources() {
-            if (keyGen.Opened) {
-                keyGen.Close();
+            if (_keyGen.Opened) {
+                _keyGen.Close();
             }
-
-            CryptographyUtils.ReleaseCom(keyGen);
-            keyGen = new CX509PrivateKeyClass();
+            CryptographyUtils.ReleaseCom(_keyGen);
         }
         /// <inheritdoc />
         public void Dispose() {
