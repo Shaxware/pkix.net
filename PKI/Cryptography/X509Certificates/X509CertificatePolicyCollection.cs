@@ -29,19 +29,19 @@ namespace System.Security.Cryptography.X509Certificates {
                 throw new ArgumentNullException(nameof(entry));
             }
 
-            if (_list.Any(item => item.PolicyOid.Value == entry.PolicyOid.Value)) {
+            if (InternalList.Any(item => item.PolicyOid.Value == entry.PolicyOid.Value)) {
                 return;
             }
-            _list.Add(entry);
+            InternalList.Add(entry);
         }
         /// <summary>
         /// Encodes policy collection to a ASN.1-encoded byte array. Encoded byte array represents certificate policies extension value. 
         /// </summary>
         /// <returns>ASN.1-encoded byte array.</returns>
         public Byte[] Encode() {
-            if (_list.Count == 0) { return null; }
+            if (InternalList.Count == 0) { return null; }
             List<Byte> rawData = new List<Byte>();
-            foreach (X509CertificatePolicy policy in _list) {
+            foreach (X509CertificatePolicy policy in InternalList) {
                 rawData.AddRange(policy.Encode());
             }
             return Asn1Utils.Encode(rawData.ToArray(), 48);
@@ -58,12 +58,12 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="ArgumentNullException"><strong>rawData</strong> is null.</exception>
         public void Decode(Byte[] rawData) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
-            _list.Clear();
+            InternalList.Clear();
             Asn1Reader asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             do {
-                _list.Add(new X509CertificatePolicy(asn.GetTagRawData()));
+                InternalList.Add(new X509CertificatePolicy(asn.GetTagRawData()));
             } while (asn.MoveNextCurrentLevel());
         }
 
@@ -79,7 +79,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <returns>An <see cref="X509CertificatePolicy"/> object.</returns>
         public X509CertificatePolicy this[String oid] {
             get {
-                return _list.FirstOrDefault(
+                return InternalList.FirstOrDefault(
                     entry => String.Equals(entry.PolicyOid.FriendlyName, oid, StringComparison.CurrentCultureIgnoreCase) || entry.PolicyOid.Value == oid);
             }
         }

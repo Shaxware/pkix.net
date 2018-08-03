@@ -19,8 +19,8 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </remarks>
         public override void Add(X509CTLEntry entry) {
             if (IsReadOnly) { throw new AccessViolationException(Error.E_COLLECTIONCLOSED); }
-            if (_list.Contains(entry)) { return; }
-            _list.Add(entry);
+            if (InternalList.Contains(entry)) { return; }
+            InternalList.Add(entry);
         }
         /// <summary>
         /// Closes current collection state and makes it read-only. The collection cannot be modified further.
@@ -40,7 +40,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <returns>An <see cref="X509CTLEntry"/> object.</returns>
         public X509CTLEntry this[String thumbprint] {
             get {
-                foreach (X509CTLEntry entry in _list) {
+                foreach (X509CTLEntry entry in InternalList) {
                     if (entry.Thumbprint.ToLower() == thumbprint.ToLower()) { return entry; }
                 }
                 return null;

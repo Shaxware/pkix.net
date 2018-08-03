@@ -12,7 +12,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         InterfaceFlagEnum flag;
 
         /// <inheritdoc />
-        public CADcomSecurityConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
+        public CADcomSecurityConfig(AdcsCertificateAuthority certificateAuthority) : base(certificateAuthority) {
             RegEntries.Add(new AdcsInternalConfigPath { ValueName = "InterfaceFlags" });
             ReadConfig();
             flag = (InterfaceFlagEnum)RegEntries[0].Value;

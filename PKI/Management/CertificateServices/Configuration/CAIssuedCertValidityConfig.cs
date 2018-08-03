@@ -1,5 +1,4 @@
 ﻿using System;
-using PKI.CertificateServices;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// <summary>
@@ -18,11 +17,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         readonly AdcsInternalConfigPath _period, _units;
 
         /// <inheritdoc />
-        public CAIssuedCertValidityConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
-            _period = new AdcsInternalConfigPath { ValueName = "ValidityPeriodUnits" };
-            _units = new AdcsInternalConfigPath { ValueName = "ValidityPeriod" };
-            RegEntries.Add(_period);
-            RegEntries.Add(_units);
+        public CAIssuedCertValidityConfig(AdcsCertificateAuthority certificateAuthority) : base(certificateAuthority) {
+            RegEntries.Add(_period = new AdcsInternalConfigPath { ValueName = "ValidityPeriodUnits" });
+            RegEntries.Add(_units = new AdcsInternalConfigPath { ValueName = "ValidityPeriod" });
             ReadConfig();
         }
 

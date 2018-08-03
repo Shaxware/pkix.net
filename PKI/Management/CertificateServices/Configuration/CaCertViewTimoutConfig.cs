@@ -1,5 +1,4 @@
 ﻿using System;
-using PKI.CertificateServices;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// <summary>
@@ -11,9 +10,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         readonly AdcsInternalConfigPath _idleTimeout, _ageTimeout;
 
         /// <inheritdoc />
-        public CACertViewTimoutConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
-            _idleTimeout = new AdcsInternalConfigPath { ValueName = "ViewIdleMinutes" };
-            _ageTimeout = new AdcsInternalConfigPath { ValueName = "ViewAgeMinutes" };
+        public CACertViewTimoutConfig(AdcsCertificateAuthority certificateAuthority) : base(certificateAuthority) {
+            RegEntries.Add(_idleTimeout = new AdcsInternalConfigPath { ValueName = "ViewIdleMinutes" });
+            RegEntries.Add(_ageTimeout = new AdcsInternalConfigPath { ValueName = "ViewAgeMinutes" });
             ReadConfig();
         }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using PKI.CertificateServices;
+using System.ComponentModel;
 using PKI.Exceptions;
 using PKI.Utils;
 
@@ -9,9 +9,11 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// Represents a Certification Authority configuration composite setting. Some settings can be logically
     /// grouped from a set of single 
     /// </summary>
-    public abstract class AdcsCAConfigurationEntry {
+    public abstract class AdcsCAConfigurationEntry : INotifyPropertyChanged {
         readonly String _computer;
         readonly CryptoRegistry _configProvider;
+        Boolean isModified;
+
         /// <summary>
         /// Initializes a new instance of <strong>AdcsConfigurationEntry</strong> from Certification Authority object.
         /// </summary>
@@ -21,7 +23,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// <exception cref="ArgumentNullException">
         /// <strong>certificateAuthority</strong> parameter is null.
         /// </exception>
-        protected AdcsCAConfigurationEntry(CertificateAuthority certificateAuthority) {
+        protected AdcsCAConfigurationEntry(AdcsCertificateAuthority certificateAuthority) {
             if (certificateAuthority == null) {
                 throw new ArgumentNullException(nameof(certificateAuthority));
             }
@@ -44,7 +46,15 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// to set this value to <strong>True</strong> if configuration changes. If configuration is changed and
         /// this member is set to <string>False</string>, changes are not commited.
         /// </summary>
-        public Boolean IsModified { get; protected set; }
+        public Boolean IsModified {
+            get => isModified;
+            set {
+                if (isModified != value) {
+                    isModified = value;
+                    OnPropertyChanged(nameof(IsModified));
+                }
+            }
+        }
 
         void readRemoteRegistry(AdcsInternalConfigPath entry) {
             entry.Value = _configProvider.GetRemoteRegistryValue(entry.NodePath, entry.ValueName);
@@ -98,6 +108,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
                 throw e;
             }
         }
+        protected virtual void OnSaveChanges() { }
         /// <summary>
         /// Saves current configuration back to CA configuration. This method is based on registry configuration.
         /// For custom configurations implementers must override this method.
@@ -117,6 +128,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// </remarks>
         public virtual Boolean SaveChanges(Boolean restartRequired) {
             if (!IsModified) { return false; }
+            OnSaveChanges();
             if (_configProvider.PingRemoteRegistry()) {
                 foreach (AdcsInternalConfigPath entry in RegEntries) {
                     writeRemoteRegistry(entry);
@@ -133,7 +145,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
 
             IsModified = false;
             if (restartRequired) {
-                CertificateAuthority.Restart(_computer);
+                AdcsCertificateAuthority.Restart(_computer);
             }
             return true;
         }
@@ -155,13 +167,19 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         public virtual void DeleteConfig(Boolean restartRequired) {
             if (CryptoRegistry.Ping(ComputerName)) {
                 throw new NotImplementedException();
-            } else if (CertificateAuthority.Ping(ComputerName)) {
+            } else if (AdcsCertificateAuthority.Ping(ComputerName)) {
                 throw new NotImplementedException();
             } else {
                 var e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM | OfflineSource.Registry);
                 throw e;
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        void OnPropertyChanged(String propertyName) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            IsModified = true;
         }
     }
 }

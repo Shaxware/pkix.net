@@ -14,10 +14,10 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <returns>ASN.1-encoded byte array.</returns>
         public Byte[] Encode() {
             List<Byte> rawData = new List<Byte>();
-            if (_list.Count == 0) {
+            if (InternalList.Count == 0) {
                 return null;
             }
-            foreach (X500RdnAttribute item in _list) {
+            foreach (X500RdnAttribute item in InternalList) {
                 rawData.AddRange(Asn1Utils.Encode(item.RawData, 49));
             }
             return Asn1Utils.Encode(rawData.ToArray(), 48);
@@ -36,7 +36,7 @@ namespace System.Security.Cryptography.X509Certificates {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
-            _list.Clear();
+            InternalList.Clear();
             Asn1Reader asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) {
                 throw new Asn1InvalidTagException(asn.Offset);
@@ -46,7 +46,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 if (asn.Tag != 49) {
                     throw new Asn1InvalidTagException(asn.Offset);
                 }
-                _list.Add(new X500RdnAttribute(asn.GetPayload()));
+                InternalList.Add(new X500RdnAttribute(asn.GetPayload()));
             } while (asn.MoveNextCurrentLevel());
         }
         /// <summary>
@@ -54,7 +54,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </summary>
         /// <returns></returns>
         public X500DistinguishedName ToDistinguishedName() {
-            if (_list.Count == 0) { throw new InvalidOperationException("Current collection contains no elements."); }
+            if (InternalList.Count == 0) { throw new InvalidOperationException("Current collection contains no elements."); }
             return new X500DistinguishedName(Encode());
         }
         /// <summary>
@@ -68,6 +68,6 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </summary>
         /// <param name="oid">The location of the <see cref="X500RdnAttribute"/> object in the collection.</param>
         /// <returns></returns>
-        public X500RdnAttribute this[String oid] => _list.FirstOrDefault(x => x.Oid.Value.Equals(oid, StringComparison.InvariantCultureIgnoreCase));
+        public X500RdnAttribute this[String oid] => InternalList.FirstOrDefault(x => x.Oid.Value.Equals(oid, StringComparison.InvariantCultureIgnoreCase));
     }
 }

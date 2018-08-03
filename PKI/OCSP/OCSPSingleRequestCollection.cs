@@ -28,7 +28,7 @@ namespace PKI.OCSP {
         /// <returns>An <see cref="OCSPSingleRequest"/> object.</returns>
         public OCSPSingleRequest this[String serialNumber] {
             get {
-                foreach (OCSPSingleRequest entry in _list) {
+                foreach (OCSPSingleRequest entry in InternalList) {
                     if (String.Equals(entry.CertId.SerialNumber, serialNumber, StringComparison.CurrentCultureIgnoreCase)) { return entry; }
                 }
                 return null;
@@ -40,9 +40,9 @@ namespace PKI.OCSP {
         /// </summary>
         /// <returns>ASN.1-encoded byte array.</returns>
         public Byte[] Encode() {
-            if (_list.Count > 0) {
+            if (InternalList.Count > 0) {
                 List<Byte> rawData = new List<Byte>();
-                foreach (OCSPSingleRequest item in _list) {
+                foreach (OCSPSingleRequest item in InternalList) {
                     rawData.AddRange(item.Encode());
                 }
                 return Asn1Utils.Encode(rawData.ToArray(), 48); // requestList

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Security.Cryptography;
-using PKI.CertificateServices;
 using PKI.Structs;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
@@ -26,26 +25,20 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         Oid2 hashAlg = new Oid2(AlgorithmOids.SHA1, OidGroupEnum.HashAlgorithm);
 
         /// <inheritdoc />
-        public CACryptographyConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
+        public CACryptographyConfig(AdcsCertificateAuthority certificateAuthority) : base(certificateAuthority) {
             // only these supported systems do not support CNG
             if (certificateAuthority.Version == "2000" || certificateAuthority.Version == "2003") {
                 SupportsCng = false;
             }
-            _prov     = new AdcsInternalConfigPath { NodePath = Node, ValueName = "Provider" };
-            _provType = new AdcsInternalConfigPath { NodePath = Node, ValueName = "ProviderType" };
-            _halg     = new AdcsInternalConfigPath { NodePath = Node, ValueName = "HashAlgorithm" };
-            RegEntries.Add(_prov);
-            RegEntries.Add(_provType);
-            RegEntries.Add(_halg);
+            RegEntries.Add(_prov = new AdcsInternalConfigPath { NodePath = Node, ValueName = "Provider" });
+            RegEntries.Add(_provType = new AdcsInternalConfigPath { NodePath = Node, ValueName = "ProviderType" });
+            RegEntries.Add(_halg = new AdcsInternalConfigPath { NodePath = Node, ValueName = "HashAlgorithm" });
             // read mandatory to all CAs entries. Then decide if we need more entries
             ReadConfig();
             if (SupportsCng) {
-                _cngPubAlg = new AdcsInternalConfigPath { NodePath = Node, ValueName = "CNGPublicKeyAlgorithm" };
-                _cngHalg   = new AdcsInternalConfigPath { NodePath = Node, ValueName = "CNGHashAlgorithm" };
-                _altSig    = new AdcsInternalConfigPath { NodePath = Node, ValueName = "AlternateSignatureAlgorithm" };
-                RegEntries.Add(_cngPubAlg);
-                RegEntries.Add(_cngHalg);
-                RegEntries.Add(_altSig);
+                RegEntries.Add(_cngPubAlg = new AdcsInternalConfigPath { NodePath = Node, ValueName = "CNGPublicKeyAlgorithm" });
+                RegEntries.Add(_cngHalg = new AdcsInternalConfigPath { NodePath = Node, ValueName = "CNGHashAlgorithm" });
+                RegEntries.Add(_altSig = new AdcsInternalConfigPath { NodePath = Node, ValueName = "AlternateSignatureAlgorithm" });
                 // if we need more entries, add them to the list and read all of them.
                 ReadConfig();
                 decodeRegValues();

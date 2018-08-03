@@ -76,16 +76,27 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Management\CertificateServices\AdcsCASecurityDescriptor.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCAAccessRule.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCAAuditRule.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCAType.cs" />
+    <Compile Include="Management\CertificateServices\CertificationAuthorityRights.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AdcsCAConfigurationEntry.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\AdcsCdpExtensionConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CADcomSecurityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AdcsInternalConfigPath.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AdcsValidityUnit.cs" />
-    <Compile Include="Management\CertificateServices\Configuration\AuthorityInformationAccessConfigUri.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\AiaConfigUri.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CACertViewTimoutConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CACrlValidityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CACryptographyConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CAIssuedCertValidityConfig.cs" />
-    <Compile Include="Management\CertificateServices\Configuration\CrlDistributionPointConfigUri.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\AiaUriCollection.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\AdcsAiaExtensionConfig.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCertificateAuthority.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\UrlProtocolSchemes.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\CdpConfigUri.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\CdpUriCollection.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="CertificateServices\DB\AdcsDbManager.cs" />

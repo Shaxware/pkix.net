@@ -1,5 +1,4 @@
 ﻿using System;
-using PKI.CertificateServices;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// <summary>
@@ -24,21 +23,15 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         readonly AdcsInternalConfigPath _basePeriod, _baseUnits, _baseOverlapPeriod, _baseOverlapUnits,
                                         _deltaPeriod, _deltaUnits, _deltaOverlapPeriod, _deltaOverlapUnits;
         /// <inheritdoc />
-        public CACrlValidityConfig(CertificateAuthority certificateAuthority) : base(certificateAuthority) {
-            _basePeriod         = new AdcsInternalConfigPath { ValueName = "CRLPeriodUnits" };
-            _baseUnits          = new AdcsInternalConfigPath { ValueName = "CRLPeriod" };
-            _baseOverlapPeriod  = new AdcsInternalConfigPath { ValueName = "CRLOverlapUnits" };
-            _baseOverlapUnits   = new AdcsInternalConfigPath { ValueName = "CRLOverlapPeriod" };
-            _deltaPeriod        = new AdcsInternalConfigPath { ValueName = "CRLDeltaPeriodUnits" };
-            _deltaUnits         = new AdcsInternalConfigPath { ValueName = "CRLDeltaPeriod" };
-            _deltaOverlapPeriod = new AdcsInternalConfigPath { ValueName = "CRLDeltaOverlapUnits" };
-            _deltaOverlapUnits  = new AdcsInternalConfigPath { ValueName = "CRLDeltaOverlapPeriod" };
-            foreach (var entry in new[] {
-                    _basePeriod, _baseUnits, _baseOverlapPeriod, _baseOverlapUnits,
-                    _deltaPeriod, _deltaUnits, _deltaOverlapPeriod, _deltaOverlapUnits
-                }) {
-                RegEntries.Add(entry);
-            }
+        public CACrlValidityConfig(AdcsCertificateAuthority certificateAuthority) : base(certificateAuthority) {
+            RegEntries.Add(_basePeriod         = new AdcsInternalConfigPath { ValueName = "CRLPeriodUnits" });
+            RegEntries.Add(_baseUnits          = new AdcsInternalConfigPath { ValueName = "CRLPeriod" });
+            RegEntries.Add(_baseOverlapPeriod  = new AdcsInternalConfigPath { ValueName = "CRLOverlapUnits" });
+            RegEntries.Add(_baseOverlapUnits   = new AdcsInternalConfigPath { ValueName = "CRLOverlapPeriod" });
+            RegEntries.Add(_deltaPeriod        = new AdcsInternalConfigPath { ValueName = "CRLDeltaPeriodUnits" });
+            RegEntries.Add(_deltaUnits         = new AdcsInternalConfigPath { ValueName = "CRLDeltaPeriod" });
+            RegEntries.Add(_deltaOverlapPeriod = new AdcsInternalConfigPath { ValueName = "CRLDeltaOverlapUnits" });
+            RegEntries.Add(_deltaOverlapUnits  = new AdcsInternalConfigPath { ValueName = "CRLDeltaOverlapPeriod" });
             ReadConfig();
         }
 

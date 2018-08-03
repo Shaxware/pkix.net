@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Linq;
 using PKI.Utils;
 
 namespace SysadminsLV.PKI {
@@ -9,31 +12,48 @@ namespace SysadminsLV.PKI {
     /// </summary>
     /// <typeparam name="T">The type of elements in the list.</typeparam>
     /// <remarks>This class is abstract and cannot be used directly. Inherit from this class instead.</remarks>
-    public abstract class BasicCollection<T> : IList<T> {
-        protected readonly List<T> _list;
+    public abstract class BasicCollection<T> : IList<T>, INotifyCollectionChanged, INotifyPropertyChanged {
+        protected readonly List<T> InternalList;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T"/> class.
         /// </summary>
-        protected BasicCollection() {
-            _list = new List<T>();
+        /// <param name="isNotifying">
+        /// A value that indiciates whether the collection will fire <see cref="CollectionChanged"/> event. Default is <strong>False</strong>.
+        /// </param>
+        protected BasicCollection(Boolean isNotifying = false) {
+            InternalList = new List<T>();
+            IsNotifying = isNotifying;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="BasicCollection{T}"/> class that contains elements copied
         /// from the specified collection and has sufficient capacity to accommodate the number of elements copied.
         /// </summary>
         /// <param name="collection">The collection whose elements are copied to the new list.</param>
+        /// <param name="isNotifying">
+        /// A value that indiciates whether the collection will fire <see cref="CollectionChanged"/> event.  Default is <strong>False</strong>.
+        /// </param>
         /// <exception cref="ArgumentNullException"><strong>collection</strong> is null.</exception>
-        protected BasicCollection(IEnumerable<T> collection) {
-            _list = new List<T>(collection);
+        protected BasicCollection(IEnumerable<T> collection, Boolean isNotifying = false) {
+            IEnumerable<T> items = collection as T[] ?? collection.ToArray();
+            if (isNotifying) {
+                addHandler(items.ToArray());
+            }
+            InternalList = new List<T>(items);
+            IsNotifying = isNotifying;
         }
+
+        /// <summary>
+        /// A value that indiciates whether the collection will fire <see cref="CollectionChanged"/> event.
+        /// </summary>
+        public Boolean IsNotifying { get; }
 
         /// <summary>
         /// Returns an enumerator that iterates through the collection
         /// </summary>
         /// <returns>Enumerator for current collection</returns>
         public IEnumerator<T> GetEnumerator() {
-            return _list.GetEnumerator();
+            return InternalList.GetEnumerator();
         }
         /// <internalonly />
         IEnumerator IEnumerable.GetEnumerator() {
@@ -43,7 +63,7 @@ namespace SysadminsLV.PKI {
         /// <summary>
         /// Gets the number of elements contained in the current collection.
         /// </summary>
-        public Int32 Count => _list.Count;
+        public Int32 Count => InternalList.Count;
         /// <inheritdoc />
         public Boolean IsReadOnly { get; protected set; }
         /// <summary>
@@ -55,8 +75,14 @@ namespace SysadminsLV.PKI {
         /// index is less than 0 or index is equal to or greater than <see cref="Count"/>.
         /// </exception>
         public T this[Int32 index] {
-            get => _list[index];
-            set => _list[index] = value;
+            get => InternalList[index];
+            set {
+                T oldValue = InternalList[index];
+                removeHandler(oldValue);
+                addHandler(value);
+                var e = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, value, oldValue);
+                OnCollectionChanged(e);
+            }
         }
 
         /// <summary>
@@ -72,7 +98,10 @@ namespace SysadminsLV.PKI {
             if (IsReadOnly) {
                 throw new AccessViolationException(Error.E_COLLECTIONCLOSED);
             }
-            _list.Add(item);
+            addHandler(item);
+            InternalList.Add(item);
+            var e = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item);
+            OnCollectionChanged(e);
         }
         /// <summary>
         /// Adds the elements of the specified collection to the end of the current collection.
@@ -87,15 +116,23 @@ namespace SysadminsLV.PKI {
             if (IsReadOnly) {
                 throw new AccessViolationException(Error.E_COLLECTIONCLOSED);
             }
-            _list.AddRange(collection);
+            T[] array = collection as T[] ?? collection.ToArray();
+            addHandler(array);
+            InternalList.AddRange(array);
+            var e = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new List<T>(array));
+            OnCollectionChanged(e);
         }
         /// <summary>
         /// Removes all elements from the current collection and resets <see cref="IsReadOnly"/> member to
         /// <strong>False</strong>.
         /// </summary>
         public void Clear() {
-            _list.Clear();
+            removeHandler(InternalList.ToArray());
+            InternalList.Clear();
             IsReadOnly = false;
+            var e = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
+            OnCollectionChanged(e);
+            OnPropertyChanged(nameof(IsReadOnly));
         }
         /// <summary>
         /// Determines whether an element is in the current collection.
@@ -103,7 +140,7 @@ namespace SysadminsLV.PKI {
         /// <param name="item">The object to locate in the current collection.</param>
         /// <returns><strong>True</strong> if item is found in the collection, otherwise <strong>False</strong>.</returns>
         public Boolean Contains(T item) {
-            return _list.Contains(item);
+            return InternalList.Contains(item);
         }
         /// <summary>
         /// Copies the entire collection to a compatible one-dimensional array, starting at the specified
@@ -114,7 +151,7 @@ namespace SysadminsLV.PKI {
         /// </param>
         /// <param name="arrayIndex">The zero-based index in array at which copying begins.</param>
         public void CopyTo(T[] array, Int32 arrayIndex) {
-            _list.CopyTo(array, arrayIndex);
+            InternalList.CopyTo(array, arrayIndex);
         }
         /// <summary>
         /// Removes the first occurrence of a specific object from the current collection. 
@@ -126,7 +163,13 @@ namespace SysadminsLV.PKI {
             if (IsReadOnly) {
                 throw new AccessViolationException(Error.E_COLLECTIONCLOSED);
             }
-            return _list.Remove(item);
+            Boolean status = InternalList.Remove(item);
+            if (status) {
+                removeHandler(item);
+                var e = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item);
+                OnCollectionChanged(e);
+            }
+            return status;
         }
         /// <summary>
         /// Searches for the specified object and returns the zero-based index of the first occurrence within
@@ -138,7 +181,7 @@ namespace SysadminsLV.PKI {
         /// otherwise, –1.
         /// </returns>
         public Int32 IndexOf(T item) {
-            return _list.IndexOf(item);
+            return InternalList.IndexOf(item);
         }
         /// <summary>
         /// Inserts an element into the current collection at the specified index.
@@ -150,7 +193,10 @@ namespace SysadminsLV.PKI {
             if (IsReadOnly) {
                 throw new AccessViolationException(Error.E_COLLECTIONCLOSED);
             }
-            _list.Insert(index, item);
+            addHandler(item);
+            InternalList.Insert(index, item);
+            var e = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item);
+            OnCollectionChanged(e);
         }
         /// <summary>
         /// Removes the element at the specified index of the current collection.
@@ -161,7 +207,47 @@ namespace SysadminsLV.PKI {
             if (IsReadOnly) {
                 throw new AccessViolationException(Error.E_COLLECTIONCLOSED);
             }
-            _list.RemoveAt(index);
+            T backup = this[index];
+            removeHandler(backup);
+            InternalList.RemoveAt(index);
+            var e = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, backup);
+            OnCollectionChanged(e);
         }
+
+        void addHandler(params T[] items) {
+            foreach (T item in items) {
+                if (IsNotifying && item is INotifyPropertyChanged) {
+                    ((INotifyPropertyChanged)item).PropertyChanged += OnChildPropertyChanged;
+                }
+            }
+        }
+        void removeHandler(params T[] items) {
+            foreach (T item in items) {
+                if (IsNotifying && item is INotifyPropertyChanged) {
+                    ((INotifyPropertyChanged)item).PropertyChanged -= OnChildPropertyChanged;
+                }
+            }
+        }
+
+        protected void OnCollectionChanged(NotifyCollectionChangedEventArgs e) {
+            if (IsNotifying && CollectionChanged != null) {
+                try {
+                    CollectionChanged(this, e);
+                    OnPropertyChanged(nameof(Count));
+                } catch (NotSupportedException) {
+                    var alternativeEventArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
+                    OnCollectionChanged(alternativeEventArgs);
+                }
+            }
+        }
+        void OnChildPropertyChanged(Object s, PropertyChangedEventArgs e) {
+            OnPropertyChanged("child");
+        }
+        protected void OnPropertyChanged(String propertyName) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        public event NotifyCollectionChangedEventHandler CollectionChanged;
+
     }
 }
