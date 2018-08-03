@@ -15,7 +15,7 @@ namespace PKI.CertificateTemplates {
     /// </summary>
     public class CertificateTemplate {
         Int32 major, minor, flags;
-        static readonly String _baseDsPath = $"CN=Certificate Templates, CN=Public Key Services, CN=Services,{ActiveDirectory.ConfigContext}";
+        static readonly String _baseDsPath = $"CN=Certificate Templates, CN=Public Key Services, CN=Services,{DsUtils.ConfigContext}";
 
         internal CertificateTemplate(IX509CertificateTemplate template) {
             initializeCom(template);
@@ -32,7 +32,7 @@ namespace PKI.CertificateTemplates {
         /// </param>
         /// <remarks>Wildcards are not allowed.</remarks>
         public CertificateTemplate(String findType, String findValue) {
-            if (!ActiveDirectory.Ping()) { throw new Exception(Error.E_DCUNAVAILABLE); }
+            if (!DsUtils.Ping()) { throw new Exception(Error.E_DCUNAVAILABLE); }
             m_initialize(findType, findValue);
         }
 
@@ -138,62 +138,62 @@ namespace PKI.CertificateTemplates {
                     cn = $"CN={escapeChars(findValue)},{_baseDsPath}";
                     break;
                 case "displayname":
-                    cn = ActiveDirectory.Find(_baseDsPath, ActiveDirectory.PropDisplayName, findValue);
+                    cn = DsUtils.Find(_baseDsPath, DsUtils.PropDisplayName, findValue);
                     break;
                 case "oid":
-                    cn = ActiveDirectory.Find(_baseDsPath, ActiveDirectory.PropCertTemplateOid, findValue);
+                    cn = DsUtils.Find(_baseDsPath, DsUtils.PropCertTemplateOid, findValue);
                     break;
                 default: throw new Exception("The value for 'findType' must be either 'Name', 'DisplayName' or 'OID'.");
             }
             m_fillproperties(cn);
         }
         void m_fillproperties(String ldapPath) {
-            IDictionary<String, Object> props = ActiveDirectory.GetEntryProperties(
+            IDictionary<String, Object> props = DsUtils.GetEntryProperties(
                 ldapPath,
-                ActiveDirectory.PropCN,
-                ActiveDirectory.PropDN,
-                ActiveDirectory.PropDisplayName,
-                ActiveDirectory.PropFlags,
-                ActiveDirectory.PropCpsOid,
-                ActiveDirectory.PropCertTemplateOid,
-                ActiveDirectory.PropLocalizedOid,
-                ActiveDirectory.PropPkiTemplateMajorVersion,
-                ActiveDirectory.PropPkiTemplateMinorVersion,
-                ActiveDirectory.PropPkiSchemaVersion,
-                ActiveDirectory.PropWhenChanged,
-                ActiveDirectory.PropPkiSubjectFlags,
-                ActiveDirectory.PropPkiEnrollFlags,
-                ActiveDirectory.PropPkiPKeyFlags,
-                ActiveDirectory.PropPkiNotAfter,
-                ActiveDirectory.PropPkiRenewalPeriod,
-                ActiveDirectory.PropPkiPathLength,
-                ActiveDirectory.PropCertTemplateEKU,
-                ActiveDirectory.PropPkiCertPolicy,
-                ActiveDirectory.PropPkiCriticalExt,
-                ActiveDirectory.PropPkiSupersede,
-                ActiveDirectory.PropPkiKeyCsp,
-                ActiveDirectory.PropPkiKeySize,
-                ActiveDirectory.PropPkiKeySpec,
-                ActiveDirectory.PropPkiKeySddl,
-                ActiveDirectory.PropPkiRaAppPolicy,
-                ActiveDirectory.PropPkiRaCertPolicy,
-                ActiveDirectory.PropPkiRaSignature,
-                ActiveDirectory.PropPkiAsymAlgo,
-                ActiveDirectory.PropPkiSymAlgo,
-                ActiveDirectory.PropPkiSymLength,
-                ActiveDirectory.PropPkiHashAlgo,
-                ActiveDirectory.PropPkiKeyUsage,
-                ActiveDirectory.PropPkiKeyUsageCng
+                DsUtils.PropCN,
+                DsUtils.PropDN,
+                DsUtils.PropDisplayName,
+                DsUtils.PropFlags,
+                DsUtils.PropCpsOid,
+                DsUtils.PropCertTemplateOid,
+                DsUtils.PropLocalizedOid,
+                DsUtils.PropPkiTemplateMajorVersion,
+                DsUtils.PropPkiTemplateMinorVersion,
+                DsUtils.PropPkiSchemaVersion,
+                DsUtils.PropWhenChanged,
+                DsUtils.PropPkiSubjectFlags,
+                DsUtils.PropPkiEnrollFlags,
+                DsUtils.PropPkiPKeyFlags,
+                DsUtils.PropPkiNotAfter,
+                DsUtils.PropPkiRenewalPeriod,
+                DsUtils.PropPkiPathLength,
+                DsUtils.PropCertTemplateEKU,
+                DsUtils.PropPkiCertPolicy,
+                DsUtils.PropPkiCriticalExt,
+                DsUtils.PropPkiSupersede,
+                DsUtils.PropPkiKeyCsp,
+                DsUtils.PropPkiKeySize,
+                DsUtils.PropPkiKeySpec,
+                DsUtils.PropPkiKeySddl,
+                DsUtils.PropPkiRaAppPolicy,
+                DsUtils.PropPkiRaCertPolicy,
+                DsUtils.PropPkiRaSignature,
+                DsUtils.PropPkiAsymAlgo,
+                DsUtils.PropPkiSymAlgo,
+                DsUtils.PropPkiSymLength,
+                DsUtils.PropPkiHashAlgo,
+                DsUtils.PropPkiKeyUsage,
+                DsUtils.PropPkiKeyUsageCng
             );
-            flags = (Int32)props[ActiveDirectory.PropFlags];
-            Name = (String)props[ActiveDirectory.PropCN];
-            DistinguishedName = (String) props[ActiveDirectory.PropDN];
-            DisplayName = (String)props[ActiveDirectory.PropDisplayName];
-            major = (Int32) props[ActiveDirectory.PropPkiTemplateMajorVersion];
-            minor = (Int32) props[ActiveDirectory.PropPkiTemplateMinorVersion];
-            SchemaVersion = (Int32) props[ActiveDirectory.PropPkiSchemaVersion];
-            OID = new Oid((String) props[ActiveDirectory.PropCertTemplateOid]);
-            LastWriteTime = (DateTime) props[ActiveDirectory.PropWhenChanged];
+            flags = (Int32)props[DsUtils.PropFlags];
+            Name = (String)props[DsUtils.PropCN];
+            DistinguishedName = (String) props[DsUtils.PropDN];
+            DisplayName = (String)props[DsUtils.PropDisplayName];
+            major = (Int32) props[DsUtils.PropPkiTemplateMajorVersion];
+            minor = (Int32) props[DsUtils.PropPkiTemplateMinorVersion];
+            SchemaVersion = (Int32) props[DsUtils.PropPkiSchemaVersion];
+            OID = new Oid((String) props[DsUtils.PropCertTemplateOid]);
+            LastWriteTime = (DateTime) props[DsUtils.PropWhenChanged];
             Settings = new CertificateTemplateSettings(props);
         }
         void initializeCom(IX509CertificateTemplate template) {
@@ -229,9 +229,9 @@ namespace PKI.CertificateTemplates {
         /// </summary>
         /// <returns>An array of certificate templates.</returns>
         public static CertificateTemplate[] EnumTemplates() {
-            if (ActiveDirectory.Ping()) {
+            if (DsUtils.Ping()) {
                 String cn = _baseDsPath;
-                DirectoryEntries entries = ActiveDirectory.GetChildItems(cn);
+                DirectoryEntries entries = DsUtils.GetChildItems(cn);
                 return (from DirectoryEntry item in entries select new CertificateTemplate("name", (String) item.Properties["cn"].Value)).ToArray();
             }
             throw new Exception(Error.E_DCUNAVAILABLE);

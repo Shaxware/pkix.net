@@ -42,17 +42,17 @@ namespace PKI.CertificateTemplates {
 		public Boolean ExistingCertForRenewal => (enrollmentFlags & (Int32)CertificateTemplateEnrollmentFlags.ReenrollExistingCert) > 0;
 
 		void InitializeDs() {
-			enrollmentFlags = (Int32)_entry[ActiveDirectory.PropPkiEnrollFlags];
-			SignatureCount = (Int32)_entry[ActiveDirectory.PropPkiRaSignature];
+			enrollmentFlags = (Int32)_entry[DsUtils.PropPkiEnrollFlags];
+			SignatureCount = (Int32)_entry[DsUtils.PropPkiRaSignature];
 			if (SignatureCount > 0) {
-				String ap = (String)_entry[ActiveDirectory.PropPkiRaAppPolicy];
+				String ap = (String)_entry[DsUtils.PropPkiRaAppPolicy];
 				if (ap == null) { return; }
 				if (ap.Contains("`")) {
 					String[] splitstring = { "`" };
 					String[] strings = ap.Split(splitstring, StringSplitOptions.RemoveEmptyEntries);
 					for (Int32 index = 0; index < strings.Length; index += 3) {
 						switch (strings[index]) {
-							case ActiveDirectory.PropPkiRaAppPolicy: ApplicationPolicy = new Oid(strings[index + 2]); break;
+							case DsUtils.PropPkiRaAppPolicy: ApplicationPolicy = new Oid(strings[index + 2]); break;
 						}
 					}
 				} else { ApplicationPolicy = new Oid(ap); }
@@ -62,14 +62,14 @@ namespace PKI.CertificateTemplates {
 		void get_rapolicies() {
 			OidCollection oids = new OidCollection();
 			try {
-				Object[] RaObject = (Object[])_entry[ActiveDirectory.PropPkiRaCertPolicy];
+				Object[] RaObject = (Object[])_entry[DsUtils.PropPkiRaCertPolicy];
 				if (RaObject != null) {
 					foreach (Object obj in RaObject) {
 						oids.Add(new Oid(obj.ToString()));
 					}
 				}
 			} catch {
-				String RaString = (String)_entry[ActiveDirectory.PropPkiRaCertPolicy];
+				String RaString = (String)_entry[DsUtils.PropPkiRaCertPolicy];
 				oids.Add(new Oid(RaString));
 			}
 			CertificatePolicies = oids;

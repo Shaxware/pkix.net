@@ -16,7 +16,7 @@ namespace System.Security.Cryptography {
     /// </summary>
     public sealed class Oid2 {
         static readonly String _baseDsPath =
-            $"CN=OID, CN=Public Key Services, CN=Services,{ActiveDirectory.ConfigContext}";
+            $"CN=OID, CN=Public Key Services, CN=Services,{DsUtils.ConfigContext}";
         readonly Boolean _cng;
         readonly String _searchBy;
         String[] urls;
@@ -50,7 +50,7 @@ namespace System.Security.Cryptography {
             } catch { _searchBy = "ByName"; }
             if (Environment.OSVersion.Version.Major >= 6) { _cng = true; }
             if (searchInDirectory) {
-                if (ActiveDirectory.Ping()) { initializeDS(oid, group); } else { initializeLocal(oid, group); }
+                if (DsUtils.Ping()) { initializeDS(oid, group); } else { initializeLocal(oid, group); }
             } else {
                 initializeLocal(oid, group);
             }
@@ -134,16 +134,16 @@ namespace System.Security.Cryptography {
             String cn = computeOidHash(oidvalue);
             String ldapPath = $"CN={cn},{_baseDsPath}";
             try {
-                IDictionary<String, Object> oidInDs = ActiveDirectory.GetEntryProperties(
+                IDictionary<String, Object> oidInDs = DsUtils.GetEntryProperties(
                     ldapPath,
-                    ActiveDirectory.PropFlags,
-                    ActiveDirectory.PropDN,
-                    ActiveDirectory.PropDisplayName,
-                    ActiveDirectory.PropCpsOid);
+                    DsUtils.PropFlags,
+                    DsUtils.PropDN,
+                    DsUtils.PropDisplayName,
+                    DsUtils.PropCpsOid);
                 found = true;
-                DistinguishedName = (String)oidInDs[ActiveDirectory.PropDN];
-                flags = (Int32)oidInDs[ActiveDirectory.PropFlags];
-                FriendlyName = (String)oidInDs[ActiveDirectory.PropDisplayName];
+                DistinguishedName = (String)oidInDs[DsUtils.PropDN];
+                flags = (Int32)oidInDs[DsUtils.PropFlags];
+                FriendlyName = (String)oidInDs[DsUtils.PropDisplayName];
                 switch (flags) {
                     case 1:
                         if (group != OidGroupEnum.AllGroups && group != OidGroupEnum.CertificateTemplate) {
@@ -156,14 +156,14 @@ namespace System.Security.Cryptography {
                             throw new Exception("Oid type mismatch.");
                         }
                         OidGroup = OidGroupEnum.IssuancePolicy;
-                        if (oidInDs[ActiveDirectory.PropCpsOid] == null) {
+                        if (oidInDs[DsUtils.PropCpsOid] == null) {
                             break;
                         }
                         try {
-                            Object[] cps = (Object[])oidInDs[ActiveDirectory.PropCpsOid];
+                            Object[] cps = (Object[])oidInDs[DsUtils.PropCpsOid];
                             urls = cps.Cast<String>().ToArray();
                         } catch {
-                            urls = new[] { (String)oidInDs[ActiveDirectory.PropCpsOid] };
+                            urls = new[] { (String)oidInDs[DsUtils.PropCpsOid] };
                         }
                         break;
                     case 3:
@@ -198,26 +198,26 @@ namespace System.Security.Cryptography {
         static void registerDS(Oid oid, OidGroupEnum group, CultureInfo localeId, String cpsUrl) {
             String cn = computeOidHash(oid.Value);
             String entryDN =
-                ActiveDirectory.AddEntry(
+                DsUtils.AddEntry(
                     _baseDsPath,
                     $"CN={cn}",
-                    ActiveDirectory.SchemaObjectIdentifier);
+                    DsUtils.SchemaObjectIdentifier);
             switch (group) {
                 case OidGroupEnum.ApplicationPolicy:
-                    ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropFlags, 3);
+                    DsUtils.SetEntryProperty(entryDN, DsUtils.PropFlags, 3);
                     break;
                 case OidGroupEnum.IssuancePolicy:
-                    ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropFlags, 2);
+                    DsUtils.SetEntryProperty(entryDN, DsUtils.PropFlags, 2);
                     if (!String.IsNullOrEmpty(cpsUrl)) {
-                        ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropCpsOid, cpsUrl);
+                        DsUtils.SetEntryProperty(entryDN, DsUtils.PropCpsOid, cpsUrl);
                     }
                     break;
             }
-            ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropCertTemplateOid, oid.Value);
+            DsUtils.SetEntryProperty(entryDN, DsUtils.PropCertTemplateOid, oid.Value);
             if (localeId == null) {
-                ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropDisplayName, oid.FriendlyName);
+                DsUtils.SetEntryProperty(entryDN, DsUtils.PropDisplayName, oid.FriendlyName);
             } else {
-                ActiveDirectory.SetEntryProperty(entryDN, ActiveDirectory.PropLocalizedOid, $"{localeId.LCID},{oid.FriendlyName}");
+                DsUtils.SetEntryProperty(entryDN, DsUtils.PropLocalizedOid, $"{localeId.LCID},{oid.FriendlyName}");
             }
         }
         static void registerLegacy(Oid oid, OidGroupEnum group) {
@@ -255,7 +255,7 @@ namespace System.Security.Cryptography {
         static Boolean unregisterDS(String oid, OidGroupEnum group) {
             String cn = computeOidHash(oid);
             String ldapPath = $"CN={cn},{_baseDsPath}";
-            Int32 flags = (Int32)ActiveDirectory.GetEntryProperty(ldapPath, ActiveDirectory.PropFlags);
+            Int32 flags = (Int32)DsUtils.GetEntryProperty(ldapPath, DsUtils.PropFlags);
             switch (group) {
                 case OidGroupEnum.ApplicationPolicy:
                     if (flags != 3) { return false; }
@@ -267,7 +267,7 @@ namespace System.Security.Cryptography {
                     if (flags != 1) { return false; }
                     break;
             }
-            ActiveDirectory.RemoveEntry(ldapPath);
+            DsUtils.RemoveEntry(ldapPath);
             return true;
         }
         static void unregisterLegacy(IEnumerable<Oid2> oid) {
@@ -464,7 +464,7 @@ namespace System.Security.Cryptography {
             try { CryptoConfig.EncodeOID(value); } catch { throw new InvalidDataException("The value is not valid OID string."); }
             String cn = null;
             if (writeInDirectory) {
-                if (!ActiveDirectory.Ping()) { throw new NotSupportedException("Workgroup environment is not supported."); }
+                if (!DsUtils.Ping()) { throw new NotSupportedException("Workgroup environment is not supported."); }
                 if (!String.IsNullOrEmpty(new Oid2(value, group, true).DistinguishedName)) {
                     throw new InvalidOperationException("The object already exist.");
                 }
@@ -473,7 +473,7 @@ namespace System.Security.Cryptography {
                     throw new ArgumentException("The OID group is not valid.");
                 }
                 registerDS(new Oid(value, friendlyName), group, localeId, cpsUrl);
-                cn = "CN=" + computeOidHash(value) + ",CN=OID," + ActiveDirectory.ConfigContext;
+                cn = "CN=" + computeOidHash(value) + ",CN=OID," + DsUtils.ConfigContext;
             } else {
                 registerLocal(new Oid(value, friendlyName), group);
             }
@@ -515,7 +515,7 @@ namespace System.Security.Cryptography {
                 oids.Add(new Oid2(value, group, deleteFromDirectory));
                 if (String.IsNullOrEmpty(oids[0].Value)) { return false; }
             }
-            if (!deleteFromDirectory || !ActiveDirectory.Ping()) {
+            if (!deleteFromDirectory || !DsUtils.Ping()) {
                 return unregisterLocal(oids);
             }
             List<Int32> valid = new List<Int32>(new[] { 0, 7, 8, 9 });

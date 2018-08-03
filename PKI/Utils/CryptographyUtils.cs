@@ -20,6 +20,8 @@ namespace PKI.Utils {
         public static X509Extension ConvertExtension(X509Extension extension) {
             AsnEncodedData asndata = new AsnEncodedData(extension.Oid, extension.RawData);
             switch (extension.Oid.Value) {
+                case X509CertExtensions.X509CAVersion:
+                    return new X509CAVersionExtension(asndata, extension.Critical);
                 case X509CertExtensions.X509NextCRLPublish:
                     return new X509NextCRLPublishExtension(asndata, extension.Critical);
                 case X509CertExtensions.X509CertificateTemplate:
@@ -30,6 +32,8 @@ namespace PKI.Utils {
                     return new X509ApplicationPolicyMappingsExtension(asndata);
                 case X509CertExtensions.X509ApplicationPolicyConstraints:
                     return new X509ApplicationPolicyConstraintsExtension(asndata);
+                case X509CertExtensions.X509PublishedCRLLocations:
+                    return new X509PublishedCRLLocationsExtension(asndata, extension.Critical);
                 case X509CertExtensions.X509AuthorityInformationAccess:
                     return new X509AuthorityInformationAccessExtension(asndata, extension.Critical);
                 case X509CertExtensions.X509OcspNonce:

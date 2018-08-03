@@ -157,13 +157,13 @@ namespace PKI.CertificateTemplates {
 		public Int32 GeneralFlags { get; private set; }
 
 		void m_initialize() {
-			GeneralFlags = (Int32)_entry[ActiveDirectory.PropFlags];
-			subjectFlags = (Int32)_entry[ActiveDirectory.PropPkiSubjectFlags];
-			EnrollmentOptions = (Int32)_entry[ActiveDirectory.PropPkiEnrollFlags];
-			pkf = (Int32)_entry[ActiveDirectory.PropPkiPKeyFlags];
-			ValidityPeriod = get_validity((Byte[])_entry[ActiveDirectory.PropPkiNotAfter]);
-			RenewalPeriod = get_validity((Byte[])_entry[ActiveDirectory.PropPkiRenewalPeriod]);
-			pathLength = (Int32)_entry[ActiveDirectory.PropPkiPathLength];
+			GeneralFlags = (Int32)_entry[DsUtils.PropFlags];
+			subjectFlags = (Int32)_entry[DsUtils.PropPkiSubjectFlags];
+			EnrollmentOptions = (Int32)_entry[DsUtils.PropPkiEnrollFlags];
+			pkf = (Int32)_entry[DsUtils.PropPkiPKeyFlags];
+			ValidityPeriod = get_validity((Byte[])_entry[DsUtils.PropPkiNotAfter]);
+			RenewalPeriod = get_validity((Byte[])_entry[DsUtils.PropPkiRenewalPeriod]);
+			pathLength = (Int32)_entry[DsUtils.PropPkiPathLength];
 			if ((EnrollmentOptions & 2) > 0) { CAManagerApproval = true; }
 			get_eku();
 			get_certpolicies();
@@ -213,54 +213,54 @@ namespace PKI.CertificateTemplates {
 		}
 		void get_eku() {
 			try {
-				Object[] EkuObject = (Object[])_entry[ActiveDirectory.PropCertTemplateEKU];
+				Object[] EkuObject = (Object[])_entry[DsUtils.PropCertTemplateEKU];
 				if (EkuObject != null) {
 					foreach (Object item in EkuObject) {
 						_ekus.Add(new Oid(item.ToString()));
 					}
 				}
 			} catch {
-				String EkuString = (String)_entry[ActiveDirectory.PropCertTemplateEKU];
+				String EkuString = (String)_entry[DsUtils.PropCertTemplateEKU];
 				_ekus.Add(new Oid(EkuString));
 			}
 		}
 		void get_certpolicies() {
 			CertificatePolicies = new OidCollection();
 			try {
-				Object[] oids = (Object[])_entry[ActiveDirectory.PropPkiCertPolicy];
+				Object[] oids = (Object[])_entry[DsUtils.PropPkiCertPolicy];
 				if (oids == null) { return; }
 				foreach (Object oid in oids) {
 					CertificatePolicies.Add(new Oid((String)oid));
 				}
 			} catch {
-				CertificatePolicies.Add(new Oid((String)_entry[ActiveDirectory.PropPkiCertPolicy]));
+				CertificatePolicies.Add(new Oid((String)_entry[DsUtils.PropPkiCertPolicy]));
 			}
 		}
 		void get_criticals() {
 			try {
-				Object[] oids = (Object[])_entry[ActiveDirectory.PropPkiCriticalExt];
+				Object[] oids = (Object[])_entry[DsUtils.PropPkiCriticalExt];
 				if (oids == null) { return; }
 				foreach (Object oid in oids) {
 					CriticalExtensions.Add(new Oid((String)oid));
 				}
 			} catch {
-				CriticalExtensions.Add(new Oid((String)_entry[ActiveDirectory.PropPkiCriticalExt]));
+				CriticalExtensions.Add(new Oid((String)_entry[DsUtils.PropPkiCriticalExt]));
 			}
 		}
 		void get_superseded() {
 			List<String> temps = new List<String>();
 			try {
-				Object[] templates = (Object[])_entry[ActiveDirectory.PropPkiSupersede];
+				Object[] templates = (Object[])_entry[DsUtils.PropPkiSupersede];
 				if (templates != null) {
 					foreach (Object temp in templates) { temps.Add((String)temp); }
 				}
 			} catch {
-				temps.Add((String)_entry[ActiveDirectory.PropPkiSupersede]);
+				temps.Add((String)_entry[DsUtils.PropPkiSupersede]);
 			}
 			SupersededTemplates = temps.ToArray();
 		}
 		void get_extensions() {
-			schemaVersion = (Int32)_entry[ActiveDirectory.PropPkiSchemaVersion];
+			schemaVersion = (Int32)_entry[DsUtils.PropPkiSchemaVersion];
 			foreach (String oid in new [] {
 				X509CertExtensions.X509KeyUsage,
 				X509CertExtensions.X509EnhancedKeyUsage,
@@ -294,12 +294,12 @@ namespace PKI.CertificateTemplates {
 						break;
 					case X509CertExtensions.X509CertTemplateInfoV2:
 						if (schemaVersion == 1) {
-							_exts.Add(new X509Extension(new Oid(X509CertExtensions.X509CertTemplateInfoV2), Asn1Utils.EncodeBMPString((String)_entry[ActiveDirectory.PropCN]), test_critical(
+							_exts.Add(new X509Extension(new Oid(X509CertExtensions.X509CertTemplateInfoV2), Asn1Utils.EncodeBMPString((String)_entry[DsUtils.PropCN]), test_critical(
 								X509CertExtensions.X509CertTemplateInfoV2)));
 						} else {
-							Int32 major = (Int32)_entry[ActiveDirectory.PropPkiTemplateMajorVersion];
-							Int32 minor = (Int32)_entry[ActiveDirectory.PropPkiTemplateMinorVersion];
-							Oid tempoid = new Oid((String)_entry[ActiveDirectory.PropCertTemplateOid]);
+							Int32 major = (Int32)_entry[DsUtils.PropPkiTemplateMajorVersion];
+							Int32 minor = (Int32)_entry[DsUtils.PropPkiTemplateMinorVersion];
+							Oid tempoid = new Oid((String)_entry[DsUtils.PropCertTemplateOid]);
 							_exts.Add(new X509CertificateTemplateExtension(tempoid, major, minor));
 							_exts[_exts.Count - 1].Critical = test_critical(X509CertExtensions.X509CertificateTemplate);
 						}

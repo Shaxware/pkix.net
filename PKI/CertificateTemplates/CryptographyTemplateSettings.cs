@@ -77,24 +77,24 @@ namespace PKI.CertificateTemplates {
         public String PrivateKeySecuritySDDL { get; private set; }
 
         void InitializeDs() {
-            schemaVersion = (Int32)_entry[ActiveDirectory.PropPkiSchemaVersion];
+            schemaVersion = (Int32)_entry[DsUtils.PropPkiSchemaVersion];
             KeyAlgorithm = new Oid("RSA");
             HashAlgorithm = new Oid("SHA1");
-            MinimalKeyLength = (Int32)_entry[ActiveDirectory.PropPkiKeySize];
-            pkf = (Int32)_entry[ActiveDirectory.PropPkiPKeyFlags];
-            KeySpec = (X509KeySpecFlags)(Int32)_entry[ActiveDirectory.PropPkiKeySpec];
+            MinimalKeyLength = (Int32)_entry[DsUtils.PropPkiKeySize];
+            pkf = (Int32)_entry[DsUtils.PropPkiPKeyFlags];
+            KeySpec = (X509KeySpecFlags)(Int32)_entry[DsUtils.PropPkiKeySpec];
             get_csp();
             get_keyusages();
-            String ap = (String)_entry[ActiveDirectory.PropPkiRaAppPolicy];
+            String ap = (String)_entry[DsUtils.PropPkiRaAppPolicy];
             if (ap != null && ap.Contains("`")) {
                 String[] splitstring = { "`" };
                 String[] strings = ap.Split(splitstring, StringSplitOptions.RemoveEmptyEntries);
                 for (Int32 index = 0; index < strings.Length; index += 3) {
                     switch (strings[index]) {
-                        case ActiveDirectory.PropPkiKeySddl: PrivateKeySecuritySDDL = strings[index + 2]; break;
-                        case ActiveDirectory.PropPkiAsymAlgo: KeyAlgorithm = new Oid(strings[index + 2]); break;
-                        case ActiveDirectory.PropPkiHashAlgo: HashAlgorithm = new Oid(strings[index + 2]); break;
-                        case ActiveDirectory.PropPkiKeyUsageCng: CNGKeyUsage = (X509CNGKeyUsages)Convert.ToInt32(strings[index + 2]); break;
+                        case DsUtils.PropPkiKeySddl: PrivateKeySecuritySDDL = strings[index + 2]; break;
+                        case DsUtils.PropPkiAsymAlgo: KeyAlgorithm = new Oid(strings[index + 2]); break;
+                        case DsUtils.PropPkiHashAlgo: HashAlgorithm = new Oid(strings[index + 2]); break;
+                        case DsUtils.PropPkiKeyUsageCng: CNGKeyUsage = (X509CNGKeyUsages)Convert.ToInt32(strings[index + 2]); break;
                     }
                 }
             }
@@ -104,18 +104,18 @@ namespace PKI.CertificateTemplates {
             List<String> csplist = new List<String>();
 
             try {
-                Object[] CSPObject = (Object[])_entry[ActiveDirectory.PropPkiKeyCsp];
+                Object[] CSPObject = (Object[])_entry[DsUtils.PropPkiKeyCsp];
                 if (CSPObject != null) {
                     csplist.AddRange(CSPObject.Select(csp => Regex.Replace(csp.ToString(), "^\\d+,", String.Empty)));
                 }
             } catch {
-                String cspString = (String)_entry[ActiveDirectory.PropPkiKeyCsp];
+                String cspString = (String)_entry[DsUtils.PropPkiKeyCsp];
                 csplist.Add(Regex.Replace(cspString, "^\\d+,", String.Empty));
             }
             CSPList = csplist.ToArray();
         }
         void get_keyusages() {
-            Byte[] ku = (Byte[])_entry[ActiveDirectory.PropPkiKeyUsage];
+            Byte[] ku = (Byte[])_entry[DsUtils.PropPkiKeyUsage];
             if (ku == null) {
                 KeyUsage = 0;
             } else {
