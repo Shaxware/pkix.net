@@ -76,6 +76,20 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cryptography\X509Certificates\X509PublishedCRLLocationsExtension.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCDPContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCertEnrollContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCertTemplateContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsRootCaContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsPkiCertContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCrlEntry.cs" />
+    <Compile Include="Management\ActiveDirectory\DsAiaContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCertificateEntry.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCertificateType.cs" />
+    <Compile Include="Management\ActiveDirectory\DsContainerType.cs" />
+    <Compile Include="Management\ActiveDirectory\DsKraContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsPkiContainer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />
     <Compile Include="Management\CertificateServices\AdcsCASecurityDescriptor.cs" />
     <Compile Include="Management\CertificateServices\AdcsCAAccessRule.cs" />
     <Compile Include="Management\CertificateServices\AdcsCAAuditRule.cs" />
@@ -97,6 +111,7 @@
     <Compile Include="Management\CertificateServices\Configuration\UrlProtocolSchemes.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CdpConfigUri.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CdpUriCollection.cs" />
+    <Compile Include="Utils\DsUtils.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="CertificateServices\DB\AdcsDbManager.cs" />
@@ -274,7 +289,6 @@
     <Compile Include="Structs\Certbcli.cs" />
     <Compile Include="Structs\nCrypt2.cs" />
     <Compile Include="Structs\Wincrypt.cs" />
-    <Compile Include="Utils\ActiveDirectory.cs" />
     <Compile Include="Exceptions\OfflineSource.cs" />
     <Compile Include="Exceptions\ServerUnavailableException.cs" />
     <Compile Include="Exceptions\UninitializedObjectException.cs" />
