@@ -61,17 +61,20 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
                 yield return row;
             }
         }
-        void ReleaseUnmanagedResources() {
+
+        #region IDisposable
+        void releaseUnmanagedResources() {
             CryptographyUtils.ReleaseCom(_dbRow);
         }
         /// <inheritdoc />
         public void Dispose() {
-            ReleaseUnmanagedResources();
+            releaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
         /// <inheritdoc />
         ~AdcsDbInternalEnumerator() {
-            ReleaseUnmanagedResources();
+            releaseUnmanagedResources();
         }
+        #endregion
     }
 }

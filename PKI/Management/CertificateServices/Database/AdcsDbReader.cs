@@ -7,6 +7,9 @@ using PKI.Structs;
 using PKI.Utils;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Database {
+    /// <summary>
+    /// Represents Active Directory Certificate Services (ADCS) managed database reader engine.
+    /// </summary>
     class AdcsDbReader : IDisposable {
         #region predefined columns per view table
         readonly String[] _revokedColumns   = {
@@ -70,7 +73,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
                                                   "CRLPublishError"
                                               };
         #endregion
-        readonly ICertView2 CaView = new CCertViewClass();
+        readonly ICertView2 _caView = new CCertViewClass();
         readonly IList<Int32> _columnIDs = new List<Int32>();
         readonly IList<String> _columns = new List<String>();
         readonly ISet<AdcsDbQueryFilterEntry> _filters = new HashSet<AdcsDbQueryFilterEntry>();
@@ -92,7 +95,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
             if (certificateAuthority == null) { throw new ArgumentNullException(nameof(certificateAuthority)); }
 
             ConfigString = certificateAuthority.ConfigString;
-            CaView.OpenConnection(ConfigString);
+            _caView.OpenConnection(ConfigString);
             ViewTable = viewTable;
             mapTables();
         }
@@ -224,49 +227,49 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
         public AdcsDbViewTableName ViewTable { get; }
 
         void mapTables() {
-            var RColumn = CaView.GetColumnIndex(0, "Disposition");
+            var RColumn = _caView.GetColumnIndex(0, "Disposition");
             // map view table to DB table
             String[] columns;
             switch (ViewTable) {
                 case AdcsDbViewTableName.Revoked:
                     columns = _revokedColumns;
                     table = AdcsDbTableName.Request;
-                    CaView.SetRestriction(RColumn, 1, 0, 21);
+                    _caView.SetRestriction(RColumn, 1, 0, 21);
                     break;
                 case AdcsDbViewTableName.Issued:
                     columns = _issuedColumns;
                     table = AdcsDbTableName.Request;
-                    CaView.SetRestriction(RColumn, 1, 0, 20);
+                    _caView.SetRestriction(RColumn, 1, 0, 20);
                     break;
                 case AdcsDbViewTableName.Pending:
                     columns = _pendingColumns;
                     table = AdcsDbTableName.Request;
-                    CaView.SetRestriction(RColumn, 1, 0, 9);
+                    _caView.SetRestriction(RColumn, 1, 0, 9);
                     break;
                 case AdcsDbViewTableName.Failed:
                     columns = _failedColumns;
                     table = AdcsDbTableName.Request;
-                    CaView.SetRestriction(-3, 0, 0, 0);
+                    _caView.SetRestriction(-3, 0, 0, 0);
                     break;
                 case AdcsDbViewTableName.Request:
                     columns = _requestColumns;
                     table = AdcsDbTableName.Request;
-                    CaView.SetTable((Int32)AdcsDbTableName.Request);
+                    _caView.SetTable((Int32)AdcsDbTableName.Request);
                     break;
                 case AdcsDbViewTableName.Extension:
                     columns = _extensionColumns;
                     table = AdcsDbTableName.Extension;
-                    CaView.SetTable((Int32)AdcsDbTableName.Extension);
+                    _caView.SetTable((Int32)AdcsDbTableName.Extension);
                     break;
                 case AdcsDbViewTableName.Attribute:
                     columns = _attributeColumns;
                     table = AdcsDbTableName.Attribute;
-                    CaView.SetTable((Int32)AdcsDbTableName.Attribute);
+                    _caView.SetTable((Int32)AdcsDbTableName.Attribute);
                     break;
                 case AdcsDbViewTableName.CRL:
                     columns = _crlColumns;
                     table = AdcsDbTableName.CRL;
-                    CaView.SetTable((Int32)AdcsDbTableName.CRL);
+                    _caView.SetTable((Int32)AdcsDbTableName.CRL);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -279,24 +282,24 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
         void setResultColumns() {
             Int32 columnCount;
             if (outAllColumns) {
-                columnCount = CaView.GetColumnCount(CertAdmConstants.CVRC_COLUMN_SCHEMA);
-                CaView.SetResultColumnCount(columnCount);
+                columnCount = _caView.GetColumnCount(CertAdmConstants.CVRC_COLUMN_SCHEMA);
+                _caView.SetResultColumnCount(columnCount);
                 _columns.Clear();
                 _columns.Add("*");
                 foreach (var columnIndex in Enumerable.Range(0, columnCount)) {
-                    CaView.SetResultColumn(columnIndex);
+                    _caView.SetResultColumn(columnIndex);
                 }
             } else {
                 columnCount = _columnIDs.Count;
-                CaView.SetResultColumnCount(columnCount);
+                _caView.SetResultColumnCount(columnCount);
                 foreach (var columnID in _columnIDs) {
-                    CaView.SetResultColumn(columnID);
+                    _caView.SetResultColumn(columnID);
                 }
             }
         }
         void setFilters() {
             foreach (AdcsDbQueryFilterEntry filter in _filters) {
-                CaView.SetRestriction(
+                _caView.SetRestriction(
                     filter.ColumnID,
                     (Int32)filter.LogicalOperator,
                     CertAdmConstants.CVR_SORT_NONE,
@@ -320,20 +323,24 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
                 outAllColumns = true;
                 return true;
             }
-            Int32 index = CaView.GetColumnIndex(0, columnName);
+            Int32 index = _caView.GetColumnIndex(0, columnName);
             if (_columnIDs.Contains(index)) { return false; }
             _columnIDs.Add(index);
             _columns.Add(columnName);
             return true;
         }
         /// <summary>
-        /// Adds filter to requested view.
+        /// Adds query filter to requested view.
         /// </summary>
         /// <param name="filter">Filter entry to add.</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="AccessViolationException"></exception>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>filter</strong> parameter is null.
+        /// </exception>
+        /// <exception cref="AccessViolationException">
+        /// Database view is already opened and cannot be altered.
+        /// </exception>
         /// <returns>
-        /// <strong>True</strong> if 
+        /// <strong>True</strong> if filter is added, if filter is already added, the method returns <strong>False</strong>.
         /// </returns>
         public Boolean AddQueryFilter(AdcsDbQueryFilterEntry filter) {
             if (filter == null) { throw new ArgumentNullException(nameof(filter)); }
@@ -342,7 +349,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
             }
             if (_filters.Contains(filter)) { return false; }
 
-            Int32 index = CaView.GetColumnIndex(0, filter.ColumnName);
+            Int32 index = _caView.GetColumnIndex(0, filter.ColumnName);
             filter.ColumnID = index;
             return _filters.Add(filter);
         }
@@ -350,25 +357,48 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
             isOpenView = true;
             setResultColumns();
             setFilters();
-            using (var reader = new AdcsDbInternalEnumerator(CaView.OpenView(), ConfigString, table)) {
+            using (var reader = new AdcsDbInternalEnumerator(_caView.OpenView(), ConfigString, table)) {
                 foreach (AdcsDbRow row in reader.EnumRows(skipRows, takeRows)) {
                     yield return row;
                 }
             }
         }
+        /// <summary>
+        /// Gets ADCS database schema for specified table. Table name is speicifed in <see cref="ViewTable"/> property.
+        /// </summary>
+        /// <returns>An array of table columns and their schema details.</returns>
+        public AdcsDbColumnSchema[] GetTableSchema() {
+            CCertView schemaView = new CCertView();
+            List<AdcsDbColumnSchema> items = new List<AdcsDbColumnSchema>();
+            schemaView.OpenConnection(ConfigString);
+            schemaView.SetTable((Int32)table);
+            IEnumCERTVIEWCOLUMN columns = schemaView.EnumCertViewColumn(0);
+            while (columns.Next() != -1) {
+                var column = new AdcsDbColumnSchema {
+                    Name = columns.GetName(),
+                    DisplayName = columns.GetDisplayName(),
+                    DataType = (AdcsDbColumnDataType)columns.GetType(),
+                    MaxLength = columns.GetMaxLength(),
+                    IsIndexed = Convert.ToBoolean(columns.IsIndexed())
+                };
+                items.Add(column);
+            }
+            CryptographyUtils.ReleaseCom(columns, schemaView);
+            return items.ToArray();
+        }
 
         #region IDisposable
-        void ReleaseUnmanagedResources() {
-            CryptographyUtils.ReleaseCom(CaView);
+        void releaseUnmanagedResources() {
+            CryptographyUtils.ReleaseCom(_caView);
         }
         /// <inheritdoc />
         public void Dispose() {
-            ReleaseUnmanagedResources();
+            releaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
         /// <inheritdoc />
         ~AdcsDbReader() {
-            ReleaseUnmanagedResources();
+            releaseUnmanagedResources();
         }
         #endregion
     }
