@@ -1,14 +1,13 @@
 ﻿using System;
-using SysadminsLV.PKI.Management.CertificateServices.Database;
 
-namespace PKI.CertificateServices.DB {
+namespace SysadminsLV.PKI.Management.CertificateServices.Database {
     /// <summary>
     /// Represents Certification Authority database row. This object contains only 4 base properties:
     /// <see cref="RowId"/>, <see cref="RequestId"/>, <see cref="ConfigString"/> and <see cref="Table"/>.
     /// Other properties should be added by using external means (for example, by using Add-Member cmdlet in
     ///	Windows PowerShell).
     /// </summary>
-    public class RequestRow {
+    public class AdcsDbRow {
         /// <summary>
         /// Gets or sets RowId which corresponds to row number in CA database.
         /// </summary>
@@ -25,7 +24,7 @@ namespace PKI.CertificateServices.DB {
         /// <summary>
         /// Gets or sets database table name.
         /// </summary>
-        public TableList Table { get; set; }
+        public AdcsDbTableName Table { get; set; }
         /// <summary>
         /// Gets a collection of properties associated with the current row object.
         /// </summary>

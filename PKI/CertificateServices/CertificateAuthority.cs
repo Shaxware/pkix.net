@@ -393,6 +393,7 @@ namespace PKI.CertificateServices {
         /// Current CA server could not be contacted via remote registry and RPC protocol.
         /// </exception>
         /// <returns>Database schema (column name, data type, cell capacity).</returns>
+        [Obsolete("Use 'AdcsDbReader.GetTableSchema()' method instead", true)]
         public Schema[] GetSchema(TableList table = TableList.Request) {
             if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
             if (!Ping()) {
