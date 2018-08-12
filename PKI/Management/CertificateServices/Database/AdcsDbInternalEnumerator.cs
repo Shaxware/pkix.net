@@ -6,7 +6,7 @@ using PKI.Structs;
 using PKI.Utils;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Database {
-    class AdcsDbInternalEnumerator : IDisposable {
+    class AdcsDbInternalEnumerator {
         readonly String _configString;
         readonly AdcsDbTableName _table;
         readonly IEnumCERTVIEWROW _dbRow;
@@ -22,7 +22,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
 
 
         static void enumColumnView(IEnumCERTVIEWROW dbRow, AdcsDbRow row) {
-            var dbColumn = dbRow.EnumCertViewColumn();
+            IEnumCERTVIEWCOLUMN dbColumn = dbRow.EnumCertViewColumn();
             while (dbColumn.Next() != -1) {
                 String colName = dbColumn.GetName();
                 Object colVal = dbColumn.GetValue(CertAdmConstants.CV_OUT_BASE64);
@@ -60,18 +60,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
                 postProcessRow(row);
                 yield return row;
             }
-        }
-        void ReleaseUnmanagedResources() {
-            CryptographyUtils.ReleaseCom(_dbRow);
-        }
-        /// <inheritdoc />
-        public void Dispose() {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-        }
-        /// <inheritdoc />
-        ~AdcsDbInternalEnumerator() {
-            ReleaseUnmanagedResources();
+            _dbRow.Reset();
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿namespace SysadminsLV.PKI.Management.CertificateServices.Database {
     /// <summary>
     /// Specifies the logical operator of the data-query qualifier for the column. This parameter is used with the
-    /// <see cref="AdcsDbQueryFilterEntry.QualifierValue"/> member to define the data-query qualifier.
+    /// <see cref="AdcsDbQueryFilter.QualifierValue"/> member to define the data-query qualifier.
     /// </summary>
     public enum AdcsDbSeekOperator {
         /// <summary>

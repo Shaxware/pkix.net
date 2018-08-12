@@ -2,11 +2,27 @@
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Database {
     /// <summary>
-    /// A valid column index number for the view or a predefined column specifier
+    /// Represents an ADCS database query filter entry. Query filter consist of column name to use in the filter,
+    /// logical operator of the data-query qualifier and query qualifier.
     /// </summary>
-    public class AdcsDbQueryFilterEntry {
-
-        public AdcsDbQueryFilterEntry(String columnName, AdcsDbSeekOperator op, Object value) {
+    /// <remarks>
+    /// Query filters doesn't work on columns that store binary data.
+    /// <para>When applying query filters on columns that store string data and logical operator is other than
+    /// <strong>EQ</strong>, a binary string comparison is performed.
+    /// is performed.</para>
+    /// </remarks>
+    public class AdcsDbQueryFilter {
+        /// <summary>
+        /// Initializes a new instance of <strong>AdcsDbQueryFilter</strong> class from column name,
+        /// comparison operator and filter qualifier value.
+        /// </summary>
+        /// <param name="columnName">A valid column name to use in the filter.</param>
+        /// <param name="op">A logical operator of the data-query qualifier.</param>
+        /// <param name="value">A query qualifier value to use in the filter.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>columnName</strong> or <strong>value</strong> parameters is null.
+        /// </exception>
+        public AdcsDbQueryFilter(String columnName, AdcsDbSeekOperator op, Object value) {
             if (String.IsNullOrEmpty(columnName)) {
                 throw new ArgumentNullException(nameof(columnName));
             }
@@ -36,9 +52,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
         public override Boolean Equals(Object obj) {
             return !(obj is null)
                    && (ReferenceEquals(this, obj)
-                       || obj is AdcsDbQueryFilterEntry other && Equals(other));
+                       || obj is AdcsDbQueryFilter other && Equals(other));
         }
-        protected Boolean Equals(AdcsDbQueryFilterEntry other) {
+        protected Boolean Equals(AdcsDbQueryFilter other) {
             return String.Equals(ColumnName, other.ColumnName, StringComparison.OrdinalIgnoreCase)
                    && LogicalOperator == other.LogicalOperator
                    && Equals(QualifierValue, other.QualifierValue);
