@@ -17,7 +17,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
 
         void m_initialize() {
             foreach (String entry in (String[])RegEntries[0].Value) {
-                URLs.Add(new CdpConfigUri(entry));
+                URLs.Add(new CrlDistributionPointConfigUri(entry));
             }
         }
         void OnItemsCollectionChanged(Object Sender, NotifyCollectionChangedEventArgs NotifyCollectionChangedEventArgs) {

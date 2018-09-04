@@ -109,7 +109,7 @@
     <Compile Include="Management\CertificateServices\Configuration\AdcsAiaExtensionConfig.cs" />
     <Compile Include="Management\CertificateServices\AdcsCertificateAuthority.cs" />
     <Compile Include="Management\CertificateServices\Configuration\UrlProtocolSchemes.cs" />
-    <Compile Include="Management\CertificateServices\Configuration\CdpConfigUri.cs" />
+    <Compile Include="Management\CertificateServices\Configuration\CrlDistributionPointConfigUri.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CdpUriCollection.cs" />
     <Compile Include="Utils\DsUtils.cs" />
     <Compile Include="Win32\AdvAPI.cs" />

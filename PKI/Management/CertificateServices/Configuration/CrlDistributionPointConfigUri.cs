@@ -3,12 +3,12 @@ using System.IO;
 using System.Text.RegularExpressions;
 using PKI.CertificateServices;
 
-namespace PKI.Management.CertificateServices.Configuration {
+namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
     /// <summary>
     /// Represents CRLDistributionPoint URL object. An object contains URL information and URL publication settings.
     /// </summary>
     public class CrlDistributionPointConfigUri {
-        readonly Regex _regex = new Regex("(1|2|4|8|64|128):(.+)", RegexOptions.Compiled);
+        readonly Regex _regex = new Regex(@"(\d+):(.+)", RegexOptions.Compiled);
         String uri;
 
         /// <summary>
