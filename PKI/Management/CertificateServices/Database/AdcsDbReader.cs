@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using CERTADMINLib;
 using PKI.CertificateServices;
 using PKI.Structs;
@@ -92,11 +93,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
         /// <code>using</code> (C#) or <code>Using</code> (Visual Basic) statement block or explicitly call
         /// <see cref="Dispose"/> method when current object is no longer needed to release all unmanaged resources.
         /// </remarks>
-        public AdcsDbReader(CertificateAuthority certificateAuthority, AdcsDbViewTableName viewTable = AdcsDbViewTableName.Issued) {
-            if (certificateAuthority == null) {
-                throw new ArgumentNullException(nameof(certificateAuthority));
-            }
-
+        internal AdcsDbReader(CertificateAuthority certificateAuthority, AdcsDbViewTableName viewTable = AdcsDbViewTableName.Issued) {
             ConfigString = certificateAuthority.ConfigString;
             _caView.OpenConnection(ConfigString);
             ViewTable = viewTable;
@@ -310,6 +307,49 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
             }
         }
 
+        IEnumerable<AdcsDbRow> enumRows(Int32 skipRows, Int32 takeRows) {
+            Int32 rowsTaken = 0;
+            dbRow.Skip(skipRows);
+            while (dbRow.Next() != -1 && rowsTaken < takeRows) {
+                rowsTaken++;
+                var row = new AdcsDbRow {
+                                            ConfigString = ConfigString,
+                                            Table = table
+                                        };
+                enumColumnView(dbRow, row);
+                postProcessRow(row);
+                yield return row;
+            }
+            dbRow.Reset();
+        }
+        static void enumColumnView(IEnumCERTVIEWROW dbRow, AdcsDbRow row) {
+            IEnumCERTVIEWCOLUMN dbColumn = dbRow.EnumCertViewColumn();
+            while (dbColumn.Next() != -1) {
+                String colName = dbColumn.GetName();
+                Object colVal = dbColumn.GetValue(CertAdmConstants.CV_OUT_BASE64);
+                switch (colName) {
+                    case "RequestID":
+                    case "ExtensionRequestId":
+                    case "AttributeRequestId":
+                    case "CRLRowId":
+                        row.RowId = (Int32)colVal;
+                        break;
+                }
+                row.Properties.Add(colName, colVal);
+            }
+            CryptographyUtils.ReleaseCom(dbColumn);
+        }
+        static void postProcessRow(AdcsDbRow row) {
+            if (row.Properties.ContainsKey("CertificateTemplate")) {
+                row.Properties.Add("CertificateTemplateOid", new Oid((String)row.Properties["CertificateTemplate"]));
+            }
+            if (row.Properties.ContainsKey("ExtensionName")) {
+                row.Properties.Add("ExtensionNameOid", new Oid((String)row.Properties["ExtensionName"]));
+            }
+        }
+
+        
+
         /// <summary>
         /// Adds database table column to output.
         /// </summary>
@@ -406,9 +446,10 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
             }
             if (dbRow == null) {
                 dbRow = _caView.OpenView();
+            } else {
+                dbRow.Reset();
             }
-            var reader = new AdcsDbInternalEnumerator(dbRow, ConfigString, table);
-            foreach (AdcsDbRow row in reader.EnumRows(skipRows, takeRows)) {
+            foreach (AdcsDbRow row in enumRows(skipRows, takeRows)) {
                 yield return row;
             }
         }
@@ -443,14 +484,22 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
         /// <returns>An array of column names.</returns>
         public static String[] GetDefaultColumns(AdcsDbViewTableName table) {
             switch (table) {
-                case AdcsDbViewTableName.Attribute: return _attributeColumns;
-                case AdcsDbViewTableName.CRL: return _crlColumns;
-                case AdcsDbViewTableName.Extension: return _extensionColumns;
-                case AdcsDbViewTableName.Failed: return _failedColumns;
-                case AdcsDbViewTableName.Issued: return _issuedColumns;
-                case AdcsDbViewTableName.Pending: return _pendingColumns;
-                case AdcsDbViewTableName.Revoked: return _revokedColumns;
-                case AdcsDbViewTableName.Request: return _requestColumns;
+                case AdcsDbViewTableName.Attribute:
+                    return _attributeColumns;
+                case AdcsDbViewTableName.CRL:
+                    return _crlColumns;
+                case AdcsDbViewTableName.Extension:
+                    return _extensionColumns;
+                case AdcsDbViewTableName.Failed:
+                    return _failedColumns;
+                case AdcsDbViewTableName.Issued:
+                    return _issuedColumns;
+                case AdcsDbViewTableName.Pending:
+                    return _pendingColumns;
+                case AdcsDbViewTableName.Revoked:
+                    return _revokedColumns;
+                case AdcsDbViewTableName.Request:
+                    return _requestColumns;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(table));
             }

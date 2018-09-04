@@ -77,7 +77,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Management\CertificateServices\Database\AdcsDbColumnSchema.cs" />
-    <Compile Include="Management\CertificateServices\Database\AdcsDbInternalEnumerator.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbQueryFilter.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbReader.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbRow.cs" />

@@ -13,6 +13,7 @@ using PKI.Security;
 using PKI.Security.AccessControl;
 using PKI.Structs;
 using PKI.Utils;
+using SysadminsLV.PKI.Management.CertificateServices.Database;
 using SysadminsLV.PKI.Win32;
 
 namespace PKI.CertificateServices {
@@ -393,7 +394,7 @@ namespace PKI.CertificateServices {
         /// Current CA server could not be contacted via remote registry and RPC protocol.
         /// </exception>
         /// <returns>Database schema (column name, data type, cell capacity).</returns>
-        [Obsolete("Use 'AdcsDbReader.GetTableSchema()' method instead", true)]
+        [Obsolete("Use 'AdcsDbReader.GetTableSchema()' method instead.", true)]
         public Schema[] GetSchema(TableList table = TableList.Request) {
             if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
             if (!Ping()) {
@@ -423,6 +424,16 @@ namespace PKI.CertificateServices {
             } finally {
                 CryptographyUtils.ReleaseCom(CaView);
             }
+        }
+        /// <summary>
+        /// Returns an instance of ADCS database reader.
+        /// </summary>
+        /// <param name="table">Initial view table name. Default is 'Issued' view table.</param>
+        /// <returns>
+        /// An instance of ADCS database reader.
+        /// </returns>
+        public AdcsDbReader GetDbReader(AdcsDbViewTableName table = AdcsDbViewTableName.Issued) {
+            return new AdcsDbReader(this, table);
         }
         /// <summary>
         /// Returns all CA certificates.
