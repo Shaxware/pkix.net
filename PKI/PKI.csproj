@@ -76,6 +76,8 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Management\CertificateServices\AdcsCertificationAuthority.cs" />
+    <Compile Include="Management\CertificateServices\AdcsRegistrationSource.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AdcsCAConfigurationEntry.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CADcomSecurityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AdcsInternalConfigPath.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="Management\CertificateServices\Configuration\CASigningCryptographyConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CAIssuedCertValidityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CrlDistributionPointConfigUri.cs" />
+    <Compile Include="Management\CertificateServices\AdcsSetupStatus.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="CertificateServices\DB\AdcsDbManager.cs" />
