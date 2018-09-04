@@ -1,24 +1,32 @@
 ﻿using System;
-using System.ComponentModel;
 using System.IO;
 using System.Text.RegularExpressions;
+using PKI.CertificateServices;
 
-namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
+namespace PKI.Management.CertificateServices.Configuration {
     /// <summary>
     /// Represents CRLDistributionPoint URL object. An object contains URL information and URL publication settings.
     /// </summary>
-    public class CdpConfigUri : INotifyPropertyChanged {
-        readonly Regex _regex = new Regex(@"(\d+):(.+)", RegexOptions.Compiled);
-        String url;
-        Boolean crlPublish, deltaCRLPublish, addToCertCDP, addToFreshestCRL, addToCrlCDP, idp;
+    public class CrlDistributionPointConfigUri {
+        readonly Regex _regex = new Regex("(1|2|4|8|64|128):(.+)", RegexOptions.Compiled);
+        String uri;
 
         /// <summary>
-        /// Initializes a new instance of <strong>CrlDistributionPointUri</strong> class from a URL string. URI value can be either, simple
-        /// Uri or a registry-based entry with variables and publication options.
+        /// Initializes a new instance of <strong>CrlDistributionPointConfigUri</strong> class.
         /// </summary>
-        /// <param name="uri"></param>
-        /// <exception cref="ArgumentNullException"> <strong>uri</strong> parameter is null or empty string.</exception>
-        public CdpConfigUri(String uri) {
+        public CrlDistributionPointConfigUri() { }
+        /// <summary>
+        /// Initializes a new instance of the <strong>CrlDistributionPointConfigUri</strong> class
+        /// using URL string.
+        /// </summary>
+        /// <param name="uri">
+        /// An URL that points to a publication location including file name.
+        /// See <see cref="URI"/> property for variable replacement tokens.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>uri</strong> parameter is null or empty string.
+        /// </exception>
+        public CrlDistributionPointConfigUri(String uri) {
             if (String.IsNullOrWhiteSpace(uri)) {
                 throw new ArgumentNullException(nameof(uri));
             }
@@ -29,7 +37,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
                 CRLPublish       = (flag & 1) > 0;
                 AddToCertCDP     = (flag & 2) > 0;
                 AddToFreshestCRL = (flag & 4) > 0;
-                AddToCrlCDP      = (flag & 8) > 0;
+                AddToCrlcdp      = (flag & 8) > 0;
                 DeltaCRLPublish  = (flag & 64) > 0;
                 IDP              = (flag & 128) > 0;
             } else {
@@ -38,7 +46,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         }
 
         /// <summary>
-        /// Gets or sets a publication URL. Can be local path, UNC, LDAP or HTTP path. Cannot be null or empty string.
+        /// Gets or sets a publication URL. Can be local path, UNC, LDAP or HTTP path.
         /// See <strong>Remarks</strong> for detailed URL structure.
         /// </summary>
         /// <remarks>
@@ -97,20 +105,16 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// </list>
         /// </remarks>
         public String URI {
-            get => url;
+            get => uri;
             set {
-                if (String.IsNullOrWhiteSpace(value)) {
-                    return;
-                }
-                url = value;
+                uri = value;
                 getUrlScheme();
-                OnPropertyChanged(nameof(URI));
             }
         }
         /// <summary>
         /// Gets the protocol scheme used by this object.
         /// </summary>
-        public UrlProtocolScheme UrlScheme { get; private set; }
+        public UrlProtocolSchemes UrlScheme { get; private set; }
         /// <summary>
         /// Gets an URL representation that is shown in Certification Authority MMC snap-in Extensions tab. See
         /// <see cref="URI"/> for detailed variable token replacement rules.
@@ -135,82 +139,46 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// Gets True if provided URL is configured to publish CRLs to this location.
         /// </summary>
         /// <remarks>Only absolute (local), UNC and LDAP paths are supported.</remarks>
-        public Boolean CRLPublish {
-            get => crlPublish;
-            set {
-                crlPublish = value;
-                OnPropertyChanged(nameof(CRLPublish));
-            }
-        }
+        public Boolean CRLPublish { get; set; }
         /// <summary>
         /// Gets True if provided URL is configured to publish Delta CRLs to this location.
         /// </summary>
         /// <remarks>Only absolute (local), UNC and LDAP paths are supported.</remarks>
-        public Boolean DeltaCRLPublish {
-            get => deltaCRLPublish;
-            set {
-                deltaCRLPublish = value;
-                OnPropertyChanged(nameof(DeltaCRLPublish));
-            }
-        }
+        public Boolean DeltaCRLPublish { get; set; }
         /// <summary>
         /// Gets True if provided URL is configured to publish specified URL to all issued certificates' CDP extension.
         /// </summary>
         /// <remarks>Only HTTP and LDAP paths are supported.</remarks>
-        public Boolean AddToCertCDP {
-            get => addToCertCDP;
-            set {
-                addToCertCDP = value;
-                OnPropertyChanged(nameof(AddToCertCDP));
-            }
-        }
+        public Boolean AddToCertCDP { get; set; }
         /// <summary>
         /// Gets True if provided URL is configured to publish specified URL Base CRL CDP extension.
         /// This extension is used to locate Delta CRL locations.
         /// </summary>
         /// <remarks>Only HTTP and LDAP paths are supported.</remarks>
-        public Boolean AddToFreshestCRL {
-            get => addToFreshestCRL;
-            set {
-                addToFreshestCRL = value;
-                OnPropertyChanged(nameof(AddToFreshestCRL));
-            }
-        }
+        public Boolean AddToFreshestCRL { get; set; }
         /// <summary>
         /// Gets True if provided URL is configured to publish provided URL to CRLs.
         /// </summary>
         /// <remarks>Only LDAP paths are supported.</remarks>
-        public Boolean AddToCrlCDP {
-            get => addToCrlCDP;
-            set {
-                addToCrlCDP = value;
-                OnPropertyChanged(nameof(AddToCrlCDP));
-            }
-        }
+        public Boolean AddToCrlcdp { get; set; }
         /// <summary>
         /// Gets True if provided URL is configured to publish CRLs to CRLs' IDP (Issuing Distribution Point) extension.
         /// </summary>
         /// <remarks>Only HTTP and LDAP paths are supported.</remarks>
-        public Boolean IDP {
-            get => idp;
-            set {
-                idp = value;
-                OnPropertyChanged(nameof(IDP));
-            }
-        }
+        public Boolean IDP { get; set; }
 
         void getUrlScheme() {
             Regex regex = new Regex(@"([a-z]:\\(?:[^\\:]+\\)*(?:[^:\\]+\.\w+))");
             if (regex.IsMatch(URI)) {
-                UrlScheme = UrlProtocolScheme.Local;
+                UrlScheme = UrlProtocolSchemes.Local;
             } else if (URI.ToLower().Contains("file://") || URI.Contains(@"\\")) {
-                UrlScheme = UrlProtocolScheme.UNC;
+                UrlScheme = UrlProtocolSchemes.UNC;
             } else if (URI.ToLower().Contains("http://")) {
-                UrlScheme = UrlProtocolScheme.HTTP;
+                UrlScheme = UrlProtocolSchemes.HTTP;
             } else if (URI.ToLower().Contains("ldap://")) {
-                UrlScheme = UrlProtocolScheme.LDAP;
+                UrlScheme = UrlProtocolSchemes.LDAP;
             } else {
-                UrlScheme = UrlProtocolScheme.Unknown;
+                UrlScheme = UrlProtocolSchemes.Unknown;
             }
         }
 
@@ -228,7 +196,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
             if (AddToFreshestCRL) {
                 flag |= 4;
             }
-            if (AddToCrlCDP) {
+            if (AddToCrlcdp) {
                 flag |= 8;
             }
             if (DeltaCRLPublish) {
@@ -245,11 +213,6 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// <returns>A string representation of the current CDP URI object.</returns>
         public override String ToString() {
             return ConfigURI;
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        void OnPropertyChanged(String propertyName) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

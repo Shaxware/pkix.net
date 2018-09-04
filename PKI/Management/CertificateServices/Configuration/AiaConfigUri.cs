@@ -18,7 +18,8 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Configuration {
         /// <summary>
         /// Initializes a new instance of the <strong>AiaConfigUri</strong> class using URL string.
         /// </summary>
-        /// <param name="uri">An URL that points to a publication location including file name.
+        /// <param name="uri">
+        /// An URL that points to a publication location including file name.
         /// See <see cref="URI"/> property for variable replacement tokens.
         /// </param>
         /// <exception cref="ArgumentNullException">The <strong>uri</strong> parameter is null or empty.</exception>
