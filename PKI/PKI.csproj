@@ -103,7 +103,6 @@
     <Compile Include="Management\CertificateServices\Configuration\AiaConfigUri.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CACertViewTimoutConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CACrlValidityConfig.cs" />
-    <Compile Include="Management\CertificateServices\Configuration\CACryptographyConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\CAIssuedCertValidityConfig.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AiaUriCollection.cs" />
     <Compile Include="Management\CertificateServices\Configuration\AdcsAiaExtensionConfig.cs" />
