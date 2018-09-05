@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
@@ -22,7 +23,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// X509Certificate2.DeletePrivateKey</see> extension method.
     /// </remarks>
     public class X509CertificateBuilder {
-        readonly Byte[] _versionBytes = {0xa0, 03, 02, 01, 02};
+        readonly Byte[] _versionBytes = { 0xa0, 03, 02, 01, 02 };
         readonly HashSet<String> _excludedExtensions = new HashSet<String>(
             new[] {
                 X509CertExtensions.X509SubjectKeyIdentifier,
@@ -45,7 +46,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// Gets or sets subject of the certificate. If this is self-signed certificate, subject will be copied to
         /// issuer field.
         /// </summary>
-        public X500DistinguishedName Subject { get; set; }
+        public X500DistinguishedName SubjectName { get; set; }
         /// <summary>
         /// Gets or sets the date in local time on which a certificate becomes valid. Default value is current
         /// date and time. If external signer is used, this value cannot be less than NotBefore value of the
@@ -75,13 +76,17 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// </summary>
         public Boolean AlternateSignatureFormat { get; set; }
         /// <summary>
+        /// Gets or sets a friend name for certificate.
+        /// </summary>
+        public String FriendlyName { get; set; }
+        /// <summary>
         /// Gets an asymmetric key pair generator. Use this property to configure asymmetric key generation options.
         /// </summary>
         public X509PrivateKeyBuilder PrivateKeyInfo { get; } = new X509PrivateKeyBuilder();
 
         void generateSerialNumber() {
             if (String.IsNullOrWhiteSpace(SerialNumber)) {
-                using (var hasher = MD5.Create()) {
+                using (MD5 hasher = MD5.Create()) {
                     serialNumber = hasher.ComputeHash(Guid.NewGuid().ToByteArray());
                 }
             } else {
@@ -134,6 +139,22 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             generateKeyIdentifiers(signer);
             processExtensions();
         }
+        void setFriendlyName(X509Certificate2 cert) {
+            if (!String.IsNullOrWhiteSpace(FriendlyName)) {
+                Byte[] stringBytes = Encoding.Unicode.GetBytes(FriendlyName);
+                IntPtr ptr = Marshal.AllocHGlobal(stringBytes.Length);
+                Marshal.Copy(stringBytes, 0, ptr, stringBytes.Length);
+                var blob = new Wincrypt.CRYPTOAPI_BLOB {
+                    cbData = (UInt32)stringBytes.Length,
+                    pbData = ptr
+                };
+                IntPtr blobPtr = Marshal.AllocHGlobal(Marshal.SizeOf(blob));
+                Marshal.StructureToPtr(blob, blobPtr, false);
+                Crypt32.CertSetCertificateContextProperty(cert.Handle, X509CertificatePropertyType.FriendlyName, 0, blobPtr);
+                Marshal.FreeHGlobal(ptr);
+                Marshal.FreeHGlobal(blobPtr);
+            }
+        }
         void postGenerate(X509Certificate2 cert) {
             // write key info to cert property
             var keyInfo = new Wincrypt.CRYPT_KEY_PROV_INFO {
@@ -144,12 +165,14 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             };
             IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(keyInfo));
             Marshal.StructureToPtr(keyInfo, ptr, false);
-            Crypt32.CertSetCertificateContextProperty(cert.Handle, 2, 0, ptr);
+            Crypt32.CertSetCertificateContextProperty(cert.Handle, X509CertificatePropertyType.ProviderInfo, 0, ptr);
             Marshal.FreeHGlobal(ptr);
             PrivateKeyInfo.Dispose();
+            // friendly name
+            setFriendlyName(cert);
         }
         X509Certificate2 build(X509Certificate2 signer) {
-            var signerInfo = signer == null
+            MessageSigner signerInfo = signer == null
                 ? new MessageSigner(PrivateKeyInfo, HashingAlgorithm)
                 : new MessageSigner(signer, HashingAlgorithm);
             signerInfo.PaddingScheme = AlternateSignatureFormat
@@ -163,14 +186,14 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             rawData.AddRange(signerInfo.GetAlgorithmIdentifier(AlternateSignatureFormat).RawData);
             // issuer
             rawData.AddRange(signer == null
-                ? Subject.RawData
+                ? SubjectName.RawData
                 : signer.SubjectName.RawData);
             // NotBefore and NotAfter
-            var date = Asn1Utils.EncodeDateTime(NotBefore).ToList();
+            List<Byte> date = Asn1Utils.EncodeDateTime(NotBefore).ToList();
             date.AddRange(Asn1Utils.EncodeDateTime(NotAfter));
             rawData.AddRange(Asn1Utils.Encode(date.ToArray(), 48));
             // subject
-            rawData.AddRange(Subject.RawData);
+            rawData.AddRange(SubjectName.RawData);
             rawData.AddRange(PrivateKeyInfo.GetPublicKey().Encode());
             rawData.AddRange(Asn1Utils.Encode(finalExtensions.Encode(), 0xa3));
             var blob = new SignedContentBlob(Asn1Utils.Encode(rawData.ToArray(), 48), ContentBlobType.ToBeSignedBlob);

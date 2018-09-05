@@ -325,9 +325,23 @@ namespace SysadminsLV.PKI.Win32 {
             [In, Out]ref UInt32 pcbData
         );
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        internal static extern Boolean CertGetCertificateContextProperty(
+            [In]            IntPtr pCertContext,
+            [In]            X509CertificatePropertyType dwPropId,
+            [Out]           IntPtr pvData,
+            [In, Out]ref UInt32 pcbData
+        );
+        [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        internal static extern Boolean CertGetCertificateContextProperty(
+            [In]            IntPtr pCertContext,
+            [In]            X509CertificatePropertyType dwPropId,
+            [Out]           Byte[] pvData,
+            [In, Out]ref UInt32 pcbData
+        );
+        [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern Boolean CertSetCertificateContextProperty(
             [In] IntPtr pCertContext,
-            [In] UInt32 dwPropId,
+            [In] X509CertificatePropertyType dwPropId,
             [In] UInt32 dwFlags,
             [In] IntPtr pvData
         );

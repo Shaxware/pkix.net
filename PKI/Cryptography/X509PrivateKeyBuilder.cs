@@ -53,7 +53,7 @@ namespace SysadminsLV.PKI.Cryptography {
             set => _keyGen.KeySpec = (X509KeySpec)value;
         }
         /// <summary>
-        /// Gets or sets asymmetric public key length in bits. For ellyptic curve cryptography (ECC), this member
+        /// Gets or sets asymmetric public key length in bits. For elliptic curve cryptography (ECC), this member
         /// is automatically populated from <see cref="PublicKeyAlgorithm"/> member value, because ECC curve
         /// includes key length.
         /// </summary>

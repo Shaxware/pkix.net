@@ -106,11 +106,11 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
                 case X509CertificatePropertyType.Handle:
                 case X509CertificatePropertyType.KeyContext:
                 case X509CertificatePropertyType.ProviderInfo:
-                    if (!Crypt32.CertGetCertificateContextProperty(cert.Handle, (UInt32)propID, IntPtr.Zero, ref pcbData)) {
+                    if (!Crypt32.CertGetCertificateContextProperty(cert.Handle, propID, IntPtr.Zero, ref pcbData)) {
                         throw new Exception("No such property.");
                     }
                     IntPtr ptr = Marshal.AllocHGlobal((Int32)pcbData);
-                    Crypt32.CertGetCertificateContextProperty(cert.Handle, (UInt32)propID, ptr, ref pcbData);
+                    Crypt32.CertGetCertificateContextProperty(cert.Handle, propID, ptr, ref pcbData);
                     try {
                         return new X509CertificateContextProperty(cert, propID, ptr);
                     } finally {
@@ -118,11 +118,11 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
                     }
                 // byte[]
                 default:
-                    if (!Crypt32.CertGetCertificateContextProperty(cert.Handle, (UInt32)propID, null, ref pcbData)) {
+                    if (!Crypt32.CertGetCertificateContextProperty(cert.Handle, propID, null, ref pcbData)) {
                         throw new Exception("No such property.");
                     }
                     Byte[] bytes = new byte[pcbData];
-                    Crypt32.CertGetCertificateContextProperty(cert.Handle, (UInt32)propID, bytes, ref pcbData);
+                    Crypt32.CertGetCertificateContextProperty(cert.Handle, propID, bytes, ref pcbData);
                     return new X509CertificateContextProperty(cert, propID, bytes);
             }
         }
