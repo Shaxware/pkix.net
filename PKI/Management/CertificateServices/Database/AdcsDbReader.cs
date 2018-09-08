@@ -340,7 +340,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
             CryptographyUtils.ReleaseCom(dbColumn);
         }
         static void postProcessRow(AdcsDbRow row) {
-            if (row.Properties.ContainsKey("CertificateTemplate")) {
+            if (row.Properties.ContainsKey("CertificateTemplate") && !String.IsNullOrWhiteSpace(row.Properties["CertificateTemplate"]?.ToString())) {
                 row.Properties.Add("CertificateTemplateOid", new Oid((String)row.Properties["CertificateTemplate"]));
             }
             if (row.Properties.ContainsKey("ExtensionName")) {
