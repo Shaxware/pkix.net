@@ -74,7 +74,7 @@ namespace PKI.ManagedAPI {
             if (!fileInfo.Exists) {
                 throw new Win32Exception(2);
             }
-            Byte[] buffer = new byte[4];
+            Byte[] buffer = new Byte[4];
             using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
                 fs.Read(buffer, 0, 4);
             }

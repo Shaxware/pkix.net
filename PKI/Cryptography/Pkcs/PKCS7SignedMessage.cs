@@ -278,7 +278,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// Gets the textual representation of the current <stong>PKCS#7</stong> signed message.
         /// </summary>
         /// <returns>Formatted textual representation of the current <stong>PKCS#7</stong> signed message.</returns>
-        public override string ToString() {
+        public override String ToString() {
             StringBuilder SB;
             return base.ToString();
         }

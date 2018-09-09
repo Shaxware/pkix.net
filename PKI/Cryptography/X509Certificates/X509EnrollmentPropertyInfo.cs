@@ -45,7 +45,7 @@ namespace System.Security.Cryptography.X509Certificates {
         }
 
         public override String ToString() {
-            const string str = @"
+            const String str = @"
 RequestId: {0}
 CA Host Name: {1}
 CA Name: {2}

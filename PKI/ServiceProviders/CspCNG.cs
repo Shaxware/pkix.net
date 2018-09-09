@@ -6,7 +6,7 @@ namespace PKI.ServiceProviders {
     /// </summary>
     [Obsolete("Use 'CspProviderInfo' class.")]
     public class CspCNG {
-        string pname, pcomments;
+        String pname, pcomments;
         ALG_ID_CNGCollection algs;
         internal CspCNG(String name, String comments, ALG_ID_CNGCollection supportedAlgorithms) {
             pname = name;
@@ -16,12 +16,12 @@ namespace PKI.ServiceProviders {
         /// <summary>
         /// Gets provider name.
         /// </summary>
-        public string Name => pname;
+        public String Name => pname;
 
         /// <summary>
         /// Gets optional comments about the provider.
         /// </summary>
-        public string Comments => pcomments;
+        public String Comments => pcomments;
 
         /// <summary>
         /// Gets algorithms supported by the provider.

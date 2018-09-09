@@ -31,7 +31,7 @@ namespace PKI.Security.AccessControl {
 		/// </summary>
 		public CertificationAuthorityRights CertificationAuthorityRights => RightsFromAccessMask(AccessMask);
 
-		static CertificationAuthorityRights RightsFromAccessMask(int accessMask) {
+		static CertificationAuthorityRights RightsFromAccessMask(Int32 accessMask) {
 			return (CertificationAuthorityRights)accessMask;
 		}
 		static Int32 AccessMaskFromRights(CertificationAuthorityRights rights) {

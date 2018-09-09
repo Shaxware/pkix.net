@@ -85,7 +85,7 @@ namespace PKI.CertificateServices.PolicyModule {
 			if (Version == "2008" && ((Int32)flags & (Int32)PolicyModuleFlagEnum.EnableRenewOnBehalfOf) != 0) {
 				throw new ArgumentException();
 			}
-			foreach (int item in newf.Where(item => !EnumFlags.Contains(existing, item))) {
+			foreach (Int32 item in newf.Where(item => !EnumFlags.Contains(existing, item))) {
 				EditFlags = (PolicyModuleFlagEnum)((Int32)EditFlags + item);
 				IsModified = true;
 			}
@@ -98,7 +98,7 @@ namespace PKI.CertificateServices.PolicyModule {
 		public void Remove(PolicyModuleFlagEnum flags) {
 			Int32[] existing = EnumFlags.GetEnabled(typeof(PolicyModuleFlagEnum), (Int32)EditFlags);
 			Int32[] newf = EnumFlags.GetEnabled(typeof(PolicyModuleFlagEnum), (Int32)flags);
-			foreach (int item in newf.Where(item => EnumFlags.Contains(existing, item))) {
+			foreach (Int32 item in newf.Where(item => EnumFlags.Contains(existing, item))) {
 				EditFlags = (PolicyModuleFlagEnum)((Int32)EditFlags - item);
 				IsModified = true;
 			}

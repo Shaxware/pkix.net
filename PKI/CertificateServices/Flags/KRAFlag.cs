@@ -4,10 +4,10 @@ using PKI.Exceptions;
 using PKI.Utils;
 
 namespace PKI.CertificateServices.Flags {
-	/// <summary>
-	/// Contains information about Key Recovery Agent flags enabled on CA server.
-	/// </summary>
-	public class KRAFlag {
+    /// <summary>
+    /// Contains information about Key Recovery Agent flags enabled on CA server.
+    /// </summary>
+    public class KRAFlag {
 		String Version, ConfigString;
 
 		/// <param name="certificateAuthority">Specifies an existing <see cref="CertificateAuthority"/> object.</param>

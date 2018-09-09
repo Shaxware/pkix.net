@@ -127,20 +127,20 @@ namespace PKI.CertificateTemplates {
                 }
             }
             if (schemaVersion > 2) {
-                Int32 cngUsages = 0;
+                X509CNGKeyUsages cngUsages = 0;
                 if (
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.DataEncipherment) != 0 &&
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.DecipherOnly) != 0 &&
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.EncipherOnly) != 0 &&
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.KeyEncipherment) != 0
-                ) { cngUsages += (Int32)X509CNGKeyUsages.DecryptOnly; }
+                ) { cngUsages |= X509CNGKeyUsages.DecryptOnly; }
                 if (
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.CrlSign) != 0 &&
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.DigitalSignature) != 0 &&
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.KeyCertSign) != 0
-                ) { cngUsages += (Int32)X509CNGKeyUsages.SignatureOnly; }
+                ) { cngUsages |= X509CNGKeyUsages.SignatureOnly; }
                 if (((Int32)KeyUsage & (Int32)X509KeyUsageFlags.KeyAgreement) != 0) {
-                    cngUsages += (Int32)X509CNGKeyUsages.KeyAgreement;
+                    cngUsages |= X509CNGKeyUsages.KeyAgreement;
                 }
                 if (
                     (((Int32)KeyUsage & (Int32)X509KeyUsageFlags.DataEncipherment) != 0 ||
@@ -151,8 +151,8 @@ namespace PKI.CertificateTemplates {
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.DigitalSignature) != 0 ||
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.KeyCertSign) != 0) &&
                     ((Int32)KeyUsage & (Int32)X509KeyUsageFlags.KeyAgreement) != 0
-                ) { cngUsages = (Int32)X509CNGKeyUsages.AllUsages; }
-                CNGKeyUsage = (X509CNGKeyUsages)cngUsages;
+                ) { cngUsages = X509CNGKeyUsages.AllUsages; }
+                CNGKeyUsage = cngUsages;
             }
         }
         void InitializeCom(IX509CertificateTemplate template) {

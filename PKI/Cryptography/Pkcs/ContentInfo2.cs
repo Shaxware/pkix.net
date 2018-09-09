@@ -77,7 +77,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// Gets textual representation of the object.
         /// </summary>
         /// <returns>String that indicates the underlying type stored in the <see cref="RawData"/> member.</returns>
-        public override string ToString() {
+        public override String ToString() {
             return String.IsNullOrEmpty(ContentType.FriendlyName)
                 ? ContentType.Value
                 : ContentType.FriendlyName + " (" + ContentType.Value + ")";

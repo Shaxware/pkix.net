@@ -80,7 +80,7 @@ namespace System.Security.Cryptography.X509Certificates {
                     ocspUrlStrings.Add(uri.AbsoluteUri);
                     ocspBytes.AddRange(ocspOidBytes);
                     ocspBytes.AddRange(Asn1Utils.Encode(Encoding.ASCII.GetBytes(uri.AbsoluteUri), 134));
-                    ocspBytes = new List<byte>(Asn1Utils.Encode(ocspBytes.ToArray(), 48));
+                    ocspBytes = new List<Byte>(Asn1Utils.Encode(ocspBytes.ToArray(), 48));
                 }
                 OnlineCertificateStatusProtocol = ocspUrlStrings.ToArray();
             }

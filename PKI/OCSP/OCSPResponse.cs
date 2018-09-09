@@ -47,7 +47,7 @@ namespace PKI.OCSP {
         /// <summary>
         /// Gets OCSP response version. Currently only version 1 is defined.
         /// </summary>
-        public int Version { get; private set; }
+        public Int32 Version { get; private set; }
         /// <summary>
         /// Gets response type (for example, <strong>id_pkix_ocsp_basic</strong>, which means Basic OCSP Response type).
         /// </summary>
@@ -65,16 +65,16 @@ namespace PKI.OCSP {
         /// <summary>
         /// Indicates whether the <strong>Nonce</strong> extension is included in the response.
         /// </summary>
-        public bool NonceReceived { get; private set; }
+        public Boolean NonceReceived { get; private set; }
         /// <summary>
         /// Gets Nonce extension value. This value (if extension is presented) MUST be exactly as specified in the request.
         /// </summary>
-        public string NonceValue { get; private set; }
+        public String NonceValue { get; private set; }
         /// <summary>
         /// Gets OCSP responder key ID (a hash calculated over responder's public key). If this property is empty,
         /// a <see cref="ResponderNameId"/> is used.
         /// </summary>
-        public string ResponderKeyId { get; private set; }
+        public String ResponderKeyId { get; private set; }
         /// <summary>
         /// Gets OCSP responder name ID. If this property is empty, a <see cref="ResponderKeyId"/> is used.
         /// </summary>
@@ -97,7 +97,7 @@ namespace PKI.OCSP {
         public X509ExtensionCollection ResponseExtensions {
             get {
                 if (_listExtensions.Count == 0) { return null; }
-                X509ExtensionCollection retValue = new X509ExtensionCollection();
+                var retValue = new X509ExtensionCollection();
                 foreach (X509Extension item in _listExtensions) { retValue.Add(item); }
                 return retValue;
             }
@@ -145,7 +145,7 @@ namespace PKI.OCSP {
         /// <summary>
         /// Gets encoded response's raw data.
         /// </summary>
-        public byte[] RawData { get; }
+        public Byte[] RawData { get; }
 
         void decodeResponse() {
             asn = new Asn1Reader(RawData);
@@ -166,7 +166,7 @@ namespace PKI.OCSP {
             asn.MoveNextAndExpectTags(0x30);
             asn.MoveNext();
             //tbsResponseData
-            Asn1Reader tbsResponseData = new Asn1Reader(asn.GetTagRawData());
+            var tbsResponseData = new Asn1Reader(asn.GetTagRawData());
             //decodetbsResponse(tbsResponseData);
             //signatureAlgorithm
             asn.MoveNextCurrentLevel();
@@ -178,11 +178,11 @@ namespace PKI.OCSP {
             SignerCertificates = new X509Certificate2Collection();
             if (asn.MoveNext()) {
                 asn.MoveNext();
-                Asn1Reader cert = new Asn1Reader(asn.GetPayload());
+                var cert = new Asn1Reader(asn.GetPayload());
                 do {
                     SignerCertificates.Add(new X509Certificate2(Asn1Utils.Encode(cert.GetPayload(), 48)));
                 } while (cert.MoveNextCurrentLevel());
-                verifySigner(SignerCertificates[0], true);
+                verifySigner(SignerCertificates, true);
             } // optional. Find cert in store.
             verifyAll(tbsResponseData, signature, SignatureAlgorithm);
         }
@@ -200,7 +200,7 @@ namespace PKI.OCSP {
             tbsResponseData.MoveNext();
             if (tbsResponseData.Tag == 160) {
                 //Asn1Reader aversion = new Asn1Reader(tbsResponseData.RawData, tbsResponseData.PayloadStartOffset);
-                Asn1Reader aversion = new Asn1Reader(tbsResponseData);
+                var aversion = new Asn1Reader(tbsResponseData);
                 aversion.MoveNext();
                 Version = aversion.GetPayload()[0] + 1;
                 tbsResponseData.MoveNextCurrentLevel();
@@ -215,7 +215,7 @@ namespace PKI.OCSP {
                     break;
                 case 162:
                     tbsResponseData.MoveNext();
-                    StringBuilder SB = new StringBuilder();
+                    var SB = new StringBuilder();
                     foreach (Byte element in tbsResponseData.GetPayload()) { SB.Append(element.ToString("X2")); }
                     ResponderKeyId = SB.ToString();
                     tbsResponseData.MoveNext();
@@ -226,24 +226,24 @@ namespace PKI.OCSP {
             //tbsResponseData.MoveNextCurrentLevel();
             ProducedAt = Asn1Utils.DecodeGeneralizedTime(tbsResponseData.GetTagRawData());
             if (DateTime.Now < ProducedAt.AddMinutes(-10)) {
-                ResponseErrorInformation += (Int32)OCSPResponseComplianceError.ResponseNotTimeValid;
+                ResponseErrorInformation |= OCSPResponseComplianceError.ResponseNotTimeValid;
             }
             //responses
             tbsResponseData.MoveNext();
             //single response
-            Asn1Reader responses = new Asn1Reader(tbsResponseData.GetTagRawData());
+            var responses = new Asn1Reader(tbsResponseData.GetTagRawData());
             responses.MoveNext();
             Int32 Offset;
             Responses = new OCSPSingleResponseCollection();
             do {
-                Asn1Reader response = new Asn1Reader(responses);
+                var response = new Asn1Reader(responses);
                 Offset = response.NextCurrentLevelOffset;
                 Responses.Add(new OCSPSingleResponse(response));
                 if (Request != null) {
                     foreach (OCSPSingleResponse item in Responses) {
-                        Boolean certidmatch = Request.RequestList.Any(x => x.CertId.Equals(item.CertId));
-                        if (!certidmatch) {
-                            ResponseErrorInformation += (Int32)OCSPResponseComplianceError.CertIdMismatch;
+                        Boolean certIdMatch = Request.RequestList.Any(x => x.CertId.Equals(item.CertId));
+                        if (!certIdMatch) {
+                            ResponseErrorInformation |= OCSPResponseComplianceError.CertIdMismatch;
                         }
                     }
                 }
@@ -251,9 +251,9 @@ namespace PKI.OCSP {
             if (tbsResponseData.NextCurrentLevelOffset != 0) {
                 tbsResponseData.MoveNextCurrentLevel();
                 if (tbsResponseData.Tag == 161) {
-                    X509ExtensionCollection exts = new X509ExtensionCollection();
-                    exts.Decode(tbsResponseData.GetPayload());
-                    foreach (X509Extension item in exts) {
+                    var extensions = new X509ExtensionCollection();
+                    extensions.Decode(tbsResponseData.GetPayload());
+                    foreach (X509Extension item in extensions) {
                         _listExtensions.Add(CryptographyUtils.ConvertExtension(item));
                         if (_listExtensions[_listExtensions.Count - 1].Oid.Value == X509CertExtensions.X509OcspNonce) {
                             NonceReceived = true;
@@ -264,22 +264,22 @@ namespace PKI.OCSP {
             }
         }
         void findCertInStore() {
-            String[] storenames = { "Root", "CA" };
-            foreach (X509Store store in storenames.Select(storename => new X509Store(storename, StoreLocation.CurrentUser))) {
+            String[] storeNames = { "Root", "CA" };
+            foreach (X509Store store in storeNames.Select(x => new X509Store(x, StoreLocation.CurrentUser))) {
                 store.Open(OpenFlags.ReadOnly);
-                X509Certificate2Collection findcerts = store.Certificates;
-                X509Certificate2Collection findcert;
+                X509Certificate2Collection findCerts = store.Certificates;
+                X509Certificate2Collection findCert;
                 if (ResponderNameId != null) {
-                    findcert = findcerts.Find(X509FindType.FindBySubjectDistinguishedName, ResponderNameId.Name, true);
-                    if (findcert.Count > 0) {
-                        SignerCertificates.Add(findcert[0]);
-                        verifySigner(findcert[0], false);
+                    findCert = findCerts.Find(X509FindType.FindBySubjectDistinguishedName, ResponderNameId.Name, true);
+                    if (findCert.Count > 0) {
+                        SignerCertificates.Add(findCert[0]);
+                        verifySigner(findCert, false);
                     }
                 } else {
-                    findcert = findcerts.Find(X509FindType.FindBySubjectKeyIdentifier, ResponderKeyId, true);
-                    if (findcert.Count > 0) {
-                        SignerCertificates.Add(findcert[0]);
-                        verifySigner(findcert[0], false);
+                    findCert = findCerts.Find(X509FindType.FindBySubjectKeyIdentifier, ResponderKeyId, true);
+                    if (findCert.Count > 0) {
+                        SignerCertificates.Add(findCert[0]);
+                        verifySigner(findCert, false);
                     }
                 }
                 store.Close();
@@ -290,20 +290,13 @@ namespace PKI.OCSP {
             decodeTbsResponse(tbsResponseData);
             if (NonceReceived) {
                 if (Request.NonceValue != NonceValue) {
-                    ResponseErrorInformation += (Int32)OCSPResponseComplianceError.NonceMismatch;
+                    ResponseErrorInformation |= OCSPResponseComplianceError.NonceMismatch;
                 }
             }
-            //var blob = new SignedContentBlob(tbsResponseData.RawData, ContentBlobType.SignedBlob);
             if (SignerCertificates.Count > 0) {
                 using (var signerInfo = new MessageSigner(SignerCertificates[0], new Oid2(signatureAlgorithm, false))) {
                     SignatureIsValid = signerInfo.VerifyData(tbsResponseData.RawData, signature);
                 }
-                //SignatureIsValid = MessageSignature.VerifySignature(
-                //    SignerCertificates[0],
-                //    tbsResponseData.RawData,
-                //    signature,
-                //    signatureAlgorithm
-                //);
             } else {
                 findCertInStore();
                 if (SignerCertificates.Count > 0) {
@@ -311,14 +304,8 @@ namespace PKI.OCSP {
                         new MessageSigner(SignerCertificates[0], new Oid2(signatureAlgorithm, false))) {
                         SignatureIsValid = signerInfo.VerifyData(tbsResponseData.RawData, signature);
                     }
-                    //SignatureIsValid = MessageSignature.VerifySignature(
-                    //    SignerCertificates[0],
-                    //    tbsResponseData.RawData,
-                    //    signature,
-                    //    signatureAlgorithm
-                    //);
                 } else {
-                    ResponseErrorInformation += (Int32)OCSPResponseComplianceError.MissingCert;
+                    ResponseErrorInformation |= OCSPResponseComplianceError.MissingCert;
                 }
             }
             verifyResponses();
@@ -326,32 +313,38 @@ namespace PKI.OCSP {
         void verifyHeaders() {
             if (_wc == null) { return; }
             if (_wc.ResponseHeaders.Get("Content-type") != "application/ocsp-response") {
-                ResponseErrorInformation += (Int32)OCSPResponseComplianceError.InvalidHTTPHeader;
+                ResponseErrorInformation |= OCSPResponseComplianceError.InvalidHTTPHeader;
             }
         }
         void verifyResponses() {
             if (Responses
                 .Any(item => item.ThisUpdate > DateTime.Now || (item.NextUpdate != null && item.NextUpdate < DateTime.Now))) {
-                ResponseErrorInformation += (Int32)OCSPResponseComplianceError.UpdateNotTimeValid;
+                ResponseErrorInformation |= OCSPResponseComplianceError.UpdateNotTimeValid;
             }
         }
-        void verifySigner(X509Certificate2 cert, Boolean excplicitcert) {
+        void verifySigner(X509Certificate2Collection certs, Boolean explicitCert) {
+            X509Certificate2 cert = certs[0];
             SignerCertificateIsValid = true;
-            X509Chain chain = new X509Chain { ChainPolicy = { RevocationMode = X509RevocationMode.NoCheck } };
+            var chain = new X509Chain {
+                ChainPolicy = {
+                    RevocationMode = X509RevocationMode.NoCheck
+                }
+            };
+            chain.ChainPolicy.ExtraStore.AddRange(certs);
             SignerCertificateIsValid = chain.Build(cert);
             if (!SignerCertificateIsValid) {
                 ChainErrorInformation = chain.ChainStatus;
                 SignerCertificateIsValid = false;
             }
-            if (excplicitcert) {
-                X509Extension ocspnocheck = cert.Extensions[X509CertExtensions.X509OcspRevNoCheck];
-                if (ocspnocheck == null) {
-                    ResponseErrorInformation += (Int32)OCSPResponseComplianceError.MissingOCSPRevNoCheck;
+            if (explicitCert) {
+                X509Extension ocspRevNoCheck = cert.Extensions[X509CertExtensions.X509OcspRevNoCheck];
+                if (ocspRevNoCheck == null) {
+                    ResponseErrorInformation |= OCSPResponseComplianceError.MissingOCSPRevNoCheck;
                     SignerCertificateIsValid = false;
                 }
                 X509Extension eku = cert.Extensions[X509CertExtensions.X509EnhancedKeyUsage];
                 if (eku == null) {
-                    ResponseErrorInformation += (Int32)OCSPResponseComplianceError.MissingOCSPSigningEKU;
+                    ResponseErrorInformation |= OCSPResponseComplianceError.MissingOCSPSigningEKU;
                     SignerCertificateIsValid = false;
                 }
             }

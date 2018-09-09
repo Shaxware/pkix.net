@@ -58,7 +58,7 @@ namespace PKI.CertificateServices.PolicyModule {
         /// <summary>
         /// Indiciates whether the object was modified after it was instantiated.
         /// </summary>
-        public bool IsModified { get; private set; }
+        public Boolean IsModified { get; private set; }
 
         void m_initialize(CertificateAuthority certificateAuthority) {
             List<Oid> Oids = new List<Oid>();

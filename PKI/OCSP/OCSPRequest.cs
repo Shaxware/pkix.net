@@ -231,7 +231,7 @@ namespace PKI.OCSP {
             }
             chain.Reset();
         }
-        string prepareGetUrl() {
+        String prepareGetUrl() {
             String target = URL.OriginalString.Replace("\0", null);
             if (target.EndsWith("/")) {
                 target += Uri.EscapeUriString(Convert.ToBase64String(RawData));

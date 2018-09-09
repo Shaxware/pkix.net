@@ -61,6 +61,6 @@ namespace PKI.CertificateTemplates {
 		/// <summary>
 		/// This flag instructs the CA to set the subject name to the requestor's distinguished name (DN) from Active Directory.
 		/// </summary>
-		SubjectrequireDirectoryPath			= unchecked((int)0x80000000)  // -2147483648
+		SubjectrequireDirectoryPath			= unchecked((Int32)0x80000000)  // -2147483648
 	}
 }

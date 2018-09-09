@@ -37,12 +37,12 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <summary>
         /// Gets issuer X.500 distinguished name.
         /// </summary>
-        public string IssuerName { get; private set; }
+        public String IssuerName { get; private set; }
 
         /// <summary>
         /// Gets an array of URLs contained in <strong>Authority Information Access</strong> extension.
         /// </summary>
-        public string[] AuthorityInformationAccess { get; private set; }
+        public String[] AuthorityInformationAccess { get; private set; }
 
         void m_initialize(X509Certificate2 cert) {
             List<Byte> rawData = new List<Byte>();

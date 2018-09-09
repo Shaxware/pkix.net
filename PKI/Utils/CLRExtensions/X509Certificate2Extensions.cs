@@ -121,7 +121,7 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
                     if (!Crypt32.CertGetCertificateContextProperty(cert.Handle, propID, null, ref pcbData)) {
                         throw new Exception("No such property.");
                     }
-                    Byte[] bytes = new byte[pcbData];
+                    Byte[] bytes = new Byte[pcbData];
                     Crypt32.CertGetCertificateContextProperty(cert.Handle, propID, bytes, ref pcbData);
                     return new X509CertificateContextProperty(cert, propID, bytes);
             }

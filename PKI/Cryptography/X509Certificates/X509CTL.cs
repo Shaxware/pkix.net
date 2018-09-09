@@ -138,7 +138,7 @@ namespace System.Security.Cryptography.X509Certificates {
                     X509AttributeCollection attributes = new X509AttributeCollection();
 
                     Wincrypt.CTL_ENTRY CTLEntry = (Wincrypt.CTL_ENTRY)Marshal.PtrToStructure(rgCTLEntry, typeof(Wincrypt.CTL_ENTRY));
-                    byte[] bytes = new Byte[CTLEntry.SubjectIdentifier.cbData];
+                    Byte[] bytes = new Byte[CTLEntry.SubjectIdentifier.cbData];
                     Marshal.Copy(CTLEntry.SubjectIdentifier.pbData, bytes, 0, bytes.Length);
                     foreach (Byte item in bytes) { SB.Append($"{item:X2}"); }
                     String thumbprint = SB.ToString();
@@ -228,7 +228,7 @@ namespace System.Security.Cryptography.X509Certificates {
             Int32 rgAttributeSize = Marshal.SizeOf(typeof(Wincrypt.CRYPT_ATTRIBUTE));
             IntPtr rgAttributes = Marshal.AllocHGlobal(Marshal.SizeOf(rgAttributeSize * ids.Count));
             IntPtr ptr = rgAttributes;
-            foreach (Wincrypt.CRYPT_ATTRIBUTE attrib in from uint id in ids select create_attribute(handle, id)) {
+            foreach (Wincrypt.CRYPT_ATTRIBUTE attrib in from UInt32 id in ids select create_attribute(handle, id)) {
                 Marshal.StructureToPtr(attrib, ptr, true);
                 ptr = (IntPtr)((Int32)ptr + rgAttributeSize);
             }

@@ -58,7 +58,7 @@ namespace PKI.CertificateServices {
 		/// Gets True if specified URL is configured to publish the CRT file to the specified location.
 		/// </summary>
 		/// <remarks>Only absolute (local), UNC and LDAP:// paths are supported.</remarks>
-		public bool ServerPublish { get; private set; }
+		public Boolean ServerPublish { get; private set; }
 		/// <summary>
 		/// Gets True if specified URL is configured to include specified URL to all issued certificate's Authority Information Access extension.
 		/// </summary>

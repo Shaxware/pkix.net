@@ -112,7 +112,7 @@ namespace PKI.OCSP.Server {
 		/// <returns><strong>True</strong> if the property was successfully updated, otherwise <strong>False</strong>.</returns>
 		public Boolean SetHashAlgorithm(String hashAlgorithm) {
 			if (!String.IsNullOrEmpty(hashAlgorithm)) {
-				List<String> supportedAlgs = new List<string>(new [] { "sha1", "md5", "md4", "md2" });
+				List<String> supportedAlgs = new List<String>(new [] { "sha1", "md5", "md4", "md2" });
 				if (supportedAlgs.Contains(hashAlgorithm.ToLower())) {
 					if (HashAlgorithm != hashAlgorithm) {
 						HashAlgorithm = hashAlgorithm;

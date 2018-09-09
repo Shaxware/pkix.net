@@ -78,7 +78,7 @@ namespace PKI.CertificateServices.Flags {
 			{
 				throw new ArgumentException();
 			}
-			foreach (int item in newf.Where(item => !EnumFlags.Contains(existing, item))) {
+			foreach (Int32 item in newf.Where(item => !EnumFlags.Contains(existing, item))) {
 				CRLFlags = (CRLFlagEnum)((Int32)CRLFlags + item);
 				IsModified = true;
 			}
@@ -91,7 +91,7 @@ namespace PKI.CertificateServices.Flags {
 		public void Remove(CRLFlagEnum flags) {
 			Int32[] existing = EnumFlags.GetEnabled(typeof(CRLFlagEnum), (Int32)CRLFlags);
 			Int32[] newf = EnumFlags.GetEnabled(typeof(CRLFlagEnum), (Int32)flags);
-			foreach (int item in newf.Where(item => EnumFlags.Contains(existing, item))) {
+			foreach (Int32 item in newf.Where(item => EnumFlags.Contains(existing, item))) {
 				CRLFlags = (CRLFlagEnum)((Int32)CRLFlags - item);
 				IsModified = true;
 			}

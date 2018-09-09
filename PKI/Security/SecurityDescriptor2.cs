@@ -1,4 +1,6 @@
-﻿namespace PKI.Security {
+﻿using System;
+
+namespace PKI.Security {
 	/// <summary>
 	/// Represents a simplified version of Active Directory object's access control list (ACL).
 	/// </summary>
@@ -7,11 +9,11 @@
 		/// <summary>
 		/// Gets the distinguished name of the object.
 		/// </summary>
-		public string Path { get; set; }
+		public String Path { get; set; }
 		/// <summary>
 		/// Gets the owner of the object.
 		/// </summary>
-		public string Owner { get; set; }
+		public String Owner { get; set; }
 		/// <summary>
 		/// Gets a collection of access control entries (ACE).
 		/// </summary>

@@ -68,7 +68,7 @@ namespace PKI.CertificateServices.Flags {
 		public void Add(InterfaceFlagEnum flags) {
 			Int32[] existing = EnumFlags.GetEnabled(typeof(InterfaceFlagEnum),(Int32)InterfaceFlags);
 			Int32[] newf = EnumFlags.GetEnabled(typeof(InterfaceFlagEnum), (Int32)flags);
-			foreach (int item in newf.Where(item => !EnumFlags.Contains(existing, item))) {
+			foreach (Int32 item in newf.Where(item => !EnumFlags.Contains(existing, item))) {
 				InterfaceFlags = (InterfaceFlagEnum)((Int32)InterfaceFlags + item);
 				IsModified = true;
 			}
@@ -81,7 +81,7 @@ namespace PKI.CertificateServices.Flags {
 		public void Remove(InterfaceFlagEnum flags) {
 			Int32[] existing = EnumFlags.GetEnabled(typeof(InterfaceFlagEnum), (Int32)InterfaceFlags);
 			Int32[] newf = EnumFlags.GetEnabled(typeof(InterfaceFlagEnum), (Int32)flags);
-			foreach (int item in newf.Where(item => EnumFlags.Contains(existing, item))) {
+			foreach (Int32 item in newf.Where(item => EnumFlags.Contains(existing, item))) {
 				InterfaceFlags = (InterfaceFlagEnum)((Int32)InterfaceFlags - item);
 				IsModified = true;
 			}

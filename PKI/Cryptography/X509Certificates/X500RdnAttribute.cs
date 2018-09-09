@@ -54,7 +54,7 @@ namespace System.Security.Cryptography.X509Certificates {
         void m_decode(Byte[] rawData) {
             Asn1Reader asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
-            asn.MoveNextAndExpectTags((byte)Asn1Type.OBJECT_IDENTIFIER);
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
             Oid = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
             asn.MoveNext();
             Asn1Type[] types = {

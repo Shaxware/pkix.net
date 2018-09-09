@@ -15,7 +15,7 @@ namespace PKI.Utils {
 			return li.Contains(value);
 		}
 		public static Int32[] GetEnabled(Type inType, Int32 value) {
-			IEnumerable<int> values = GetValues(inType);
+			IEnumerable<Int32> values = GetValues(inType);
 			return values.Where(item => (value & item) != 0).ToArray();
 		}
 		public static Int32 Add(IEnumerable<Int32> existingArr, Int32 exf, IEnumerable<Int32> added) {

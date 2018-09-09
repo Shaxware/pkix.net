@@ -35,7 +35,7 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
         /// </summary>
         /// <param name="bigint">Current <see cref="BigInteger"/> object.</param>
         /// <returns>Binary string.</returns>
-        public static string ToBinaryString(this BigInteger bigint) {
+        public static String ToBinaryString(this BigInteger bigint) {
             var bytes = bigint.ToByteArray();
             var idx = bytes.Length - 1;
 

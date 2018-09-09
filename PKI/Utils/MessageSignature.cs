@@ -167,7 +167,7 @@ namespace PKI.Utils {
                     if (hresult != 0) {
                         throw new CryptographicException(hresult);
                     }
-                    Byte[] pbSignature = new byte[pcbResult];
+                    Byte[] pbSignature = new Byte[pcbResult];
                     hresult = NCrypt.NCryptSignHash(phCryptProv, IntPtr.Zero, hashBytes, hashBytes.Length, pbSignature, pbSignature.Length, out pcbResult, 0);
                     if (hresult != 0) {
                         throw new CryptographicException(hresult);

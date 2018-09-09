@@ -63,9 +63,9 @@ namespace PKI.ServiceProviders {
             StringBuilder pszProvName = new StringBuilder();
             CspCollection csps = new CspCollection();
 
-            uint dwIndex = 0;
-            uint pdwProvType = 0;
-            uint pcbProvName = 0;
+            UInt32 dwIndex = 0;
+            UInt32 pdwProvType = 0;
+            UInt32 pcbProvName = 0;
             while (AdvAPI.CryptEnumProviders(dwIndex, 0, 0, ref pdwProvType, null, ref pcbProvName)) {
                 pszProvName.Length = (Int32)pcbProvName;
                 // retrieve CSP
@@ -172,7 +172,7 @@ namespace PKI.ServiceProviders {
         }
         static ALG_ID get_algparams(Wincrypt.PROV_ENUMALGS_EX algStructure) {
             Int16[] options = new Int16[] { 1, 2, 4, 8, 16, 32 };
-            List<String> szProtocols = new List<string>();
+            List<String> szProtocols = new List<String>();
 
             List<Int16> validoptions = options.Where(dwData => (algStructure.dwProtocols & dwData) != 0).ToList();
             foreach (Int16 opt in validoptions) {
@@ -213,7 +213,7 @@ namespace PKI.ServiceProviders {
             String[] operations = new String[0];
             Int32 index = 0;
 
-            foreach (int dwAlgOperations in options.Where(dwAlgOperations => (algId.dwAlgOperations & dwAlgOperations) != 0)) {
+            foreach (Int32 dwAlgOperations in options.Where(dwAlgOperations => (algId.dwAlgOperations & dwAlgOperations) != 0)) {
                 Array.Resize(ref validoptions, index + 1);
                 validoptions.SetValue(dwAlgOperations, index);
                 index++;

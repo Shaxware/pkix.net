@@ -129,7 +129,7 @@ namespace PKI.Security.AccessControl {
 		/// <exception cref="NotSupportedException">The exception is thrown when the method is invoked.</exception>
 		/// <returns>This method always throws exception.</returns>
 		///  <remarks>This member is not implemented.</remarks>
-		public override bool ModifyAuditRule(AccessControlModification modification, AuditRule rule, out Boolean modified) {
+		public override Boolean ModifyAuditRule(AccessControlModification modification, AuditRule rule, out Boolean modified) {
 			throw new NotSupportedException("Audit rules are not supported for this object");
 		}
 		/// <summary>
