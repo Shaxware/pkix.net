@@ -120,6 +120,14 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <see cref="ReleaseContext"/> method.
         /// </remarks>
         public SafeCRLHandleContext Handle { get; private set; } = new SafeCRLHandleContext();
+        /// <summary>
+        /// Gets a thumbprint of the current CRL object. Default thumbprint algorithm is SHA256.
+        /// </summary>
+        /// <remarks>
+        /// The thumbprint is dynamically generated using the SHA256 algorithm and does not physically exist
+        /// in the certificate revocation list. Since the thumbprint is a unique value for the certificate,
+        /// it is commonly used to find a particular certificate revocation list in a certificate store.</remarks>
+        public String Thumbprint { get; private set; }
 
         void m_decode(Byte[] rawData) {
             try {
@@ -215,6 +223,13 @@ namespace System.Security.Cryptography.X509Certificates {
             Reset();
             m_decode(rawData);
             RawData = rawData;
+            var sb = new StringBuilder();
+            using (SHA256 hasher = SHA256.Create()) {
+                foreach (Byte b in hasher.ComputeHash(RawData)) {
+                    sb.AppendFormat("{0:X2}", b);
+                }
+            }
+            Thumbprint = sb.ToString();
         }
         void genBriefString(StringBuilder SB) {
             String n = Environment.NewLine;
