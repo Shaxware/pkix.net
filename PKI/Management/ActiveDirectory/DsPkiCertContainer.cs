@@ -16,22 +16,22 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
     /// </summary>
     /// <remarks>This class is abstract and cannot be instantiated.</remarks>
     public abstract class DsPkiCertContainer : DsPkiContainer {
-        readonly ISet<DsCertificateEntry>                      _list        = new HashSet<DsCertificateEntry>();
-        readonly ISet<String>                                  _toBeAdded   = new HashSet<String>();
-        readonly ISet<String>                                  _toBeRemoved = new HashSet<String>();
+        readonly ISet<DsCertificateEntry> _list = new HashSet<DsCertificateEntry>();
+        readonly ISet<String> _toBeAdded = new HashSet<String>();
+        readonly ISet<String> _toBeRemoved = new HashSet<String>();
 
         /// <summary>
         /// Gets an array of certificates stored in the current container.
         /// </summary>
         public DsCertificateEntry[] Certificates => _list.OrderBy(x => x.Name).ToArray();
         /// <summary>
-        /// Gets insternal list of all certificates in the current container grouped by DS object name.
+        /// Gets internal list of all certificates in the current container grouped by DS object name.
         /// </summary>
         protected IDictionary<String, List<DsCertificateEntry>> DsList { get; } = new Dictionary<String, List<DsCertificateEntry>>(StringComparer.OrdinalIgnoreCase);
         protected ISet<String> DsObjectClasses { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
         // reads certificates of specified type from specified DS object.
-        List<DsCertificateEntry> readCertsFromDsAttribute(DirectoryEntry entry, DsCertificateType type) {
+        List<DsCertificateEntry> readCertsFromDsAttribute(DirectoryEntry entry, String key, DsCertificateType type) {
             String attribute;
             switch (type) {
                 case DsCertificateType.CACertificate:
@@ -50,7 +50,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             Byte[][] rawData = GetEntryProperty<Byte[]>(entry, attribute);
             // x.Length > 1 is necessary, because empty mandatory value contains a 1 byte element.
             return rawData.Where(x => x.Length > 1)
-                .Select(bytes => new DsCertificateEntry(entry.Properties["cn"][0].ToString(), new X509Certificate2(bytes), type))
+                .Select(bytes => new DsCertificateEntry(key, new X509Certificate2(bytes), type))
                 .ToList();
         }
         // generates DS object name from X.500 name. If name is empty, an SHA-1 hash value of empty name is used.
@@ -75,7 +75,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// <param name="certTypes">Specifies a collection of certificate types to read.</param>
         protected void ReadChildren(DsCertificateType[] certTypes) {
             var entries = new List<DirectoryEntry>();
-            // handle NTAuth container, because it doesn't have childrens.
+            // handle NTAuth container, because it doesn't have children.
             if (ContainerType == DsContainerType.NTAuth) {
                 foreach (DirectoryEntry child in BaseEntry.Parent.Children) {
                     entries.Add(child);
@@ -90,18 +90,20 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 if (!DsObjectClasses.Contains(child.SchemaClassName)) {
                     continue;
                 }
-                String childName = child.Properties["cn"][0].ToString();
+                String key = ContainerType == DsContainerType.NTAuth
+                    ? "NTAuth"
+                    : child.Properties["cn"][0].ToString();
                 foreach (DsCertificateType type in certTypes) {
-                    List<DsCertificateEntry> items = readCertsFromDsAttribute(child, type);
+                    List<DsCertificateEntry> items = readCertsFromDsAttribute(child, key, type);
                     // add to global list
                     foreach (DsCertificateEntry item in items) {
                         _list.Add(item);
                     }
                     // add to child-specific list.
-                    if (DsList.ContainsKey(childName)) {
-                        DsList[childName].AddRange(items);
+                    if (DsList.ContainsKey(key)) {
+                        DsList[key].AddRange(items);
                     } else {
-                        DsList.Add(childName, items);
+                        DsList.Add(key, items);
                     }
                 }
             }

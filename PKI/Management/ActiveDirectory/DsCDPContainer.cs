@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Web;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.PKI.Cryptography.X509Certificates;
@@ -57,12 +58,12 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             _dsList[containerName].Add(crlEntry);
         }
         static X509CRL2 readBaseCRL(DirectoryEntry entry) {
-            Byte[] baseCrls = (Byte[])entry.Properties[dsAttrBaseCrl].Value;
-            if (baseCrls.Length <= 1) {
+            Byte[] baseCrlBytes = (Byte[])entry.Properties[dsAttrBaseCrl].Value;
+            if (baseCrlBytes.Length <= 1) {
                 return null;
             }
             try {
-                return new X509CRL2(baseCrls);
+                return new X509CRL2(baseCrlBytes);
             } catch {
                 return null;
             }
@@ -80,7 +81,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         }
         static String getHostName(String suggestedHostName, X509CRL2 crl) {
             if (String.IsNullOrWhiteSpace(suggestedHostName)) {
-                X509PublishedCRLLocationsExtension pubCrl = (X509PublishedCRLLocationsExtension)crl.Extensions[X509CertExtensions.X509PublishedCRLLocations];
+                X509PublishedCrlLocationsExtension pubCrl = (X509PublishedCrlLocationsExtension)crl.Extensions[X509CertExtensions.X509PublishedCrlLocations];
                 if (pubCrl == null) {
                     throw new ArgumentException("Cannot find target location.");
                 }
@@ -94,18 +95,18 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             return suggestedHostName;
         }
         static String getEntryName(X509CRL2 crl) {
-            X509PublishedCRLLocationsExtension pubCrl = (X509PublishedCRLLocationsExtension)crl.Extensions[X509CertExtensions.X509PublishedCRLLocations];
+            X509PublishedCrlLocationsExtension pubCrl = (X509PublishedCrlLocationsExtension)crl.Extensions[X509CertExtensions.X509PublishedCrlLocations];
             return pubCrl == null
                 ? getEntryNameFromIssuer(crl)
                 : getEntryNameFromUrl(pubCrl);
         }
-        static String getEntryNameFromUrl(X509PublishedCRLLocationsExtension pubCrl) {
+        static String getEntryNameFromUrl(X509PublishedCrlLocationsExtension pubCrl) {
             String[] urls = pubCrl.GetUrLs().Where(x => x.ToUpper().Contains("LDAP://")).ToArray();
             if (urls.Length == 0) {
                 throw new ArgumentException("Cannot find target location.");
             }
-            var tokens = urls[0].ToUpper().Split(new[] { "CN=" }, StringSplitOptions.RemoveEmptyEntries);
-            return tokens[1];
+            String[] tokens = urls[0].Split(new[] { "CN=" }, StringSplitOptions.RemoveEmptyEntries);
+            return HttpUtility.UrlDecode(tokens[1].TrimEnd(','));
         }
         static String getEntryNameFromIssuer(X509CRL2 crl) {
             X500RdnAttributeCollection tokens = crl.IssuerName.GetRdnAttributes();
@@ -250,6 +251,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             foreach (String topName in updateList.Keys) {
                 using (DirectoryEntry topContainer = getTopContainer(topName)) {
                     foreach (String name in updateList[topName]) {
+                        Console.WriteLine($"LDAP://CN={name},CN={topName},{DsPath}");
                         DirectoryEntry dsEntry = DirectoryEntry.Exists($"LDAP://CN={name},CN={topName},{DsPath}")
                             ? new DirectoryEntry($"LDAP://CN={name},CN={topName},{DsPath}")
                             // if no such entry exists, create it.

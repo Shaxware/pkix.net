@@ -59,6 +59,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 BaseEntry.Properties["cACertificate"].Add(cert.Certificate.RawData);
             }
             BaseEntry.CommitChanges();
+            CleanupSave();
         }
     }
 }

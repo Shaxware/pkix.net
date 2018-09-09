@@ -73,6 +73,7 @@
     <Reference Include="System.Numerics" />
     <Reference Include="System.Security" />
     <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Web" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
@@ -88,7 +89,7 @@
     <Compile Include="Cryptography\IKeyInfo.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateBuilder.cs" />
     <Compile Include="Cryptography\X509PrivateKeyBuilder.cs" />
-    <Compile Include="Cryptography\X509Certificates\X509PublishedCRLLocationsExtension.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509PublishedCrlLocationsExtension.cs" />
     <Compile Include="Management\ActiveDirectory\DsCDPContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsCertEnrollContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsCertTemplateContainer.cs" />

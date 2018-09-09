@@ -150,7 +150,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// <returns>
         /// AD PKI container.
         /// </returns>
-        public static DsPkiContainer GetAdPkicontainer(DsContainerType containerType) {
+        public static DsPkiContainer GetAdPkiContainer(DsContainerType containerType) {
             switch (containerType) {
                 case DsContainerType.NTAuth:
                     return new DsNTAuthContainer();

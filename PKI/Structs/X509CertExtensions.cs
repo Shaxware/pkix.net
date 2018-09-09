@@ -17,7 +17,7 @@ namespace PKI.Structs {
         public const String X509ApplicationPolicies             = "1.3.6.1.4.1.311.21.10";
         public const String X509ApplicationPolicyMappings       = "1.3.6.1.4.1.311.21.11";
         public const String X509ApplicationPolicyConstraints    = "1.3.6.1.4.1.311.21.12";
-        public const String X509PublishedCRLLocations           = "1.3.6.1.4.1.311.21.14";
+        public const String X509PublishedCrlLocations           = "1.3.6.1.4.1.311.21.14";
         public const String X509AuthorityInformationAccess      = "1.3.6.1.5.5.7.1.1";
         public const String X509OcspNonce                       = "1.3.6.1.5.5.7.48.1.2";
         public const String X509OcspCRLReference                = "1.3.6.1.5.5.7.48.1.3";

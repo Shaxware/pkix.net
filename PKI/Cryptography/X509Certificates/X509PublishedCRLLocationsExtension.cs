@@ -8,11 +8,11 @@ namespace System.Security.Cryptography.X509Certificates {
     /// Defines Published CRL Locations extension. This extension is included in CRLs and is used by
     /// a certification authority to provide information about CRL publication location in Active Directory.
     /// </summary>
-    public sealed class X509PublishedCRLLocationsExtension : X509Extension {
-        readonly Oid _oid = new Oid(X509CertExtensions.X509PublishedCRLLocations);
+    public sealed class X509PublishedCrlLocationsExtension : X509Extension {
+        readonly Oid _oid = new Oid(X509CertExtensions.X509PublishedCrlLocations);
 
-        internal X509PublishedCRLLocationsExtension(Byte[] rawData, Boolean critical)
-            : base(X509CertExtensions.X509PublishedCRLLocations, rawData, critical) {
+        internal X509PublishedCrlLocationsExtension(Byte[] rawData, Boolean critical)
+            : base(X509CertExtensions.X509PublishedCrlLocations, rawData, critical) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             m_decode(rawData);
         }
@@ -28,7 +28,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="ArgumentException">
         ///		The data in the <strong>distributionPoints</strong> parameter is not valid extension value.
         /// </exception>
-        public X509PublishedCRLLocationsExtension(AsnEncodedData distributionPoints, Boolean critical) :
+        public X509PublishedCrlLocationsExtension(AsnEncodedData distributionPoints, Boolean critical) :
             this(distributionPoints.RawData, critical) { }
         /// <summary>
         /// Initializes a new instance of the <strong>X509CRLDistributionPointsExtension</strong> class by using
@@ -39,7 +39,7 @@ namespace System.Security.Cryptography.X509Certificates {
         ///     <strong>True</strong> if the extension is critical; otherwise, <strong>False</strong>.
         /// </param>
         /// <exception cref="ArgumentNullException"><strong>urls</strong>> parameter is null.</exception>
-        public X509PublishedCRLLocationsExtension(String[] urls, Boolean critical) {
+        public X509PublishedCrlLocationsExtension(String[] urls, Boolean critical) {
             if (urls == null) { throw new ArgumentNullException(nameof(urls)); }
             m_initialize(urls, critical);
         }
