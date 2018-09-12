@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using PKI.Exceptions;
 using PKI.Structs;
@@ -156,9 +157,6 @@ namespace System.Security.Cryptography.X509Certificates {
             }
             RawData = rawData;
         }
-        Boolean Equals(X509CRLEntry other) {
-            return String.Equals(SerialNumber, other.SerialNumber);
-        }
         static String get_reasontext(Int32 code) {
             Hashtable Reasons = new Hashtable {
                 {0, "Unspecified"},
@@ -215,10 +213,10 @@ namespace System.Security.Cryptography.X509Certificates {
             if (ReferenceEquals(this, obj)) { return true; }
             return obj.GetType() == GetType() && Equals((X509CRLEntry)obj);
         }
-        /// <summary>
-        /// Returns the hash code for the CRL entry as an integer.
-        /// </summary>
-        /// <returns>The hash code for the CRL entry as an integer.</returns>
+        Boolean Equals(X509CRLEntry other) {
+            return String.Equals(SerialNumber, other.SerialNumber);
+        }
+        /// <inheritdoc />
         public override Int32 GetHashCode() {
             unchecked {
                 Int32 hashCode = SerialNumber?.GetHashCode() ?? 0;

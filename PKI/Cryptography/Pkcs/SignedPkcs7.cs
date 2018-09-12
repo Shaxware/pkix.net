@@ -70,7 +70,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// </summary>
         public PkcsSignerInfo[] SignerInfos => _signerInfos.ToArray();
         /// <summary>
-        /// Gets 
+        /// Gets the ASN.1-encoded byte array that represents current object.
         /// </summary>
         public Byte[] RawData { get; private set; }
 

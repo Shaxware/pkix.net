@@ -15,11 +15,11 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <returns>ASN.1-encoded byte array.</returns>
         public Byte[] Encode() {
             List<Byte> rawData = new List<Byte>();
-            if (_list.Count == 0) {
+            if (InternalList.Count == 0) {
                 return new Byte[] { 48, 0 };
             }
-            for (Int32 i = _list.Count - 1; i >= 0; i--) {
-                rawData.AddRange(Asn1Utils.Encode(_list[i].RawData, 49));
+            for (Int32 i = InternalList.Count - 1; i >= 0; i--) {
+                rawData.AddRange(Asn1Utils.Encode(InternalList[i].RawData, 49));
             }
             return Asn1Utils.Encode(rawData.ToArray(), 48);
         }
@@ -43,7 +43,7 @@ namespace System.Security.Cryptography.X509Certificates {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
-            _list.Clear();
+            InternalList.Clear();
             Asn1Reader asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) {
                 throw new Asn1InvalidTagException(asn.Offset);
@@ -53,17 +53,17 @@ namespace System.Security.Cryptography.X509Certificates {
                 if (asn.Tag != 49) {
                     throw new Asn1InvalidTagException(asn.Offset);
                 }
-                _list.Add(new X500RdnAttribute(asn.GetPayload()));
+                InternalList.Add(new X500RdnAttribute(asn.GetPayload()));
             } while (asn.MoveNextCurrentLevel());
             // reverse list to get attributes from leaf to root.
-            _list.Reverse();
+            InternalList.Reverse();
         }
         /// <summary>
         /// Converts current collection to an instance of <see cref="X500DistinguishedName"/> class.
         /// </summary>
         /// <returns>An instance of <see cref="X500DistinguishedName"/> class.</returns>
         public X500DistinguishedName ToDistinguishedName() {
-            return _list.Count == 0
+            return InternalList.Count == 0
                 ? new X500DistinguishedName(new Byte[] { 48, 0 })
                 : new X500DistinguishedName(Encode());
         }
@@ -78,6 +78,6 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </summary>
         /// <param name="oid">The location of the <see cref="X500RdnAttribute"/> object in the collection.</param>
         /// <returns></returns>
-        public X500RdnAttribute this[String oid] => _list.FirstOrDefault(x => x.Oid.Value.Equals(oid, StringComparison.InvariantCultureIgnoreCase));
+        public X500RdnAttribute this[String oid] => InternalList.FirstOrDefault(x => x.Oid.Value.Equals(oid, StringComparison.InvariantCultureIgnoreCase));
     }
 }

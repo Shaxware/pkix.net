@@ -14,8 +14,8 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <returns>ASN.1-encoded byte array.</returns>
         public Byte[] Encode() {
             List<Byte> rawData = new List<Byte>();
-            if (_list.Count == 0) { return null; }
-            foreach (X509AlternativeName item in _list) {
+            if (InternalList.Count == 0) { return null; }
+            foreach (X509AlternativeName item in InternalList) {
                 rawData.AddRange(item.RawData);
             }
             return Asn1Utils.Encode(rawData.ToArray(), 48);
@@ -30,12 +30,12 @@ namespace System.Security.Cryptography.X509Certificates {
         public void Decode(Byte[] rawData) {
             if (IsReadOnly) { throw new AccessViolationException(Error.E_COLLECTIONCLOSED); }
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
-            _list.Clear();
+            InternalList.Clear();
             Asn1Reader asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) { throw new Asn1InvalidTagException(); }
             asn.MoveNext();
             do {
-                _list.Add(new X509AlternativeName(asn.GetTagRawData()));
+                InternalList.Add(new X509AlternativeName(asn.GetTagRawData()));
             } while (asn.MoveNextCurrentLevel());
         }
         /// <summary>

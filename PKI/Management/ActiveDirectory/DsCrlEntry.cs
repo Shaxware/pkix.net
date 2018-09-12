@@ -37,6 +37,12 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                        || other.GetType() == GetType()
                        && Equals((DsCrlEntry) other));
         }
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object. Two CRL entries are equal when
+        /// all public members of this object are same.
+        /// </summary>
+        /// <inheritdoc cref="Equals(Object)" select="param|returns"/>
+        /// <returns></returns>
         protected Boolean Equals(DsCrlEntry other) {
             return String.Equals(HostName, other.HostName, StringComparison.OrdinalIgnoreCase)
                    && String.Equals(IssuerName, other.IssuerName, StringComparison.OrdinalIgnoreCase)

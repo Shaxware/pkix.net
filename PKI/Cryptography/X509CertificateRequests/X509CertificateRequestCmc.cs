@@ -43,9 +43,26 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
         EncodedObjectID ::= OBJECT IDENTIFIER
         AttributeSetValue ::= SET OF ANY
          */
-
+        /// <summary>
+        /// Initializes a new instance of <strong>X509CertificateRequestCmc</strong> class from ASN.1-encoded
+        /// byte array that represents encoded Certificate Management over CMS (CMC) object.
+        /// </summary>
+        /// <param name="rawData">ASN.1-encoded byte array that represents CMC object.</param>
+        /// <remarks>
+        /// Certificate Management over CMS (CMC) format and transport mechanism are defined in:
+        /// <see href="https://tools.ietf.org/html/rfc5272">RFC 5272</see>,
+        /// <see href="https://tools.ietf.org/html/rfc5273">RFC 5273</see>,
+        /// <see href="https://tools.ietf.org/html/rfc5274">RFC 5274</see> and updated by
+        /// <see href="https://tools.ietf.org/html/rfc6402">RFC 6402</see>.
+        /// </remarks>
         public X509CertificateRequestCmc(Byte[] rawData) : base(rawData) { }
-
+        
+        /// <summary>
+        /// Decodes embedded payload of the CMC message. Current implementation supports only PKCS#10 certificate
+        /// request objects.
+        /// </summary>
+        /// <inheritdoc select="param"/>
+        /// <remarks>This member cannot be inherited or overriden.</remarks>
         protected override void DecodeContent(Byte[] rawData) {
             var asn = new Asn1Reader(rawData);
             asn.MoveNextAndExpectTags(0x30);             // ControlSequence  ::=    SEQUENCE OF TaggedAttribute

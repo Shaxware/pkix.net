@@ -48,8 +48,6 @@ namespace System.Security.Cryptography.X509Certificates {
         void m_initizlie(Oid oid, String value, Asn1Type tag) {
             // dc -- IA5 String only
             // E -- IA5String only
-            switch (oid.Value) {
-            }
         }
         void m_decode(Byte[] rawData) {
             Asn1Reader asn = new Asn1Reader(rawData);

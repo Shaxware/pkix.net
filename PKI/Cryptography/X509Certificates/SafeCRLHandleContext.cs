@@ -25,6 +25,7 @@ namespace System.Security.Cryptography.X509Certificates {
     [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
     [HostProtection(SecurityAction.LinkDemand, MayLeakOnAbort = true)]
     public sealed class SafeCRLHandleContext : SafeHandleZeroOrMinusOneIsInvalid {
+        /// <inheritdoc />
         public SafeCRLHandleContext() : base(true) { }
         /// <summary>
         /// Releases persistent handle and frees allocated resources.

@@ -1,6 +1,9 @@
 ﻿using System;
 
 namespace SysadminsLV.PKI.Management.CertificateServices.Database {
+    /// <summary>
+    /// Represents a description of ADCS database column schema.
+    /// </summary>
     public class AdcsDbColumnSchema {
         /// <summary>
         /// Gets column language invariant name.
@@ -19,7 +22,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
         /// </summary>
         public Int32 MaxLength { get; internal set; }
         /// <summary>
-        /// Indiciates whether the column is indexed for faster column value search.
+        /// Indicates whether the column is indexed for faster column value search.
         /// </summary>
         public Boolean IsIndexed { get; internal set; }
     }

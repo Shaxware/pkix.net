@@ -27,9 +27,9 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </summary>
         /// <returns>ASN.1-encoded byte array. If the collection is empty, a <strong>NULL</strong> is returned.</returns>
         public Byte[] Encode() {
-            if (_list.Count == 0) { return null; }
+            if (InternalList.Count == 0) { return null; }
             List<Byte> rawData = new List<Byte>();
-            foreach (X509CRLEntry item in _list) {
+            foreach (X509CRLEntry item in InternalList) {
                 rawData.AddRange(item.Encode());
             }
             return Asn1Utils.Encode(rawData.ToArray(), 48);
@@ -46,7 +46,7 @@ namespace System.Security.Cryptography.X509Certificates {
             if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             if (!asn.MoveNext()) { throw new Asn1InvalidTagException(asn.Offset); }
             do {
-                _list.Add(new X509CRLEntry(asn.GetTagRawData()));
+                InternalList.Add(new X509CRLEntry(asn.GetTagRawData()));
             } while (asn.MoveNextCurrentLevel());
         }
 
@@ -64,7 +64,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <returns>An <see cref="X509CRLEntry"/> object.</returns>
         public X509CRLEntry this[String serialNumber] {
             get {
-                foreach (X509CRLEntry entry in _list) {
+                foreach (X509CRLEntry entry in InternalList) {
                     if (String.Equals(entry.SerialNumber, serialNumber, StringComparison.CurrentCultureIgnoreCase)) { return entry; }
                 }
                 return null;

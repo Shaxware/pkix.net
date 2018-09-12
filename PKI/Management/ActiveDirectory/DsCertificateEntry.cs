@@ -25,14 +25,18 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// </summary>
         public DsCertificateType CertificateType { get; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object. Two objects are equal when
+        /// entry name and certificate are equal.
+        /// </summary>
+        /// <inheritdoc cref="Object.ToString" select="param|returns"/>
         public override Boolean Equals(Object other) {
             return !(other is null)
                    && (ReferenceEquals(this, other)
                        || other.GetType() == GetType()
                        && Equals((DsCertificateEntry)other));
         }
-        protected Boolean Equals(DsCertificateEntry other) {
+        Boolean Equals(DsCertificateEntry other) {
             return String.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase)
                    && Certificate.Equals(other.Certificate)
                    && CertificateType == other.CertificateType;

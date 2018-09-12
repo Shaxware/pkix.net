@@ -17,7 +17,6 @@ namespace System.Security.Cryptography.X509Certificates {
     /// </summary>
     public class X509CTL : IDisposable {
         Wincrypt.CTL_INFO CTLInfo;
-        readonly Boolean _isGeneric;
         readonly List<X509Extension> _listExtensions = new List<X509Extension>();
 
         /// <summary>
@@ -26,7 +25,6 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <param name="path">The path to a CRL file.</param>
         public X509CTL(String path) {
             m_import(Crypt32Managed.CryptFileToBinary(path));
-            _isGeneric = true;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="X509CTL"/> class defined from a sequence of bytes representing
@@ -37,7 +35,6 @@ namespace System.Security.Cryptography.X509Certificates {
         public X509CTL(Byte[] rawData) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             m_import(rawData);
-            _isGeneric = true;
         }
 
         /// <summary>
@@ -81,7 +78,7 @@ namespace System.Security.Cryptography.X509Certificates {
         public X509ExtensionCollection Extensions {
             get {
                 if (_listExtensions.Count == 0) { return null; }
-                X509ExtensionCollection retValue = new X509ExtensionCollection();
+                var retValue = new X509ExtensionCollection();
                 foreach (X509Extension item in _listExtensions) { retValue.Add(item); }
                 return retValue;
             }
@@ -97,7 +94,7 @@ namespace System.Security.Cryptography.X509Certificates {
         public Byte[] RawData { get; private set; }
 
         void getCtlinfo() {
-            Wincrypt.CTL_CONTEXT CTLContext = (Wincrypt.CTL_CONTEXT)Marshal.PtrToStructure(Handle.DangerousGetHandle(), typeof(Wincrypt.CTL_CONTEXT));
+            var CTLContext = (Wincrypt.CTL_CONTEXT)Marshal.PtrToStructure(Handle.DangerousGetHandle(), typeof(Wincrypt.CTL_CONTEXT));
             CTLInfo = (Wincrypt.CTL_INFO)Marshal.PtrToStructure(CTLContext.pCtlInfo, typeof(Wincrypt.CTL_INFO));
             Version = (Int32)CTLInfo.dwVersion + 1;
         }
@@ -105,7 +102,7 @@ namespace System.Security.Cryptography.X509Certificates {
             SubjectUsage = new OidCollection();
             if (CTLInfo.SubjectUsage.cUsageIdentifier > 0) {
                 IntPtr rgpszUseageIdentifier = CTLInfo.SubjectUsage.rgpszUseageIdentifier;
-                for (Int32 index = 0; index < CTLInfo.SubjectUsage.cUsageIdentifier; index++) {
+                for (var index = 0; index < CTLInfo.SubjectUsage.cUsageIdentifier; index++) {
                     IntPtr pszOid = Marshal.ReadIntPtr(rgpszUseageIdentifier);
                     SubjectUsage.Add(new Oid(Marshal.PtrToStringAnsi(pszOid)));
                     rgpszUseageIdentifier = (IntPtr)((UInt64)rgpszUseageIdentifier + (UInt32)Marshal.SizeOf(typeof(Wincrypt.CTL_USAGE)));
@@ -122,7 +119,7 @@ namespace System.Security.Cryptography.X509Certificates {
             }
         }
         void getSerial() {
-            StringBuilder SB = new StringBuilder();
+            var SB = new StringBuilder();
             Byte[] seqnumber = new Byte[CTLInfo.SequenceNumber.cbData];
             Marshal.Copy(CTLInfo.SequenceNumber.pbData, seqnumber, 0, seqnumber.Length);
             Array.Reverse(seqnumber);
@@ -133,21 +130,21 @@ namespace System.Security.Cryptography.X509Certificates {
             if (CTLInfo.cCTLEntry > 0) {
                 Entries = new X509CTLEntryCollection();
                 IntPtr rgCTLEntry = CTLInfo.rgCTLEntry;
-                for (Int32 index = 0; index < CTLInfo.cCTLEntry; index++) {
-                    StringBuilder SB = new StringBuilder();
-                    X509AttributeCollection attributes = new X509AttributeCollection();
+                for (var index = 0; index < CTLInfo.cCTLEntry; index++) {
+                    var SB = new StringBuilder();
+                    var attributes = new X509AttributeCollection();
 
-                    Wincrypt.CTL_ENTRY CTLEntry = (Wincrypt.CTL_ENTRY)Marshal.PtrToStructure(rgCTLEntry, typeof(Wincrypt.CTL_ENTRY));
+                    var CTLEntry = (Wincrypt.CTL_ENTRY)Marshal.PtrToStructure(rgCTLEntry, typeof(Wincrypt.CTL_ENTRY));
                     Byte[] bytes = new Byte[CTLEntry.SubjectIdentifier.cbData];
                     Marshal.Copy(CTLEntry.SubjectIdentifier.pbData, bytes, 0, bytes.Length);
                     foreach (Byte item in bytes) { SB.Append($"{item:X2}"); }
                     String thumbprint = SB.ToString();
                     if (CTLEntry.cAttribute > 0) {
                         IntPtr rgAttribute = CTLEntry.rgAttribute;
-                        for (Int32 indexx = 0; indexx < CTLEntry.cAttribute; indexx++) {
-                            Wincrypt.CRYPT_ATTRIBUTE attrib = (Wincrypt.CRYPT_ATTRIBUTE)Marshal.PtrToStructure(rgAttribute, typeof(Wincrypt.CRYPT_ATTRIBUTE));
-                            Oid pszOid = new Oid(attrib.pszObjId);
-                            Wincrypt.CRYPTOAPI_BLOB blob = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(attrib.rgValue, typeof(Wincrypt.CRYPTOAPI_BLOB));
+                        for (var indexx = 0; indexx < CTLEntry.cAttribute; indexx++) {
+                            var attrib = (Wincrypt.CRYPT_ATTRIBUTE)Marshal.PtrToStructure(rgAttribute, typeof(Wincrypt.CRYPT_ATTRIBUTE));
+                            var pszOid = new Oid(attrib.pszObjId);
+                            var blob = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(attrib.rgValue, typeof(Wincrypt.CRYPTOAPI_BLOB));
                             bytes = new Byte[blob.cbData];
                             Marshal.Copy(blob.pbData, bytes, 0, bytes.Length);
                             attributes.Add(new X509Attribute(pszOid, bytes));
@@ -161,7 +158,7 @@ namespace System.Security.Cryptography.X509Certificates {
         }
         void getExtensions() {
             if (CTLInfo.cExtension > 0) {
-                Wincrypt.CERT_EXTENSIONS extstruct = new Wincrypt.CERT_EXTENSIONS {
+                var extstruct = new Wincrypt.CERT_EXTENSIONS {
                     rgExtension = CTLInfo.rgExtension,
                     cExtension = CTLInfo.cExtension
                 };
@@ -205,7 +202,7 @@ namespace System.Security.Cryptography.X509Certificates {
             return rgCTLEntry;
         }
         static Wincrypt.CTL_ENTRY create_ctlentry(IntPtr handle, String thumbprint) {
-            Wincrypt.CTL_ENTRY entry = new Wincrypt.CTL_ENTRY {
+            var entry = new Wincrypt.CTL_ENTRY {
                 SubjectIdentifier = {
                     pbData = get_thumbptr(thumbprint),
                     cbData = (UInt32)(thumbprint.Length / 2)
@@ -213,7 +210,7 @@ namespace System.Security.Cryptography.X509Certificates {
             };
 
             List<UInt32> ids = new List<UInt32>();
-            Boolean end = false;
+            var end = false;
             do {
                 UInt32 retn = Crypt32.CertEnumCertificateContextProperties(handle, 0);
                 if (retn == 0) { end = true; } else { ids.Add(retn); }
@@ -236,7 +233,7 @@ namespace System.Security.Cryptography.X509Certificates {
         }
         static Wincrypt.CRYPT_ATTRIBUTE create_attribute(IntPtr handle, UInt32 propId) {
             UInt32 pcbData = 0;
-            Wincrypt.CRYPT_ATTRIBUTE attrib = new Wincrypt.CRYPT_ATTRIBUTE();
+            var attrib = new Wincrypt.CRYPT_ATTRIBUTE();
             if (Crypt32.CertGetCertificateContextProperty(handle, propId, IntPtr.Zero, ref pcbData)) {
                 attrib.rgValue = Marshal.AllocHGlobal((Int32)pcbData);
                 attrib.pszObjId = "1.3.6.1.4.1.311.10.11." + propId;
@@ -290,7 +287,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// Displays a X.509 Certificate Revocation List UI dialog.
         /// </summary>
         public void ShowUI() {
-            Boolean mustRelease = false;
+            var mustRelease = false;
             if (Handle.IsInvalid || Handle.IsClosed) {
                 mustRelease = true;
                 GetSafeContext();

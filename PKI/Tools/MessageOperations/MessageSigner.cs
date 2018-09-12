@@ -6,14 +6,12 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Win32.SafeHandles;
-using PKI.Cryptography;
 using PKI.Exceptions;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography;
-using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 using SysadminsLV.PKI.Win32;
 
@@ -139,7 +137,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         /// <summary>
         /// Gets public key algorithm.
         /// </summary>
-        public Oid PublicKeyAlgorithm { get; private set; }
+        public Oid PublicKeyAlgorithm { get; }
         /// <summary>
         /// Gets hashing algorithm that is used to calculate the hash during signing or signature verification
         /// processes.

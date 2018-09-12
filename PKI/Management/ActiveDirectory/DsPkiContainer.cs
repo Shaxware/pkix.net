@@ -125,6 +125,13 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             }
             return list.ToArray();
         }
+        /// <summary>
+        /// Adds a new container as a child of the specified object.
+        /// </summary>
+        /// <param name="parentPath">Path to an object where new child is added.</param>
+        /// <param name="name">Child container common name.</param>
+        /// <param name="schemaClassName">Child container DS schema class name.</param>
+        /// <returns></returns>
         protected DirectoryEntry AddSubContainer(String parentPath, String name, String schemaClassName) {
             var entry = new DirectoryEntry(parentPath);
             return entry.Children.Add(name, schemaClassName);
@@ -173,7 +180,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
 
 
         #region IDisposable
-        protected virtual void Dispose(Boolean disposing) {
+        void Dispose(Boolean disposing) {
             if (disposing) {
                 BaseEntry?.Dispose();
             }

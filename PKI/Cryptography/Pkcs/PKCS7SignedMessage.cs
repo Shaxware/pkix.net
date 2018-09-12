@@ -7,7 +7,6 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509CertificateRequests;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using PKI.ManagedAPI;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
@@ -24,7 +23,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         readonly List<X509CRL2> _crls                     = new List<X509CRL2>();
         readonly X509Certificate2Collection _certificates = new X509Certificate2Collection();
         readonly List<X509CertificateRequest> _requests   = new List<X509CertificateRequest>();
-        readonly List<PkcsSignerInfo> _signerInfos           = new List<PkcsSignerInfo>();
+        readonly List<PkcsSignerInfo> _signerInfos        = new List<PkcsSignerInfo>();
 
         /// <param name="path">Specifies the path to a file that contains either binary or Base64-encoded PKCS#7 message.</param>
         /// <exception cref="ArgumentException"><strong>path</strong> parameter is null or empty string.</exception>
@@ -52,7 +51,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         public OidCollection DigestAlgorithms {
             get {
                 if (_digestAlgs == null) { return null; }
-                OidCollection oids = new OidCollection();
+                var oids = new OidCollection();
                 foreach (Oid oid in _digestAlgs) {
                     oids.Add(oid);
                 }
@@ -110,7 +109,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
 
         void m_initialize(Byte[] message) {
             RawData = message;
-            ContentInfo2 info = new ContentInfo2(RawData);
+            var info = new ContentInfo2(RawData);
             getSequence(info);
         }
         void getSequence(ContentInfo2 info) {
@@ -121,7 +120,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             IntPtr pvStructInfo = Marshal.AllocHGlobal((Int32)pcbStructInfo);
             try {
                 Crypt32.CryptDecodeObject(1, Wincrypt.X509_SEQUENCE_OF_ANY, info.RawData, (UInt32)info.RawData.Length, 0, pvStructInfo, ref pcbStructInfo);
-                Wincrypt.CRYPTOAPI_BLOB sequence = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(pvStructInfo, typeof(Wincrypt.CRYPTOAPI_BLOB));
+                var sequence = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(pvStructInfo, typeof(Wincrypt.CRYPTOAPI_BLOB));
                 if (sequence.cbData == 0) { return; }
                 UnrollPkcs7(sequence);
             } finally {
@@ -131,8 +130,8 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         void UnrollPkcs7(Wincrypt.CRYPTOAPI_BLOB sequence) {
             Int32 size = Marshal.SizeOf(typeof(Wincrypt.CRYPTOAPI_BLOB));
             IntPtr pValue = sequence.pbData;
-            for (Int32 index = 0; index < sequence.cbData; index++) {
-                Wincrypt.CRYPTOAPI_BLOB blob = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(pValue, typeof(Wincrypt.CRYPTOAPI_BLOB));
+            for (var index = 0; index < sequence.cbData; index++) {
+                var blob = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(pValue, typeof(Wincrypt.CRYPTOAPI_BLOB));
                 switch (index) {
                     case 0:
                         decodeVersion(blob);
@@ -172,7 +171,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             if (blob.cbData == 0) { return; }
             Byte[] rawData = new Byte[blob.cbData];
             Marshal.Copy(blob.pbData, rawData, 0, (Int32)blob.cbData);
-            Asn1Reader asn = new Asn1Reader(rawData);
+            var asn = new Asn1Reader(rawData);
             if (asn.Tag != 49) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             do {
@@ -180,7 +179,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             } while (asn.MoveNextCurrentLevel());
         }
         void switchInnerType(Wincrypt.CRYPTOAPI_BLOB blob) {
-            ContentInfo2 info = new ContentInfo2(blob);
+            var info = new ContentInfo2(blob);
             ContentType = info.ContentType;
             switch (info.ContentType.Value) {
                 case "1.3.6.1.5.5.7.12.2":
@@ -192,7 +191,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             }
         }
         void decodeCMC(Byte[] contentBytes) {
-            Asn1Reader asn = new Asn1Reader(contentBytes);
+            var asn = new Asn1Reader(contentBytes);
             asn.MoveNext();
             UInt32 pcbStructInfo = 0;
             if (!Crypt32.CryptDecodeObject(1, Wincrypt.CMC_DATA, asn.GetTagRawData(), (UInt32)asn.TagLength, 0, IntPtr.Zero, ref pcbStructInfo)) {
@@ -201,7 +200,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             IntPtr pvStructInfo = Marshal.AllocHGlobal((Int32)pcbStructInfo);
             try {
                 Crypt32.CryptDecodeObject(1, Wincrypt.CMC_DATA, asn.GetTagRawData(), (UInt32)asn.TagLength, 0, pvStructInfo, ref pcbStructInfo);
-                Wincrypt.CMC_DATA_INFO cmc = (Wincrypt.CMC_DATA_INFO)Marshal.PtrToStructure(pvStructInfo, typeof(Wincrypt.CMC_DATA_INFO));
+                var cmc = (Wincrypt.CMC_DATA_INFO)Marshal.PtrToStructure(pvStructInfo, typeof(Wincrypt.CMC_DATA_INFO));
                 decodeAttributes(cmc.rgTaggedAttribute, cmc.cTaggedAttribute);
                 decodeRequest(cmc.rgTaggedRequest, cmc.cTaggedRequest);
                 Content = _requests.ToArray();
@@ -213,9 +212,9 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             if (cTaggedAttribute == 0) { return; }
             IntPtr rgValue = rgTaggedAttribute;
             Int32 size = Marshal.SizeOf(typeof(Wincrypt.CMC_TAGGED_ATTRIBUTE));
-            for (Int32 index = 0; index < cTaggedAttribute; index++) {
-                Wincrypt.CMC_TAGGED_ATTRIBUTE attr = (Wincrypt.CMC_TAGGED_ATTRIBUTE)Marshal.PtrToStructure(rgValue, typeof(Wincrypt.CMC_TAGGED_ATTRIBUTE));
-                Wincrypt.CRYPTOAPI_BLOB attrvalue = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(attr.rgValue, typeof(Wincrypt.CRYPTOAPI_BLOB));
+            for (var index = 0; index < cTaggedAttribute; index++) {
+                var attr = (Wincrypt.CMC_TAGGED_ATTRIBUTE)Marshal.PtrToStructure(rgValue, typeof(Wincrypt.CMC_TAGGED_ATTRIBUTE));
+                var attrvalue = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(attr.rgValue, typeof(Wincrypt.CRYPTOAPI_BLOB));
                 Byte[] bytes = new Byte[attrvalue.cbData];
                 Marshal.Copy(attrvalue.pbData, bytes, 0, (Int32)attrvalue.cbData);
                 _attributes.Add(new X509Attribute(new Oid(attr.pszObjId), (Int32)attr.dwBodyPartID, bytes));
@@ -226,8 +225,8 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             if (cTaggedRequest == 0) { return; }
             IntPtr rgValue = rgTaggedRequest;
             Int32 size = Marshal.SizeOf(typeof(Wincrypt.CMC_TAGGED_REQUEST));
-            for (Int32 index = 0; index < cTaggedRequest; index++) {
-                Wincrypt.CMC_TAGGED_REQUEST req = (Wincrypt.CMC_TAGGED_REQUEST)Marshal.PtrToStructure(rgValue, typeof(Wincrypt.CMC_TAGGED_REQUEST));
+            for (var index = 0; index < cTaggedRequest; index++) {
+                var req = (Wincrypt.CMC_TAGGED_REQUEST)Marshal.PtrToStructure(rgValue, typeof(Wincrypt.CMC_TAGGED_REQUEST));
                 var a = (Wincrypt.CMC_TAGGED_CERT_REQUEST)Marshal.PtrToStructure(req.pTaggedCertRequest, typeof(Wincrypt.CMC_TAGGED_CERT_REQUEST));
                 if (a.SignedCertRequest.cbData == 0) { continue; }
                 Byte[] reqBytes = new Byte[a.SignedCertRequest.cbData];
@@ -247,7 +246,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             if (blob.cbData == 0) { return; }
             Byte[] certBytes = new Byte[blob.cbData];
             Marshal.Copy(blob.pbData, certBytes, 0, certBytes.Length);
-            Asn1Reader asn = new Asn1Reader(certBytes);
+            var asn = new Asn1Reader(certBytes);
             asn.MoveNext();
             do {
                 _certificates.Add(new X509Certificate2(asn.GetTagRawData()));
@@ -257,7 +256,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             if (blob.cbData == 0) { return; }
             Byte[] crlBytes = new Byte[blob.cbData];
             Marshal.Copy(blob.pbData, crlBytes, 0, (Int32)blob.cbData);
-            Asn1Reader asn = new Asn1Reader(crlBytes);
+            var asn = new Asn1Reader(crlBytes);
             asn.MoveNext();
             do {
                 _crls.Add(new X509CRL2(asn.GetTagRawData()));
@@ -267,20 +266,11 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             if (blob.cbData == 0) { return; }
             Byte[] signerBytes = new Byte[blob.cbData];
             Marshal.Copy(blob.pbData, signerBytes, 0, signerBytes.Length);
-            Asn1Reader asn = new Asn1Reader(signerBytes);
+            var asn = new Asn1Reader(signerBytes);
             asn.MoveNext();
             do {
                 _signerInfos.Add(new PkcsSignerInfo(asn.GetTagRawData(), _certificates));
             } while (asn.MoveNextCurrentLevel());
-        }
-
-        /// <summary>
-        /// Gets the textual representation of the current <stong>PKCS#7</stong> signed message.
-        /// </summary>
-        /// <returns>Formatted textual representation of the current <stong>PKCS#7</stong> signed message.</returns>
-        public override String ToString() {
-            StringBuilder SB;
-            return base.ToString();
         }
     }
 }

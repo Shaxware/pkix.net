@@ -28,6 +28,9 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// Gets internal list of all certificates in the current container grouped by DS object name.
         /// </summary>
         protected IDictionary<String, List<DsCertificateEntry>> DsList { get; } = new Dictionary<String, List<DsCertificateEntry>>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>
+        /// Gets an unordered collection of supported by inheritors DS object classes.
+        /// </summary>
         protected ISet<String> DsObjectClasses { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
         // reads certificates of specified type from specified DS object.
@@ -108,6 +111,12 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 }
             }
         }
+        /// <summary>
+        /// Creates a list of entries within a container that should be updated upon write back to Active Directory.
+        /// </summary>
+        /// <returns>
+        /// A collection of entry names that should be updated.
+        /// </returns>
         protected IEnumerable<String> GetUpdateList() {
             ISet<String> namesToProcess = new HashSet<String>();
             // toBeAdded and toBeRemoved can overlap on different items only.

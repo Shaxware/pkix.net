@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
@@ -44,6 +45,7 @@ namespace System.Security.Cryptography.X509Certificates {
             FriendlyName = Encoding.Unicode.GetString(bytes, 16 + hostNameLength + caNameLength, fnLength).TrimEnd('\0');
         }
 
+        /// <inheritdoc />
         public override String ToString() {
             const String str = @"
 RequestId: {0}

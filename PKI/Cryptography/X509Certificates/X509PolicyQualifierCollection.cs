@@ -17,10 +17,10 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </summary>
         /// <returns>ASN.1-encoded byte array.</returns>
         public Byte[] Encode() {
-            if (_list.Count == 0) { return null; }
+            if (InternalList.Count == 0) { return null; }
             Int32 index = 1;
             List<Byte> rawData = new List<Byte>();
-            foreach (X509PolicyQualifier qualifier in _list) {
+            foreach (X509PolicyQualifier qualifier in InternalList) {
                 if (qualifier.Type == X509PolicyQualifierType.UserNotice) {
                     qualifier.NoticeNumber = index;
                     index++;
@@ -37,12 +37,12 @@ namespace System.Security.Cryptography.X509Certificates {
         /// The data in the <strong>rawData</strong> parameter is not valid array of <see cref="X509PolicyQualifier"/> objects.
         /// </exception>
         public void Decode(Byte[] rawData) {
-            _list.Clear();
+            InternalList.Clear();
             Asn1Reader asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNext();
             do {
-                _list.Add(new X509PolicyQualifier(asn.GetTagRawData()));
+                InternalList.Add(new X509PolicyQualifier(asn.GetTagRawData()));
             } while (asn.MoveNextCurrentLevel());
         }
     }

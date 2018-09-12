@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using PKI.Enrollment.Policy;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
@@ -44,7 +45,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <summary>
         /// Gets the authentication type used to authenticate at Enrollment Server.
         /// </summary>
-        public PolicyAuthenticationEnum EnrollmentyServerAuthentication { get; private set; }
+        public PolicyAuthenticationEnum EnrollmentServerAuthentication { get; private set; }
         /// <summary>
         /// Gets the certificate request ID in the CA database.
         /// </summary>
@@ -53,7 +54,7 @@ namespace System.Security.Cryptography.X509Certificates {
         void initialize(Byte[] bytes) {
             PolicyServerAuthentication = (PolicyAuthenticationEnum)BitConverter.ToInt32(bytes, 8);
             PolicyServerUrlFlags = (PolicyServerUrlFlagsEnum)BitConverter.ToInt32(bytes, 12);
-            EnrollmentyServerAuthentication = (PolicyAuthenticationEnum)BitConverter.ToInt32(bytes, 16);
+            EnrollmentServerAuthentication = (PolicyAuthenticationEnum)BitConverter.ToInt32(bytes, 16);
             String str = Encoding.Unicode.GetString(bytes, 20, bytes.Length - 20);
             String[] tokens = str.Split('\0');
             PolicyServerUrl = new Uri(tokens[0]);
@@ -82,7 +83,7 @@ Request Id: {6}
                 PolicyServerUrlFlags,
                 PolicyServerAuthentication,
                 EnrollmentServerUrl,
-                EnrollmentyServerAuthentication,
+                EnrollmentServerAuthentication,
                 RequestID
             );
         }

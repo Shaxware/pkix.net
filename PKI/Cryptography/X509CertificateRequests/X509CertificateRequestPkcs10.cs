@@ -132,6 +132,10 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
             } while (asn.MoveNextCurrentLevel());
         }
 
+        /// <summary>
+        /// Gets decoded textual representation (dump) of the current object.
+        /// </summary>
+        /// <returns>Textual representation of the current object.</returns>
         public virtual String Format() {
             var SB = new StringBuilder();
             var blob = new SignedContentBlob(RawData, ContentBlobType.SignedBlob);
@@ -143,7 +147,7 @@ Subject:
 
 {PublicKey.Format().TrimEnd()}
 Request attributes (Count={Attributes.Count}):{formatAttributes().TrimEnd()}
-Request extensions (Count={Extensions.Count}):{formatExtensons().TrimEnd()}
+Request extensions (Count={Extensions.Count}):{formatExtensions().TrimEnd()}
 {blob.SignatureAlgorithm.ToString().TrimEnd()}    
 Signature: Unused bits={blob.Signature.UnusedBits}
     {AsnFormatter.BinaryToString(blob.Signature.Value.ToArray(), EncodingType.HexAddress).Replace("\r\n", "\r\n    ")}
@@ -160,14 +164,14 @@ Signature matches Public Key: {SignatureIsValid}
 
             sb.AppendLine("");
             for (Int32 index = 0; index < Attributes.Count; index++) {
-                var attribute = Attributes[index];
+                X509Attribute attribute = Attributes[index];
                 sb.AppendLine(
                     $"  Attribute[{index}], Length={attribute.RawData.Length} ({attribute.RawData.Length:x2}):");
                 sb.AppendLine($"    {attribute.Format(true).Replace("\r\n", "\r\n    ")}");
             }
             return sb.ToString();
         }
-        String formatExtensons() {
+        String formatExtensions() {
             StringBuilder sb = new StringBuilder();
             if (Extensions.Count == 0) {
                 return sb.ToString();

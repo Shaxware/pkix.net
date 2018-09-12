@@ -30,6 +30,9 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             readChildren();
         }
 
+        /// <summary>
+        /// Gets an array of CRL objects in Active Directory.
+        /// </summary>
         public DsCrlEntry[] RevocationLists => _list.OrderBy(x => x.HostName).ThenBy(x => x.IssuerName).ToArray();
 
         void readChildren() {

@@ -29,7 +29,7 @@ namespace System.Security.Cryptography {
         /// <returns>An <see cref="X509Attribute"/> object.</returns>
         public X509Attribute this[String oid] {
             get {
-                foreach (X509Attribute entry in _list) {
+                foreach (X509Attribute entry in InternalList) {
                     if (entry.Oid.Value == oid.ToLower()) { return entry; }
                 }
                 return null;
@@ -49,7 +49,7 @@ namespace System.Security.Cryptography {
             if (asn.PayloadLength == 0) { return; }
             asn.MoveNext();
             do {
-                _list.Add(X509Attribute.Decode(asn.GetTagRawData()));
+                InternalList.Add(X509Attribute.Decode(asn.GetTagRawData()));
             } while (asn.MoveNextCurrentLevel());
         }
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Numerics;
+using System.Security.Permissions;
 using System.Text;
 using PKI.Exceptions;
 using PKI.ManagedAPI;
@@ -117,7 +118,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <remarks>
         ///	This member is zero by default. In order, to retrieve unmanaged handle a <see cref="GetSafeContext"/>
         /// method must be called. When this handle is no longer necessary, it must be freed by calling
-        /// <see cref="ReleaseContext"/> method.
+        /// <see cref="Dispose(bool)"/> method.
         /// </remarks>
         public SafeCRLHandleContext Handle { get; private set; } = new SafeCRLHandleContext();
         /// <summary>
@@ -518,17 +519,18 @@ namespace System.Security.Cryptography.X509Certificates {
                 Dispose();
             }
         }
-        /// <inheritdoc />
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object. Two CRLs are equal when
+        /// they have same version, type, issuer, CRL number and <see cref="ThisUpdate"/> values.
+        /// </summary>
+        /// <inheritdoc cref="Object.ToString" select="param|returns"/>
         public override Boolean Equals(Object obj) {
-            if (ReferenceEquals(null, obj))
-                return false;
-            if (ReferenceEquals(this, obj))
-                return true;
-            if (obj.GetType() != this.GetType())
-                return false;
-            return Equals((X509CRL2)obj);
+            return !(obj is null) &&
+                   (ReferenceEquals(this, obj)
+                    || obj.GetType() == GetType()
+                    && Equals((X509CRL2) obj));
         }
-        protected Boolean Equals(X509CRL2 other) {
+        Boolean Equals(X509CRL2 other) {
             return Version == other.Version
                    && Type == other.Type
                    && IssuerName.Equals(other.IssuerName)
@@ -553,7 +555,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 Handle.Dispose();
             }
         }
-        /// <inheritdoc cref="IDisposable.Dispose"/>
+        /// <inheritdoc/>
         public void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);

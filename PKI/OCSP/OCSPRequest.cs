@@ -23,7 +23,7 @@ namespace PKI.OCSP {
         readonly X509Certificate2Collection _signerChain = new X509Certificate2Collection();
         Oid2[] responseAlgIDs = { new Oid2("sha1RSA", false) };
         Oid signatureAlgID = new Oid("sha1RSA");
-        Boolean nonce, includeFullSigChain;
+        Boolean includeFullSigChain;
         ICredentials creds;
 
         /// <summary>
@@ -103,13 +103,7 @@ namespace PKI.OCSP {
         /// nonce value in the response, but OCSP responders are not obligated to return nonce extension.
         /// For detailed information see <see href="http://tools.ietf.org/html/rfc2560.html">RFC2560</see>.
         /// </remarks>
-        public Boolean Nonce {
-            get { return nonce; }
-            set {
-                if (IsReadOnly) { throw new InvalidOperationException(); }
-                nonce = value;
-            }
-        }
+        public Boolean Nonce { get; set; }
         /// <summary>
         /// As a Nonce extension value, a <see cref="DateTime.Ticks">Ticks</see> property value of <see cref="DateTime"/> class is used.
         /// </summary>
@@ -143,11 +137,6 @@ namespace PKI.OCSP {
         /// Gets or sets web proxy information that will be used to connect OCSP server.
         /// </summary>
         public WebProxy Proxy { get; set; }
-
-        /// <summary>
-        /// Determines if properties of this object are writable or in read-only mode. This member is set to read-only
-        /// </summary>
-        public Boolean IsReadOnly { get; private set; }
         /// <summary>
         /// Gets an array of supported signature algorithms that OCSP server shall use to sign response.
         /// Default algorithm is <strong>sha1RSA</strong>.
@@ -217,7 +206,6 @@ namespace PKI.OCSP {
             signatureInfo.AddRange(Asn1Utils.Encode(_signerChain.Encode(), 0xa0));
             tbsRequest.AddRange(Asn1Utils.Encode(Asn1Utils.Encode(signatureInfo.ToArray(), 48), 0xa0));
             RawData = Asn1Utils.Encode(tbsRequest.ToArray(), 48);
-            IsReadOnly = true;
         }
         void buildSignerCertChain() {
             X509Chain chain = new X509Chain {
@@ -343,14 +331,13 @@ namespace PKI.OCSP {
             includeFullSigChain = includeFullChain;
             signatureAlgID = signatureAlgorithm;
             signRequest(signerCert);
-            IsReadOnly = true;
         }
         /// <summary>
-        /// 
+        /// Encodes OCSP request based on a current information and populates <see cref="RawData"/> property.
+        /// After encoding, the object cannot be modified 
         /// </summary>
         public void Encode() {
             RawData = Asn1Utils.Encode(buildTbsRequest(null).ToArray(), 48);
-            IsReadOnly = true;
         }
         /// <summary>
         /// Sends OCSP request (encoded raw data) to a OCSP responder specified in <see cref="URL"/>.

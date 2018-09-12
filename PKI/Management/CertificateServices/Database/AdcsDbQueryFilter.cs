@@ -48,13 +48,17 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
         /// </summary>
         public Object QualifierValue { get; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object. Two objects are equal when
+        /// all public members in both objects are equals.
+        /// </summary>
+        /// <inheritdoc cref="Object.ToString" select="param|returns"/>
         public override Boolean Equals(Object obj) {
             return !(obj is null)
                    && (ReferenceEquals(this, obj)
                        || obj is AdcsDbQueryFilter other && Equals(other));
         }
-        protected Boolean Equals(AdcsDbQueryFilter other) {
+        Boolean Equals(AdcsDbQueryFilter other) {
             return String.Equals(ColumnName, other.ColumnName, StringComparison.OrdinalIgnoreCase)
                    && LogicalOperator == other.LogicalOperator
                    && Equals(QualifierValue, other.QualifierValue);

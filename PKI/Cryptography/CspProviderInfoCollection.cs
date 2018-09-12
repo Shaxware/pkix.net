@@ -8,30 +8,45 @@ namespace SysadminsLV.PKI.Cryptography {
     /// Represents a collection of <see cref="CspProviderInfo"/> objects.
     /// </summary>
     public class CspProviderInfoCollection : BasicCollection<CspProviderInfo> {
+        /// <summary>
+        /// Enumerates registered Cryptographic Service Providers (CSP) and Key Storage Providers (KSP),
+        /// their information and supported cryptographic algorithms.
+        /// </summary>
+        /// <exception cref="PlatformNotSupportedException">
+        /// Current platform does not support key storage providers (prior to Windows Vista).
+        /// </exception>
+        /// <returns>A collection of registered providers.</returns>
         public static CspProviderInfoCollection GetProviderInfo() {
             if (!CryptographyUtils.TestCNGCompat()) {
                 throw new PlatformNotSupportedException();
             }
 
-            var csps = new CCspInformations();
-            csps.AddAvailableCsps();
+            var providers = new CCspInformations();
+            providers.AddAvailableCsps();
             var retValue = new CspProviderInfoCollection();
-            retValue.AddRange((from ICspInformation csp in csps select new CspProviderInfo(csp)).ToArray());
-            CryptographyUtils.ReleaseCom(csps);
+            retValue.AddRange((from ICspInformation csp in providers select new CspProviderInfo(csp)).ToArray());
+            CryptographyUtils.ReleaseCom(providers);
             return retValue;
         }
-        public static CspProviderInfoCollection GetProviderInfo(String name) {
+        /// <summary>
+        /// Gets named registered Cryptographic Service Provider (CSP) or Key Storage Provider (KSP), its
+        /// information and supported cryptographic algorithms.
+        /// </summary>
+        /// <param name="name">Cryptographic provider name.</param>
+        /// <exception cref="PlatformNotSupportedException">
+        /// Current platform does not support key storage providers (prior to Windows Vista).
+        /// </exception>
+        /// <returns>Specified provider information. Method returns null if provider is not found.</returns>
+        public static CspProviderInfo GetProviderInfo(String name) {
             if (!CryptographyUtils.TestCNGCompat()) {
                 throw new PlatformNotSupportedException();
             }
-
-            var csps = new CCspInformations();
-            csps.AddAvailableCsps();
-            var retValue = new CspProviderInfoCollection {
-                new CspProviderInfo(csps.ItemByName[name])
-            };
-            CryptographyUtils.ReleaseCom(csps);
-            return retValue;
+            var providers = new CCspInformations();
+            providers.AddAvailableCsps();
+            ICspInformation provider = providers.ItemByName[name];
+            return provider == null
+                ? null
+                : new CspProviderInfo(provider);
         }
     }
 }

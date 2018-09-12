@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Pkcs;
 using PKI.Structs;
 using SysadminsLV.PKI.Win32;
 
