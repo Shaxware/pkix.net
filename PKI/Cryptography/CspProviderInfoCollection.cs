@@ -43,10 +43,12 @@ namespace SysadminsLV.PKI.Cryptography {
             }
             var providers = new CCspInformations();
             providers.AddAvailableCsps();
-            ICspInformation provider = providers.ItemByName[name];
-            return provider == null
-                ? null
-                : new CspProviderInfo(provider);
+            try {
+                ICspInformation provider = providers.ItemByName[name];
+                return new CspProviderInfo(provider);
+            } catch {
+                return null;
+            }
         }
     }
 }
