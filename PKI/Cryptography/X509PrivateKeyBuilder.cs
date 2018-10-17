@@ -11,7 +11,7 @@ namespace SysadminsLV.PKI.Cryptography {
     /// Represents a managed X.509 private key generator.
     /// </summary>
     public class X509PrivateKeyBuilder : IKeyStorageInfo, IDisposable {
-        readonly IX509PrivateKey2 _keyGen = new CX509PrivateKeyClass();
+        readonly IX509PrivateKey _keyGen = new CX509PrivateKeyClass();
 
         /// <summary>
         /// Gets or sets a legacy cryptographic service provider (CSP) or CNG key storage provider (KSP).
