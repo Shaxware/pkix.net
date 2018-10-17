@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using CERTENROLLLib;
+using Interop.CERTENROLLLib;
 using PKI.Utils;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 

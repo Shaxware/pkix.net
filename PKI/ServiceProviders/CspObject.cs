@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using CERTENROLLLib;
+using Interop.CERTENROLLLib;
 
 namespace PKI.ServiceProviders {
     /// <summary>

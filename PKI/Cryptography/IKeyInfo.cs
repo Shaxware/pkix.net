@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
@@ -14,6 +15,10 @@ namespace SysadminsLV.PKI.Cryptography {
         /// Gets Microsoft-specific provider type.
         /// </summary>
         Int32 ProviderType { get; }
+        /// <summary>
+        /// Gets a value that identifies whether a private key can be used for signing, or encryption, or both.
+        /// </summary>
+        X509KeySpecFlags KeySpec { get; }
         /// <summary>
         /// Gets key container name within CSP or KSP.
         /// </summary>

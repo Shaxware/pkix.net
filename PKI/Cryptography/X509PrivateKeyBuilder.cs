@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using CERTENROLLLib;
+using Interop.CERTENROLLLib;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser.Universal;
@@ -18,7 +18,22 @@ namespace SysadminsLV.PKI.Cryptography {
         /// </summary>
         public String ProviderName {
             get => _keyGen.ProviderName;
-            set => _keyGen.ProviderName = value;
+            set {
+                _keyGen.ProviderName = value;
+                // ProviderType is necessary when creating CSP params to associate key with cert.
+                // Windows Vista and Windows Server 2008 do not set ProviderType property and getter
+                // on ProviderType will throw exception. So we test if getter throws exception:
+                try {
+                    X509ProviderType temp = _keyGen.ProviderType;
+                } catch {
+                    // if it does, get specified provider object
+                    CspProviderInfo csp = CspProviderInfoCollection.GetProviderInfo(_keyGen.ProviderName);
+                    if (csp != null) {
+                        // and explicitly set ProviderType value from CSP object.
+                        _keyGen.ProviderType = (X509ProviderType)csp.Type;
+                    }
+                }
+            }
         }
         /// <summary>
         /// Gets provider type. Provider type is cryptographic service provider family and is used only with legacy

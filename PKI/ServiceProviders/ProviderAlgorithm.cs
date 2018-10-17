@@ -1,5 +1,5 @@
 ﻿using System;
-using CERTENROLLLib;
+using Interop.CERTENROLLLib;
 
 namespace PKI.ServiceProviders {
     /// <summary>
