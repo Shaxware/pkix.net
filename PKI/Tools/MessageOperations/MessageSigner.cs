@@ -297,7 +297,11 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
                 openLegacyPrivateKey();
                 return;
             }
-            hresult = NCrypt.NCryptOpenKey(phProv, out phPrivKey, _keyInfo.KeyContainerName, (UInt32)_keyInfo.KeySpec, 0);
+            UInt32 dwFlags = 0;
+            if (_keyInfo.MachineContext) {
+                dwFlags = nCrypt2.NCRYPT_MACHINE_KEY_FLAG;
+            }
+            hresult = NCrypt.NCryptOpenKey(phProv, out phPrivKey, _keyInfo.KeyContainerName, (UInt32)_keyInfo.KeySpec, dwFlags);
             if (hresult != 0) {
                 throw new CryptographicException(hresult);
             }
