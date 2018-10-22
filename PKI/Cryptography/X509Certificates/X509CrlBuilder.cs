@@ -29,7 +29,11 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// <remarks>Only version, extensions and a list of revoked certificates are copied to the builder.</remarks>
         public X509CrlBuilder(X509CRL2 existingCrl) {
             Version = existingCrl.Version;
-            _extensions.AddRange(existingCrl.Extensions.Cast<X509Extension>());
+            _extensions.AddRange(
+                existingCrl.Extensions
+                    .Cast<X509Extension>()
+                    // we do not add NextCrlPublish extension.
+                    .Where(x => x.Oid.Value != X509CertExtensions.X509NextCRLPublish));
             RevokedCertificates.AddRange(existingCrl.RevokedCertificates);
         }
 
@@ -48,12 +52,18 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// </summary>
         public DateTime? NextUpdate { get; set; } = DateTime.Now.AddDays(7);
         /// <summary>
+        /// Gets or sets the date and time at which new CRL is expected to be published by CA.
+        /// Normally this value is either, equals to <see cref="NextUpdate"/> or a bit smaller. But this
+        /// value must be within CRL validity.
+        /// </summary>
+        public DateTime? NextCrlPublish { get; set; }
+        /// <summary>
         /// Gets or sets the increment value for CRL Number extension. If value is zero or negative, current CRL Number
         /// value is used. If existing CRL doesn't contain CRL Number extension, this value is ignored. 
         /// </summary>
         public UInt32 CrlNumberIncrement { get; set; } = 0;
         /// <summary>
-        /// Gets or adds extensions to CRL.
+        /// Gets extensions to be added to CRL.
         /// </summary>
         public X509ExtensionCollection Extensions {
             get {
@@ -81,20 +91,31 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                 CRL Number in existing extesnsion is incremented by CrlNumberIncrement.
             5. if CrlNumberIncrement is zero or negative, no CRL Number extension is added.
             */
+            processAkiExtension(issuer);
+            processCAVersionExtension(issuer);
+            processNextCrlPublishExtension();
+            processCrlNumberExtension();
+        }
+        void processAkiExtension(X509Certificate2 issuer) {
             GenericArray.RemoveExtension(_extensions, X509CertExtensions.X509AuthorityKeyIdentifier);
-            // AKI generation
+            // generate AKI from issuer certificate
             _extensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, AuthorityKeyIdentifierFlags.KeyIdentifier, false));
+        }
+        void processCAVersionExtension(X509Certificate2 issuer) {
+            // remove CA Version extension from existing extensions
             GenericArray.RemoveExtension(_extensions, X509CertExtensions.X509CAVersion);
-            // CA Version copy
             X509Extension e = issuer.Extensions[X509CertExtensions.X509CAVersion];
+            // if CA Version in issuer certificate is presented, copy it to CRL
+            // otherwise, skip CA Version.
             if (e != null) {
                 _extensions.Add(e);
             }
-
+        }
+        void processCrlNumberExtension() {
             BigInteger newCrlVersion = 0;
             X509Extension crlNumberExt = _extensions.FirstOrDefault(x => x.Oid.Value == X509CertExtensions.X509CRLNumber);
             if (crlNumberExt != null) {
-                newCrlVersion = ((X509CRLNumberExtension) crlNumberExt).CRLNumber + CrlNumberIncrement;
+                newCrlVersion = ((X509CRLNumberExtension)crlNumberExt).CRLNumber + CrlNumberIncrement;
             }
             if (CrlNumberIncrement > 0) {
                 GenericArray.RemoveExtension(_extensions, X509CertExtensions.X509CRLNumber);
@@ -102,6 +123,17 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                 _extensions.Add(crlNumberExt);
             }
         }
+        void processNextCrlPublishExtension() {
+            if (NextCrlPublish == null) {
+                return;
+            }
+            var nextCrlPublish = (DateTime)NextCrlPublish;
+            // validate if NextCrlPublish is within ThisUpdate and NextUpdate.
+            if (nextCrlPublish > ThisUpdate && nextCrlPublish <= NextUpdate) {
+                _extensions.Add(new X509NextCRLPublishExtension((DateTime)NextCrlPublish, false));
+            }
+        }
+
         List<Byte> buildTbs(Byte[] signatureAlgorithm, X509Certificate2 issuer) {
             if (String.IsNullOrEmpty(issuer.Issuer)) {
                 throw new ArgumentException("Subject name is empty.");
@@ -119,7 +151,8 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                 NextUpdate = ThisUpdate.AddDays(7);
             }
 
-            List<Byte> rawBytes = new List<Byte>();
+
+            var rawBytes = new List<Byte>();
             // algorithm
             rawBytes.AddRange(signatureAlgorithm);
             // issuer
