@@ -52,7 +52,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// </summary>
         public DateTime? NextUpdate { get; set; } = DateTime.Now.AddDays(7);
         /// <summary>
-        /// Gets or sets the date and time at which new CRL is expected to be published by CA.
+        /// Gets or sets the local date and time at which new CRL is expected to be published by CA.
         /// Normally this value is either, equals to <see cref="NextUpdate"/> or a bit smaller. But this
         /// value must be within CRL validity.
         /// </summary>
@@ -82,21 +82,13 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         public Oid HashingAlgorithm { get; set; } = new Oid(AlgorithmOids.SHA256);
 
         void generateExtensions(X509Certificate2 issuer) {
-            /* the following rules apply:
-            1. remove CA Version and AKI extensions from existing extension list
-            2. generate them from issuer certificate. If absent, generate them dynamically.
-            3. if CrlNumberIncrement is greater than zero and there is no CRL Number extension in existing CRL,
-                CrlNumberIncrement is set as CRL Number extension value.
-            4. if CrlNumberIncrement is greater than zero and there is existing CRL Number extension in existing CRL,
-                CRL Number in existing extesnsion is incremented by CrlNumberIncrement.
-            5. if CrlNumberIncrement is zero or negative, no CRL Number extension is added.
-            */
             processAkiExtension(issuer);
             processCAVersionExtension(issuer);
             processNextCrlPublishExtension();
             processCrlNumberExtension();
         }
         void processAkiExtension(X509Certificate2 issuer) {
+            // remove AKI extension from existing extensions
             GenericArray.RemoveExtension(_extensions, X509CertExtensions.X509AuthorityKeyIdentifier);
             // generate AKI from issuer certificate
             _extensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, AuthorityKeyIdentifierFlags.KeyIdentifier, false));
@@ -112,6 +104,13 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             }
         }
         void processCrlNumberExtension() {
+            /* the following rules apply:
+            3. if CrlNumberIncrement is greater than zero and there is no CRL Number extension in existing CRL,
+                CrlNumberIncrement is set as CRL Number extension value.
+            4. if CrlNumberIncrement is greater than zero and there is existing CRL Number extension in existing CRL,
+                CRL Number in existing extension is incremented by CrlNumberIncrement.
+            5. if CrlNumberIncrement is zero or negative, no CRL Number extension is added.
+            */
             BigInteger newCrlVersion = 0;
             X509Extension crlNumberExt = _extensions.FirstOrDefault(x => x.Oid.Value == X509CertExtensions.X509CRLNumber);
             if (crlNumberExt != null) {
