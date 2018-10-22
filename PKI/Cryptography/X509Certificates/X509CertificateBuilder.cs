@@ -163,6 +163,9 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                 pwszContainerName = PrivateKeyInfo.KeyContainerName,
                 dwKeySpec = (UInt32)PrivateKeyInfo.KeySpec
             };
+            if (PrivateKeyInfo.MachineContext) {
+                keyInfo.dwFlags = nCrypt2.NCRYPT_MACHINE_KEY_FLAG;
+            }
             IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(keyInfo));
             Marshal.StructureToPtr(keyInfo, ptr, false);
             Crypt32.CertSetCertificateContextProperty(cert.Handle, X509CertificatePropertyType.ProviderInfo, 0, ptr);

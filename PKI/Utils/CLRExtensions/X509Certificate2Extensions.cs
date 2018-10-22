@@ -154,7 +154,7 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
         /// </summary>
         /// <param name="cert">An instance of X.509 certificate.</param>
         /// <returns>
-        /// <strong>True</strong> if associated private key was found and successully deleted, otherwise <strong>False</strong>.
+        /// <strong>True</strong> if associated private key was found and successfully deleted, otherwise <strong>False</strong>.
         /// </returns>
         public static Boolean DeletePrivateKey(this X509Certificate2 cert) {
             if (!Crypt32.CryptAcquireCertificatePrivateKey(
@@ -175,7 +175,7 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             UInt32 provType;
             switch (privateKey) {
                 case RSACryptoServiceProvider _:
-                    keyContainer = ((RSACryptoServiceProvider) privateKey).CspKeyContainerInfo.KeyContainerName;
+                    keyContainer = ((RSACryptoServiceProvider)privateKey).CspKeyContainerInfo.KeyContainerName;
                     provName = ((RSACryptoServiceProvider)privateKey).CspKeyContainerInfo.ProviderName;
                     provType = (UInt32) ((RSACryptoServiceProvider)privateKey).CspKeyContainerInfo.ProviderType;
                     break;
@@ -189,14 +189,23 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
                     return false;
             }
             IntPtr phProv = IntPtr.Zero;
-            var status = AdvAPI.CryptAcquireContext(
+            Boolean status1, status2 = false;
+            status1 = AdvAPI.CryptAcquireContext(
                 ref phProv,
                 keyContainer,
                 provName,
                 provType,
-                Wincrypt.CRYPT_DELETEKEYSET);
+                Wincrypt.CRYPT_DELETEKEYSET | nCrypt2.NCRYPT_MACHINE_KEY_FLAG);
+            if (!status1) {
+                status2 = AdvAPI.CryptAcquireContext(
+                    ref phProv,
+                    keyContainer,
+                    provName,
+                    provType,
+                    Wincrypt.CRYPT_DELETEKEYSET);
+            }
             privateKey.Dispose();
-            return status;
+            return status1 || status2;
         }
         static Boolean deleteCngKey(SafeNCryptKeyHandle phKey) {
             var hresult = NCrypt.NCryptDeleteKey(phKey, 0);
