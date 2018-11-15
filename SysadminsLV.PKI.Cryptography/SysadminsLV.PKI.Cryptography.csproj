@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net40</TargetFrameworks>
+    <RootNamespace>SysadminsLV.PKI</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="SysadminsLV.Asn1Parser">
+      <HintPath>..\..\Asn1DerParser.NET\Asn1Parser\bin\Release\netstandard2.0\SysadminsLV.Asn1Parser.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
