@@ -5,9 +5,14 @@
     <RootNamespace>SysadminsLV.PKI</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <Reference Include="SysadminsLV.Asn1Parser">
       <HintPath>..\..\Asn1DerParser.NET\Asn1Parser\bin\Release\netstandard2.0\SysadminsLV.Asn1Parser.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
+    <Reference Include="SysadminsLV.Asn1Parser">
+      <HintPath>..\..\Asn1DerParser.NET\Asn1Parser\bin\Release\net40\SysadminsLV.Asn1Parser.dll</HintPath>
     </Reference>
   </ItemGroup>
 
