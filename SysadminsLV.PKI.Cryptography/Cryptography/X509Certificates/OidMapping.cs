@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.PKI.Helpers.CLRExtensions;
 
-namespace SysadminsLV.PKI.Cryptography {
+namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// <summary>
     /// Represents an object identifier (OID) mapping. OID mapping is used to map external OID from foreign
     /// domain to its equivalent in the subject domain.
