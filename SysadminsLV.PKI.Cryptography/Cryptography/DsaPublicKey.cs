@@ -6,7 +6,7 @@ using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
 namespace SysadminsLV.PKI.Cryptography {
-    class DsaPublicKey : RawPublicKey, IDisposable {
+    class DsaPublicKey : RawPublicKey {
         static readonly Oid _oid = new Oid(AlgorithmOids.DSA);
         DSAParameters dsaParams;
         DSA dsa;
@@ -33,6 +33,24 @@ namespace SysadminsLV.PKI.Cryptography {
                 : publicKey.EncodedKeyValue.RawData;
             decodeParams(publicKey.EncodedParameters.RawData);
         }
+        void decodeFromFullKey(Byte[] rawData) {
+            var asn = new Asn1Reader(rawData);
+            asn.MoveNextAndExpectTags(0x30);
+            Int32 offset = asn.Offset;
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
+            Oid oid = ((Asn1ObjectIdentifier)asn.GetTagObject()).Value;
+            if (oid.Value != _oid.Value) {
+                throw new ArgumentException("Public key algorithm is not DSA.");
+            }
+            asn.MoveNextAndExpectTags(0x30);
+            decodeParams(asn.GetTagRawData());
+            asn.MoveToPoisition(offset);
+            asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.BIT_STRING);
+            var bitString = (Asn1BitString)asn.GetTagObject();
+            dsaParams.Y = bitString.Value[0] == 0
+                ? bitString.Value.Skip(1).ToArray()
+                : bitString.Value;
+        }
         void decodeParams(Byte[] paramBytes) {
             var asn = new Asn1Reader(paramBytes);
             // P
@@ -54,34 +72,13 @@ namespace SysadminsLV.PKI.Cryptography {
                 ? bytes.Skip(0).ToArray()
                 : bytes;
         }
-        void decodeFromFullKey(Byte[] rawData) {
-            var asn = new Asn1Reader(rawData);
-            asn.MoveNextAndExpectTags(0x30);
-            Int32 offset = asn.Offset;
-            asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
-            Oid oid = ((Asn1ObjectIdentifier)asn.GetTagObject()).Value;
-            if (oid.Value != _oid.Value) {
-                throw new ArgumentException("Public key algorithm is not DSA.");
-            }
-            asn.MoveNextAndExpectTags(0x30);
-            decodeParams(asn.GetTagRawData());
-            asn.MoveToPoisition(offset);
-            asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.BIT_STRING);
-            var bitString = (Asn1BitString)asn.GetTagObject();
-            dsaParams.Y = bitString.Value[0] == 0
-                ? bitString.Value.Skip(1).ToArray()
-                : bitString.Value;
-        }
 
         public override AsymmetricAlgorithm GetAsymmetricKey() {
-            if (dsa != null) {
-                return dsa;
-            }
             dsa = DSA.Create();
             dsa.ImportParameters(dsaParams);
             return dsa;
         }
-        public void Dispose() {
+        public override void Dispose() {
             dsa?.Dispose();
         }
     }

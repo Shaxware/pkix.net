@@ -6,7 +6,7 @@ using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
 namespace SysadminsLV.PKI.Cryptography {
-    class RsaPublicKey : RawPublicKey, IDisposable {
+    class RsaPublicKey : RawPublicKey {
         static readonly Oid _oid = new Oid(AlgorithmOids.RSA);
         RSA rsa;
 
@@ -69,7 +69,7 @@ namespace SysadminsLV.PKI.Cryptography {
         }
 
         /// <inheritdoc />
-        public void Dispose() {
+        public override void Dispose() {
             rsa?.Dispose();
         }
     }

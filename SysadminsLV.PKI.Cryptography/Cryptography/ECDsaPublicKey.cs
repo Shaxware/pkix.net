@@ -6,7 +6,7 @@ using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
 namespace SysadminsLV.PKI.Cryptography {
-    class ECDsaPublicKey : RawPublicKey, IDisposable {
+    class ECDsaPublicKey : RawPublicKey {
         static readonly Oid _oid = new Oid(AlgorithmOids.ECC);
         ECDsa ecdsa;
 
@@ -77,7 +77,7 @@ namespace SysadminsLV.PKI.Cryptography {
         }
 
         /// <inheritdoc />
-        public void Dispose() {
+        public override void Dispose() {
             ecdsa?.Dispose();
         }
     }
