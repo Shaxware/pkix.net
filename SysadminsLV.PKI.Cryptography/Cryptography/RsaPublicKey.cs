@@ -17,19 +17,28 @@ namespace SysadminsLV.PKI.Cryptography {
             if (publicKey.Oid.Value != Oid.Value) {
                 throw new ArgumentException("Public key algorithm is not RSA.");
             }
-            decode(publicKey.EncodedKeyValue.RawData);
+            decodePkcs1Key(publicKey.EncodedKeyValue.RawData);
         }
-        public RsaPublicKey(Byte[] rawData) : base(_oid) {
+        public RsaPublicKey(Byte[] rawData, KeyPkcsFormat keyFormat) : base(_oid) {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
-            decodeFullKey(rawData);
+
+            switch (keyFormat) {
+                case KeyPkcsFormat.Pkcs1:
+                    decodePkcs8Key(rawData);
+                    break;
+                case KeyPkcsFormat.Pkcs8:
+                    decodePkcs8Key(rawData);
+                    break;
+                default: throw new ArgumentOutOfRangeException();
+            }
         }
 
         public Byte[] Modulus { get; private set; }
         public Byte[] PublicExponent { get; private set; }
 
-        void decode(Byte[] rawPublicKey) {
+        void decodePkcs1Key(Byte[] rawPublicKey) {
             var asn = new Asn1Reader(rawPublicKey);
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
             Byte[] bytes = asn.GetPayload();
@@ -40,7 +49,7 @@ namespace SysadminsLV.PKI.Cryptography {
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
             PublicExponent = asn.GetPayload();
         }
-        void decodeFullKey(Byte[] rawData) {
+        void decodePkcs8Key(Byte[] rawData) {
             var asn = new Asn1Reader(rawData);
             asn.MoveNextAndExpectTags(0x30);
             Int32 offset = asn.Offset;
@@ -52,7 +61,7 @@ namespace SysadminsLV.PKI.Cryptography {
             asn.MoveToPoisition(offset);
             asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.BIT_STRING);
             asn.MoveNextAndExpectTags(0x30);
-            decode(asn.GetTagRawData());
+            decodePkcs1Key(asn.GetTagRawData());
         }
 
         public override AsymmetricAlgorithm GetAsymmetricKey() {

@@ -23,7 +23,7 @@ namespace SysadminsLV.PKI.Cryptography {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
-            decodeFromFullKey(rawData);
+            decodePkcs8Key(rawData);
         }
 
         public Oid CurveOid { get; private set; }
@@ -40,7 +40,7 @@ namespace SysadminsLV.PKI.Cryptography {
             CoordinateY = key.Skip(key.Length / 2).ToArray();
             CurveOid = new Asn1ObjectIdentifier(publicKey.EncodedParameters.RawData).Value;
         }
-        void decodeFromFullKey(Byte[] rawData) {
+        void decodePkcs8Key(Byte[] rawData) {
             var asn = new Asn1Reader(rawData);
             asn.MoveNextAndExpectTags(0x30);
             asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);

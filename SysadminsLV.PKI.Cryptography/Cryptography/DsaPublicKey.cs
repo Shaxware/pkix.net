@@ -20,11 +20,20 @@ namespace SysadminsLV.PKI.Cryptography {
             }
             decodeFromPublicKey(publicKey);
         }
-        public DsaPublicKey(Byte[] rawData) : base(_oid) {
+        public DsaPublicKey(Byte[] rawData, KeyPkcsFormat keyFormat) : base(_oid) {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
-            decodeFromFullKey(rawData);
+            switch (keyFormat) {
+                case KeyPkcsFormat.Pkcs1:
+                    decodePkcs8Key(rawData);
+                    break;
+                case KeyPkcsFormat.Pkcs8:
+                    decodePkcs8Key(rawData);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         void decodeFromPublicKey(PublicKey publicKey) {
@@ -33,7 +42,7 @@ namespace SysadminsLV.PKI.Cryptography {
                 : publicKey.EncodedKeyValue.RawData;
             decodeParams(publicKey.EncodedParameters.RawData);
         }
-        void decodeFromFullKey(Byte[] rawData) {
+        void decodePkcs8Key(Byte[] rawData) {
             var asn = new Asn1Reader(rawData);
             asn.MoveNextAndExpectTags(0x30);
             Int32 offset = asn.Offset;
