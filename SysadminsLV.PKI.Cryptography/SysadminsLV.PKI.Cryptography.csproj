@@ -3,6 +3,11 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <RootNamespace>SysadminsLV.PKI</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Copyright>Copyright ©  2018, Vadims Podans</Copyright>
+    <Authors>Vadims Podans</Authors>
+    <Company>Sysadmins LV</Company>
+    <Description>Provides extended and simplified functionality to .NET Standard and .NET Core cryptography.</Description>
   </PropertyGroup>
 
   <ItemGroup>
