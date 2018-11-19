@@ -97,6 +97,18 @@ rwIBAw==
             Assert.IsNotNull(rsaPublicKey);
         }
 
+        [TestMethod]
+        public void TestRsaReuse() {
+            // Arrange
+            publicKey = new RsaPublicKey(pkcs1Bin, KeyPkcsFormat.Pkcs1);
+            // Act
+            rsaPublicKey = publicKey.GetAsymmetricKey() as RSA;
+            var rsa2 = publicKey.GetAsymmetricKey() as RSA;
+            // Assert
+            Assert.AreSame(rsaPublicKey, rsa2);
+
+        }
+
         [TestMethod, ExpectedException(typeof(ArgumentNullException))]
         public void TestNullParameter() {
             // Act
