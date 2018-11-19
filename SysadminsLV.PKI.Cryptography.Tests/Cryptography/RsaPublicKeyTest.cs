@@ -7,6 +7,7 @@ using SysadminsLV.PKI.Cryptography;
 namespace SysadminsLV.PKI.Tests.Cryptography {
     [TestClass]
     public class RsaPublicKeyTest {
+        #region Fields
         String pkcs1Key = @"
 MIIBCAKCAQEA3p3X6lcYSaFb69dfSIbqvt3/5O9nHPRlaLNXcaBed7vtm0npcIA9
 VhhjCG/a8szQP38CVCJUENiygdTAdT1Lf8d3wz54qxoDtSBrL2orscWIfsS7HrDB
@@ -38,6 +39,7 @@ rwIBAw==
         Byte[] fakeOidPcks8Bin;
         RsaPublicKey publicKey;
         RSA rsaPublicKey;
+#endregion
 
         [TestInitialize]
         public void Initialize() {
