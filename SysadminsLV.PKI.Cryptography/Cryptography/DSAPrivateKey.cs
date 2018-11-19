@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SysadminsLV.PKI.Cryptography {
-    class DSAPrivateKey {
+﻿namespace SysadminsLV.PKI.Cryptography {
+    public sealed class DSAPrivateKey {
     }
 }

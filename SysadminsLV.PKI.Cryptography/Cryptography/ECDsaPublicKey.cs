@@ -6,28 +6,38 @@ using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
 namespace SysadminsLV.PKI.Cryptography {
-    class ECDsaPublicKey : RawPublicKey {
+    public sealed class ECDsaPublicKey : AsymmetricKeyPair {
+        const String ALG_ERROR = "Public key algorithm is not from elliptic curve (ECC) group.";
         static readonly Oid _oid = new Oid(AlgorithmOids.ECC);
         ECDsa ecdsa;
 
-        public ECDsaPublicKey(PublicKey publicKey) : base(_oid) {
+        public ECDsaPublicKey(PublicKey publicKey) : base(_oid, true) {
             if (publicKey == null) {
                 throw new ArgumentNullException(nameof(publicKey));
             }
             if (publicKey.Oid.Value != Oid.Value) {
-                throw new ArgumentException("Public key algorithm is not EC.");
+                throw new ArgumentException(ALG_ERROR);
             }
             decodeFromPublicKey(publicKey);
         }
-        public ECDsaPublicKey(Byte[] rawData) : base(_oid) {
+        public ECDsaPublicKey(Byte[] rawData) : base(_oid, true) {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
             decodePkcs8Key(rawData);
         }
 
+        /// <summary>
+        /// Gets the named curve object identifier.
+        /// </summary>
         public Oid CurveOid { get; private set; }
+        /// <summary>
+        /// Gets the X coordinate of public key.
+        /// </summary>
         public Byte[] CoordinateX { get; private set; }
+        /// <summary>
+        /// Gets the Y coordinate of public key.
+        /// </summary>
         public Byte[] CoordinateY { get; private set; }
 
         void decodeFromPublicKey(PublicKey publicKey) {
@@ -46,7 +56,7 @@ namespace SysadminsLV.PKI.Cryptography {
             asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
             Oid oid = ((Asn1ObjectIdentifier)asn.GetTagObject()).Value;
             if (oid.Value != AlgorithmOids.ECC) {
-                throw new ArgumentException("Public key algorithm is not EC.");
+                throw new ArgumentException(ALG_ERROR);
             }
             asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
             CurveOid = ((Asn1ObjectIdentifier)asn.GetTagObject()).Value;
@@ -72,6 +82,9 @@ namespace SysadminsLV.PKI.Cryptography {
                 Curve = ECCurve.CreateFromOid(CurveOid)
             };
             ecdsa = ECDsa.Create();
+            if (ecdsa == null) {
+                throw new PlatformNotSupportedException();
+            }
             ecdsa.ImportParameters(ecdsaParams);
             return ecdsa;
         }

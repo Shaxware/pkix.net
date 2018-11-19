@@ -1,25 +1,25 @@
 ﻿using System;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
 namespace SysadminsLV.PKI.Cryptography {
-    class RsaPublicKey : RawPublicKey {
+    public sealed class RsaPublicKey : AsymmetricKeyPair {
+        const String ALG_ERROR = "Public key algorithm is RSA.";
         static readonly Oid _oid = new Oid(AlgorithmOids.RSA);
         RSA rsa;
 
-        public RsaPublicKey(PublicKey publicKey) : base(_oid) {
+        public RsaPublicKey(PublicKey publicKey) : base(_oid, true) {
             if (publicKey == null) {
                 throw new ArgumentNullException(nameof(publicKey));
             }
             if (publicKey.Oid.Value != Oid.Value) {
-                throw new ArgumentException("Public key algorithm is not RSA.");
+                throw new ArgumentException(ALG_ERROR);
             }
             decodePkcs1Key(publicKey.EncodedKeyValue.RawData);
         }
-        public RsaPublicKey(Byte[] rawData, KeyPkcsFormat keyFormat) : base(_oid) {
+        public RsaPublicKey(Byte[] rawData, KeyPkcsFormat keyFormat) : base(_oid, true) {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
@@ -41,11 +41,7 @@ namespace SysadminsLV.PKI.Cryptography {
         void decodePkcs1Key(Byte[] rawPublicKey) {
             var asn = new Asn1Reader(rawPublicKey);
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
-            Byte[] bytes = asn.GetPayload();
-
-            Modulus = bytes[0] == 0
-                ? bytes.Skip(1).ToArray()
-                : bytes;
+            Modulus = GetPositiveInteger(asn.GetPayload());
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
             PublicExponent = asn.GetPayload();
         }
@@ -56,7 +52,7 @@ namespace SysadminsLV.PKI.Cryptography {
             asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
             Oid oid = ((Asn1ObjectIdentifier)asn.GetTagObject()).Value;
             if (oid.Value != Oid.Value) {
-                throw new ArgumentException("Public key algorithm is not RSA.");
+                throw new ArgumentException(ALG_ERROR);
             }
             asn.MoveToPoisition(offset);
             asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.BIT_STRING);

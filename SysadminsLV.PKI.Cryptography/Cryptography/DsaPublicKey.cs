@@ -1,26 +1,26 @@
 ﻿using System;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
 namespace SysadminsLV.PKI.Cryptography {
-    class DsaPublicKey : RawPublicKey {
+    public sealed class DsaPublicKey : AsymmetricKeyPair {
+        const String ALG_ERROR = "Public key algorithm is not DSA.";
         static readonly Oid _oid = new Oid(AlgorithmOids.DSA);
         DSAParameters dsaParams;
         DSA dsa;
 
-        public DsaPublicKey(PublicKey publicKey) : base(_oid) {
+        public DsaPublicKey(PublicKey publicKey) : base(_oid, true) {
             if (publicKey == null) {
                 throw new ArgumentNullException(nameof(publicKey));
             }
             if (publicKey.Oid.Value != Oid.Value) {
-                throw new ArgumentException("Public key algorithm is not DSA.");
+                throw new ArgumentException(ALG_ERROR);
             }
             decodeFromPublicKey(publicKey);
         }
-        public DsaPublicKey(Byte[] rawData, KeyPkcsFormat keyFormat) : base(_oid) {
+        public DsaPublicKey(Byte[] rawData, KeyPkcsFormat keyFormat) : base(_oid, true) {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
@@ -37,9 +37,7 @@ namespace SysadminsLV.PKI.Cryptography {
         }
 
         void decodeFromPublicKey(PublicKey publicKey) {
-            dsaParams.Y = publicKey.EncodedKeyValue.RawData[0] == 0
-                ? publicKey.EncodedKeyValue.RawData.Skip(1).ToArray()
-                : publicKey.EncodedKeyValue.RawData;
+            dsaParams.Y = GetPositiveInteger(publicKey.EncodedKeyValue.RawData);
             decodeParams(publicKey.EncodedParameters.RawData);
         }
         void decodePkcs8Key(Byte[] rawData) {
@@ -49,37 +47,26 @@ namespace SysadminsLV.PKI.Cryptography {
             asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
             Oid oid = ((Asn1ObjectIdentifier)asn.GetTagObject()).Value;
             if (oid.Value != _oid.Value) {
-                throw new ArgumentException("Public key algorithm is not DSA.");
+                throw new ArgumentException(ALG_ERROR);
             }
             asn.MoveNextAndExpectTags(0x30);
             decodeParams(asn.GetTagRawData());
             asn.MoveToPoisition(offset);
             asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.BIT_STRING);
             var bitString = (Asn1BitString)asn.GetTagObject();
-            dsaParams.Y = bitString.Value[0] == 0
-                ? bitString.Value.Skip(1).ToArray()
-                : bitString.Value;
+            dsaParams.Y = GetPositiveInteger(bitString.Value);
         }
         void decodeParams(Byte[] paramBytes) {
             var asn = new Asn1Reader(paramBytes);
             // P
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
-            Byte[] bytes = asn.GetPayload();
-            dsaParams.P = bytes[0] == 0
-                ? bytes.Skip(0).ToArray()
-                : bytes;
+            dsaParams.P = GetPositiveInteger(asn.GetPayload());
             // Q
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
-            bytes = asn.GetPayload();
-            dsaParams.Q = bytes[0] == 0
-                ? bytes.Skip(0).ToArray()
-                : bytes;
+            dsaParams.Q = GetPositiveInteger(asn.GetPayload());
             // G
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
-            bytes = asn.GetPayload();
-            dsaParams.G = bytes[0] == 0
-                ? bytes.Skip(0).ToArray()
-                : bytes;
+            dsaParams.G = GetPositiveInteger(asn.GetPayload());
         }
 
         public override AsymmetricAlgorithm GetAsymmetricKey() {

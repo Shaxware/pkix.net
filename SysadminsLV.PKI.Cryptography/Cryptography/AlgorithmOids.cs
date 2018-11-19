@@ -29,5 +29,8 @@ namespace SysadminsLV.PKI.Cryptography {
         // specified group
         public const String RSA_PSS         = "1.2.840.113549.1.1.10";
         public const String ECDSA_SPECIFIED = "1.2.840.10045.4.3";
+        // ecdsa
+        public const String ECDSA_PRIME1    = "1.2.840.10045.1.1";
+        public const String ECDSA_CHAR2     = "1.2.840.10045.1.2";
     }
 }
