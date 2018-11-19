@@ -22,6 +22,7 @@ namespace SysadminsLV.PKI.Cryptography {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
+            decodePkcs8(rawData);
         }
 
         /// <summary>
@@ -62,7 +63,7 @@ namespace SysadminsLV.PKI.Cryptography {
             switch (asn.Tag) {
                 case (Byte)Asn1Type.OBJECT_IDENTIFIER:
                     CurveOid = ((Asn1ObjectIdentifier)asn.GetTagObject()).Value;
-                    ecParameters.Curve.CurveType = ECCurve.ECCurveType.Named;
+                    ecParameters.Curve = ECCurve.CreateFromOid(CurveOid);
                     break;
                 case 0x30:
                     decodeECParameters(asn.GetTagRawData());
@@ -102,8 +103,11 @@ namespace SysadminsLV.PKI.Cryptography {
             // Y is second half
             CoordinateX = key.Take(key.Length / 2).ToArray();
             CoordinateY = key.Skip(key.Length / 2).ToArray();
+            ecParameters.Q.X = CoordinateX;
+            ecParameters.Q.Y = CoordinateY;
         }
         void decodeECParameters(Byte[] rawData) {
+            ecParameters.Curve.CurveType = ECCurve.ECCurveType.PrimeShortWeierstrass;
             var asn = new Asn1Reader(rawData);
             // version. Must be 1
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
@@ -111,10 +115,10 @@ namespace SysadminsLV.PKI.Cryptography {
             asn.MoveNextAndExpectTags(0x30);
             decodeFieldID(asn.GetTagRawData());
             // curve
-            asn.MoveNextAndExpectTags(0x30);
+            asn.MoveNextCurrentLevelAndExpectTags(0x30);
             decodeCurve(asn.GetTagRawData());
             // base -> ECPoint
-            asn.MoveNextAndExpectTags((Byte)Asn1Type.OCTET_STRING);
+            asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.OCTET_STRING);
             Byte[] key = asn.GetPayload().Skip(1).ToArray();
             // coordinates are halves of concatenated encoded key value
             // X is first half
@@ -123,7 +127,7 @@ namespace SysadminsLV.PKI.Cryptography {
             ecParameters.Curve.G.Y = key.Skip(key.Length / 2).ToArray();
             // order
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
-            ecParameters.Curve.Order = asn.GetPayload();
+            ecParameters.Curve.Order = GetPositiveInteger(asn.GetPayload());
             // co-factor
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
             ecParameters.Curve.Cofactor = asn.GetPayload();
@@ -136,7 +140,7 @@ namespace SysadminsLV.PKI.Cryptography {
             switch (oid.Value) {
                 case AlgorithmOids.ECDSA_PRIME1:
                     asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
-                    ecParameters.Curve.Prime = asn.GetPayload();
+                    ecParameters.Curve.Prime = GetPositiveInteger(asn.GetPayload());
                     break;
                 case AlgorithmOids.ECDSA_CHAR2:
                     throw new NotImplementedException("CHARACTERISTIC-TWO field is not implemented.");
