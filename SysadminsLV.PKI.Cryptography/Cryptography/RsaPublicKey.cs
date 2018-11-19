@@ -26,7 +26,7 @@ namespace SysadminsLV.PKI.Cryptography {
 
             switch (keyFormat) {
                 case KeyPkcsFormat.Pkcs1:
-                    decodePkcs8Key(rawData);
+                    decodePkcs1Key(rawData);
                     break;
                 case KeyPkcsFormat.Pkcs8:
                     decodePkcs8Key(rawData);
