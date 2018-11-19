@@ -24,8 +24,18 @@ YHTFQaVyYhtixR9vXxpCvgJRZaiuIxhq/HgDqU1/gMP6q1r8oUCkyhkW/rLI715z
 De53vZr2eZi8sQdnohUN3aBYxkR7Cj5iKF+6QQdTWM8Rfjh0xfj/tWmQj4R06pcb
 rwIBAw==
 ";
+        String fakeOidPkcs8 = @"
+MIIBIDANBgkqhkiG9w0BAQIFAAOCAQ0AMIIBCAKCAQEA3p3X6lcYSaFb69dfSIbq
+vt3/5O9nHPRlaLNXcaBed7vtm0npcIA9VhhjCG/a8szQP38CVCJUENiygdTAdT1L
+f8d3wz54qxoDtSBrL2orscWIfsS7HrDB2EUnb6o3WPeHJtfYLfapF7cfcjZOphc/
+ZZiS2ypuXaL+iOAL3n/ljRXh68s61eISohMt2I6vXxI9oAgFCLZcpWU4BEWZHqNg
+YHTFQaVyYhtixR9vXxpCvgJRZaiuIxhq/HgDqU1/gMP6q1r8oUCkyhkW/rLI715z
+De53vZr2eZi8sQdnohUN3aBYxkR7Cj5iKF+6QQdTWM8Rfjh0xfj/tWmQj4R06pcb
+rwIBAw==
+";
         Byte[] pkcs1Bin;
         Byte[] pkcs8Bin;
+        Byte[] fakeOidPcks8Bin;
         RsaPublicKey publicKey;
         RSA rsaPublicKey;
 
@@ -33,6 +43,7 @@ rwIBAw==
         public void Initialize() {
             pkcs1Bin = Convert.FromBase64String(pkcs1Key);
             pkcs8Bin = Convert.FromBase64String(pkcs8Key);
+            fakeOidPcks8Bin = Convert.FromBase64String(fakeOidPkcs8);
         }
 
         [TestMethod]
@@ -58,6 +69,25 @@ rwIBAw==
         }
         
         [TestMethod]
+        public void TestPublicExponentLength() {
+            // Arrange
+            publicKey = new RsaPublicKey(pkcs8Bin, KeyPkcsFormat.Pkcs8);
+            // Act
+
+            // Assert
+            Assert.AreEqual(publicKey.PublicExponent.Length, 1);
+        }
+        [TestMethod]
+        public void TestModulusLength() {
+            // Arrange
+            publicKey = new RsaPublicKey(pkcs8Bin, KeyPkcsFormat.Pkcs8);
+            // Act
+
+            // Assert
+            Assert.AreEqual(publicKey.Modulus.Length, 256);
+        }
+
+        [TestMethod]
         public void TestRsaPublicKeyType() {
             // Arrange
             publicKey = new RsaPublicKey(pkcs1Bin, KeyPkcsFormat.Pkcs1);
@@ -66,11 +96,27 @@ rwIBAw==
             // Assert
             Assert.IsNotNull(rsaPublicKey);
         }
-        
+
+        [TestMethod, ExpectedException(typeof(ArgumentNullException))]
+        public void TestNullParameter() {
+            // Act
+            publicKey = new RsaPublicKey(null, KeyPkcsFormat.Pkcs8);
+        }
+
+        [TestMethod, ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void TestInvalidKeyFormat() {
+            // Act
+            publicKey = new RsaPublicKey(pkcs1Bin, (KeyPkcsFormat)3);
+        }
+
+        [TestMethod, ExpectedException(typeof(ArgumentException))]
+        public void TestFakeRsaOid() {
+            // Act
+            publicKey = new RsaPublicKey(fakeOidPcks8Bin, KeyPkcsFormat.Pkcs8);
+        }
+
         [TestMethod, ExpectedException(typeof(Asn1InvalidTagException))]
         public void TestRsaPkcs1Against8() {
-            // Arrange
-
             // Act
             publicKey = new RsaPublicKey(pkcs1Bin, KeyPkcsFormat.Pkcs8);
         }
