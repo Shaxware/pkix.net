@@ -9,10 +9,10 @@ using PKI.Structs;
 using PKI.Utils;
 
 namespace PKI.CertificateServices {
-	/// <summary>
-	/// Represents Certification Authority object with assigned certificate templates.
-	/// </summary>
-	public class CATemplate {
+    /// <summary>
+    /// Represents Certification Authority object with assigned certificate templates.
+    /// </summary>
+    public class CATemplate {
 		String version, sku, configString;
 
 		/// <param name="certificateAuthority">Specifies an existing <see cref="CertificateServices"/> object.</param>
@@ -73,7 +73,7 @@ namespace PKI.CertificateServices {
 				}
 				Templates = tobeadded.ToArray();
 			} else {
-				Templates = null;
+				Templates = new CertificateTemplate[0];
 			}
 		}
 		Boolean IsSupported(Int32 schemaVersion) {
