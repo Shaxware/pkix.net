@@ -45,7 +45,7 @@ namespace SysadminsLV.PKI.Cryptography {
             if (oid.Value != Oid.Value) {
                 throw new ArgumentException(ALG_ERROR);
             }
-            asn.MoveToPoisition(offset);
+            asn.MoveToPosition(offset);
             asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.OCTET_STRING);
             decodePkcs1(asn.GetPayload());
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Exceptions;
@@ -109,7 +108,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                         asn.MoveNext();
                         asn.MoveNext();
                         NoticeNumber = (Int32)Asn1Utils.DecodeInteger(asn.GetTagRawData());
-                        asn.MoveToPoisition(offset);
+                        asn.MoveToPosition(offset);
                         if (asn.MoveNextCurrentLevel()) {
                             NoticeText = Asn1Utils.DecodeAnyString(asn.GetTagRawData(), new[] { Asn1Type.IA5String, Asn1Type.VisibleString, Asn1Type.BMPString, Asn1Type.UTF8String });
                         }

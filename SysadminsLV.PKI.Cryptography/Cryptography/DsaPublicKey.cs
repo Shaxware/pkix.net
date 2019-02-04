@@ -51,7 +51,7 @@ namespace SysadminsLV.PKI.Cryptography {
             }
             asn.MoveNextAndExpectTags(0x30);
             decodeParams(asn.GetTagRawData());
-            asn.MoveToPoisition(offset);
+            asn.MoveToPosition(offset);
             asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.BIT_STRING);
             var bitString = (Asn1BitString)asn.GetTagObject();
             dsaParams.Y = GetPositiveInteger(bitString.Value);
