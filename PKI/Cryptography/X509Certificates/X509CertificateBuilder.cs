@@ -143,7 +143,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             if (String.IsNullOrWhiteSpace(FriendlyName)) {
                 return;
             }
-            Byte[] stringBytes = Encoding.Unicode.GetBytes("\0" + FriendlyName);
+            Byte[] stringBytes = Encoding.Unicode.GetBytes(FriendlyName + "\0");
             IntPtr ptr = Marshal.AllocHGlobal(stringBytes.Length);
             Marshal.Copy(stringBytes, 0, ptr, stringBytes.Length);
             var blob = new Wincrypt.CRYPTOAPI_BLOB {
