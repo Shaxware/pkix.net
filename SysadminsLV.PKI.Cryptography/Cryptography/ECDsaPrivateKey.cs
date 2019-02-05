@@ -55,7 +55,7 @@ namespace SysadminsLV.PKI.Cryptography {
             // ECC oid
             asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
             Oid oid = ((Asn1ObjectIdentifier)asn.GetTagObject()).Value;
-            if (oid.Value != AlgorithmOids.ECC) {
+            if (oid.Value != _oid.Value) {
                 throw new ArgumentException(ALG_ERROR);
             }
             // curve OID
