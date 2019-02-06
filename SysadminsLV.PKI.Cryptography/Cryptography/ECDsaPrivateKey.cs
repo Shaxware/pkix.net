@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 
@@ -12,12 +11,6 @@ namespace SysadminsLV.PKI.Cryptography {
         ECParameters ecParameters;
         ECDsa ecdsaKey;
         
-        public ECDsaPrivateKey(X509Certificate2 certificate) : base(_oid, false) {
-            if (certificate == null) {
-                throw new ArgumentNullException(nameof(certificate));
-            }
-            ecdsaKey = certificate.GetECDsaPrivateKey();
-        }
         public ECDsaPrivateKey(Byte[] rawData) : base(_oid, false) {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
