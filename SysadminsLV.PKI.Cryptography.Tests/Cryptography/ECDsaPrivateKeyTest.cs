@@ -99,6 +99,7 @@ KDD4QgmyLDKaqBv2wEWhNAMyAAT5j6o+ojeB6jaFAfx4rtGf5hYbT1N6NnlAWiP1
             Assert.AreSame(ecdsaPrivateKey, ecdsa2);
         }
 
+        [TestCleanup]
         public void Cleanup() {
             privateKey?.Dispose();
             ecdsaPrivateKey?.Dispose();
