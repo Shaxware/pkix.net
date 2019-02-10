@@ -34,7 +34,7 @@ namespace PKI.CertificateServices {
         /// parameter could not be contacted via remote registry.</exception>
         public CertificateAuthority(String computerName) {
             if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
-            RegistryOnline = CryptoRegistry.Ping(computerName);
+            pingRegistry(computerName);
             IsAccessible = Ping(computerName);
             lookInDs(computerName);
             if (foundInDs) {
@@ -69,7 +69,7 @@ namespace PKI.CertificateServices {
         public CertificateAuthority(String computerName, String name) {
             if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
             if (String.IsNullOrEmpty(name)) { throw new ArgumentNullException(nameof(name)); }
-            RegistryOnline = CryptoRegistry.Ping(computerName);
+            pingRegistry(computerName);
             IsAccessible = Ping(computerName);
             lookInDs(computerName);
             initializeFromConfigString(computerName, name);
@@ -126,7 +126,7 @@ namespace PKI.CertificateServices {
         /// <para>This property does not indicate whether management interfaces are available or not. Refer to <see cref="IsAccessible"/>
         /// property to determine management interface availability.</para>
         /// </summary>
-        public Boolean RegistryOnline { get; }
+        public Boolean RegistryOnline { get; private set; }
         /// <summary>
         /// Gets the status of the <strong>CertSvc</strong> service.
         /// </summary>
@@ -157,6 +157,12 @@ namespace PKI.CertificateServices {
         internal Boolean IsEnterprise { get; private set; }
         String Active { get; set; }
 
+        void pingRegistry(String computerName) {
+            RegistryOnline = CryptoRegistry.Ping(computerName);
+            if (RegistryOnline) {
+                Active = (String)CryptoRegistry.GetRReg("Active", "", computerName);
+            }
+        }
         void lookInDs(String computerName) {
             if (!DsUtils.Ping()) { return; }
             if (!computerName.Contains(".")) { computerName = computerName + "." + DsUtils.GetCurrentDomainName(); }
@@ -175,17 +181,16 @@ namespace PKI.CertificateServices {
             initialize();
         }
         void initializeFromConfigString(String computerName, String name) {
-            String tempConfig = computerName + "\\" + name;
             if (!RegistryOnline && !IsAccessible) {
                 if (foundInDs) {
                     buildFromCertConfigOnly();
                 } else {
-                    ServerUnavailableException e = new ServerUnavailableException(computerName);
+                    var e = new ServerUnavailableException(computerName);
                     e.Data.Add(nameof(e.Source), (OfflineSource)3);
                     throw e;
                 }
             } else {
-                getConfig(computerName, tempConfig);
+                getConfig(computerName, name);
                 initialize();
             }
         }
@@ -199,18 +204,28 @@ namespace PKI.CertificateServices {
             getInfoFromDs();
             releaseCom();
         }
-        void getConfig(String computerName, String configString = "") {
+        void getConfig(String computerName, String caName = null) {
+            // if we found CA in DS, we are just fine, no need to touch CA server.
+            if (foundInDs) {
+                ComputerName = computerName;
+                Name = caName;
+                ConfigString = ConfigString = ComputerName + "\\" + Name;
+                return;
+            }
+            // otherwise:
+            // 1. if registry is accessible, read actual config string from registry
             if (RegistryOnline) {
-                Active = (String)CryptoRegistry.GetRReg("Active", "", computerName);
                 ComputerName = (String)CryptoRegistry.GetRReg("CAServerName", Active, computerName);
                 Name = (String)CryptoRegistry.GetRReg("CommonName", Active, computerName);
             } else {
-                if (!String.IsNullOrEmpty(configString) && IsAccessible) {
+                // 2. if registry is not accessible, we must have a CA name in order to read it from ICertAdmin::GetConfig
+                if (!String.IsNullOrEmpty(caName) && IsAccessible) {
+                    String configString = $@"{computerName}\{caName}";
                     ComputerName = (String)CryptoRegistry.GetRegFallback(configString, String.Empty, "CAServerName");
                     Name = (String)CryptoRegistry.GetRegFallback(configString, String.Empty, "CommonName");
                 } else {
-                    ServerUnavailableException e = new ServerUnavailableException(computerName);
-                    e.Data.Add(nameof(e.Source), (OfflineSource)3);
+                    var e = new ServerUnavailableException(computerName);
+                    e.Data.Add(nameof(e.Source), OfflineSource.DCOM | OfflineSource.Registry);
                     throw e;
                 }
             }
@@ -323,8 +338,8 @@ namespace PKI.CertificateServices {
             }
             if (String.IsNullOrEmpty(DisplayName)) { DisplayName = Name; }
         }
-        void getCesUri(String ldapuri) {
-            EnrollmentServiceURI = ldapuri
+        void getCesUri(String ldapUri) {
+            EnrollmentServiceURI = ldapUri
                 .Split(new[] {"\n\n"}, StringSplitOptions.None)
                 .Select(str => new CESUri(str, DisplayName))
                 .ToArray();
