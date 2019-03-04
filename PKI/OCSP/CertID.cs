@@ -117,7 +117,7 @@ namespace PKI.OCSP {
             X509Chain chain = new X509Chain { ChainPolicy = { RevocationMode = X509RevocationMode.NoCheck } };
             chain.Build(cert);
             if (chain.ChainElements.Count <= 1) {
-                throw new Exception("Issuer for the speified certificate not found.");
+                throw new Exception("Issuer for the specified certificate not found.");
             }
             X509Certificate2 issuer = chain.ChainElements[1].Certificate;
             issuerPublicKey = issuer.GetPublicKey();
