@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.Asn1Parser.Universal;
 
 namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// <summary>
@@ -10,7 +13,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// certificate autoenrollment to perform certificate-based renewals.
     /// </summary>
     public sealed class X509CertificateTemplateExtension : X509Extension {
-        readonly Oid _eoid = new Oid(X509ExtensionOidMap.X509CertificateTemplate);
+        readonly Oid _oid = new Oid(X509ExtensionOidMap.X509CertificateTemplate);
 
         internal X509CertificateTemplateExtension(Byte[] rawData, Boolean critical)
             : base(X509ExtensionOidMap.X509CertificateTemplate, rawData, critical){
@@ -21,7 +24,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// <summary>
         /// Initializes a new instance of the <strong>X509CertificateTemplateExtension</strong> class.
         /// </summary>
-        public X509CertificateTemplateExtension() { Oid = _eoid; }
+        public X509CertificateTemplateExtension() { Oid = _oid; }
         /// <summary>
         /// Initializes a new instance of the <strong>X509CertificateTemplateExtension</strong> class using an
         /// <see cref="AsnEncodedData"/> object and a value that identifies whether the extension is critical.
@@ -59,40 +62,24 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         public Int32 MinorVersion { get; private set; }
         
         void m_initialize(Oid oid, Int32 majorVersion, Int32 minorVersion) {
-            Oid = _eoid;
-            Asn1Utils.EncodeObjectIdentifier(oid);
-            // TODO make native implementation
-            //Wincrypt.CERT_TEMPLATE_EXT pvStructInfo = new Wincrypt.CERT_TEMPLATE_EXT {
-            //    pszObjId = oid.Value,
-            //    dwMajorVersion = (UInt32)majorVersion,
-            //    dwMinorVersion = (UInt32)minorVersion,
-            //    fMinorVersion = true
-            //};
-            //UInt32 pcbEncoded = 0;
-            //if (Crypt32.CryptEncodeObject(1, X509ExtensionOidMap.X509CertificateTemplate, ref pvStructInfo, null, ref pcbEncoded)) {
-            //    RawData = new Byte[pcbEncoded];
-            //    Crypt32.CryptEncodeObject(1, X509ExtensionOidMap.X509CertificateTemplate, ref pvStructInfo, RawData, ref pcbEncoded);
-            //    TemplateOid = new Oid(pvStructInfo.pszObjId);
-            //    MajorVersion = majorVersion;
-            //    MinorVersion = minorVersion;
-            //} else {
-            //    throw new Win32Exception(Marshal.GetLastWin32Error());
-            //}
+            Oid = _oid;
+            TemplateOid = new Oid(oid.Value, oid.FriendlyName);
+            MajorVersion = majorVersion;
+            MinorVersion = minorVersion;
+            var rawData = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(oid));
+            rawData.AddRange(new Asn1Integer(majorVersion).RawData);
+            rawData.AddRange(new Asn1Integer(minorVersion).RawData);
+            RawData = Asn1Utils.Encode(rawData.ToArray(), 48);
         }
         void m_decode(Byte[] rawData) {
-            // TODO: make native implementation
-            //UInt32 pcbStructInfo = 0;
-            //if (Crypt32.CryptDecodeObject(1, X509ExtensionOidMap.X509CertificateTemplate, rawData, (UInt32)rawData.Length, 0, IntPtr.Zero, ref pcbStructInfo)) {
-            //    IntPtr pbStructInfo = Marshal.AllocHGlobal((Int32)pcbStructInfo);
-            //    Crypt32.CryptDecodeObject(1, X509ExtensionOidMap.X509CertificateTemplate, rawData, (UInt32)rawData.Length, 0, pbStructInfo, ref pcbStructInfo);
-            //    Wincrypt.CERT_TEMPLATE_EXT structure = (Wincrypt.CERT_TEMPLATE_EXT)Marshal.PtrToStructure(pbStructInfo, typeof(Wincrypt.CERT_TEMPLATE_EXT));
-            //    Marshal.FreeHGlobal(pbStructInfo);
-            //    TemplateOid = new Oid(structure.pszObjId);
-            //    MajorVersion = (Int32)structure.dwMajorVersion;
-            //    MinorVersion = (Int32)structure.dwMinorVersion;
-            //} else {
-            //    throw new Win32Exception(Marshal.GetLastWin32Error());
-            //}
+            var asn = new Asn1Reader(rawData);
+            asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
+            TemplateOid = new Asn1ObjectIdentifier(asn.GetTagRawData()).Value;
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
+            MajorVersion = (Int32)new Asn1Integer(asn.GetTagRawData()).Value;
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
+            MinorVersion = (Int32)new Asn1Integer(asn.GetTagRawData()).Value;
+            RawData = rawData.ToArray();
         }
     }
 }

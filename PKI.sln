@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2011
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29020.237
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PKI", "PKI\PKI.csproj", "{5AD7D76A-09A4-4E4F-AFA7-7798E0E9CD89}"
 EndProject
@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PKI.Test", "PKI.Test\PKI.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SysadminsLV.PKI.Cryptography", "SysadminsLV.PKI.Cryptography\SysadminsLV.PKI.Cryptography.csproj", "{31840514-EE6E-42E2-B4CD-44A1FC9179DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SysadminsLV.PKI.Cryptography.Tests", "SysadminsLV.PKI.Cryptography.Tests\SysadminsLV.PKI.Cryptography.Tests.csproj", "{A7268F67-EC58-48BD-BBCD-C770C386E43D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SysadminsLV.PKI.Cryptography.Tests", "SysadminsLV.PKI.Cryptography.Tests\SysadminsLV.PKI.Cryptography.Tests.csproj", "{A7268F67-EC58-48BD-BBCD-C770C386E43D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

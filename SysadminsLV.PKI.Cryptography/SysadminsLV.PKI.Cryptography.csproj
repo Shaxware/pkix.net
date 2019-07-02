@@ -11,13 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="SysadminsLV.Asn1Parser">
-      <HintPath>..\..\Asn1DerParser.NET\Asn1Parser\bin\Release\netstandard2.0\SysadminsLV.Asn1Parser.dll</HintPath>
-    </Reference>
+    <Folder Include="Cryptography\Pkcs\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Cryptography\Pkcs\" />
+    <Reference Include="SysadminsLV.Asn1Parser">
+      <HintPath>..\..\PSPKI\PSPKI\Library\SysadminsLV.Asn1Parser.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
