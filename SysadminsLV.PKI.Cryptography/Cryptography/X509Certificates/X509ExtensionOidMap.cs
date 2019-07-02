@@ -9,7 +9,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     public static class X509ExtensionOidMap {
         public const String X509CertificateExtensions           = "1.2.840.113549.1.9.14";
         public const String X509CrossCertCrlDistributionPoints  = "1.3.6.1.4.1.311.10.9.1";
-        public const String X509CertTemplateInfoV2              = "1.3.6.1.4.1.311.20.2";
+        public const String X509CertTemplateName                = "1.3.6.1.4.1.311.20.2";
         public const String X509CAVersion                       = "1.3.6.1.4.1.311.21.1";
         public const String X509PreviousCaHash                  = "1.3.6.1.4.1.311.21.2";
         public const String X509VirtualBaseCRL                  = "1.3.6.1.4.1.311.21.3";

@@ -69,6 +69,8 @@ namespace SysadminsLV.PKI.Helpers.CLRExtensions {
         public static X509Extension ConvertExtension(this X509Extension extension) {
             var asnData = new AsnEncodedData(extension.Oid, extension.RawData);
             switch (extension.Oid.Value) {
+                case X509ExtensionOidMap.X509CertTemplateName:
+                    return new X509CertificateTemplateNameExtension(asnData, extension.Critical);
                 case X509ExtensionOidMap.X509CAVersion:
                     return new X509CAVersionExtension(asnData, extension.Critical);
                 case X509ExtensionOidMap.X509NextCRLPublish:
