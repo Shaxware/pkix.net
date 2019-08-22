@@ -4,6 +4,71 @@
         <name>SysadminsLV.Asn1Parser</name>
     </assembly>
     <members>
+        <member name="T:SysadminsLV.Asn1Parser.Asn1Class">
+            <summary>
+            Defines ASN.1 tagging classes.
+            </summary>
+        </member>
+        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.UNIVERSAL">
+            <summary>
+            Represents Universal tag class.
+            </summary>
+        </member>
+        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.CONSTRUCTED">
+            <summary>
+            Represents Constructed tag class.
+            </summary>
+        </member>
+        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.APPLICATION">
+            <summary>
+            Represents Application tag class.
+            </summary>
+        </member>
+        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.CONTEXT_SPECIFIC">
+            <summary>
+            <strong>CONTEXT-SPECIFIC</strong> distinguishes members of a sequence or set, the alternatives of a CHOICE, or
+            universally tagged set members.
+            </summary>
+        </member>
+        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.PRIVATE">
+            <summary>
+            Represents Private tag class.
+            </summary>
+        </member>
+        <member name="T:SysadminsLV.Asn1Parser.Asn1InvalidTagException">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1InvalidTagException.#ctor">
+            <inheritdoc />
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1InvalidTagException.#ctor(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1InvalidTagException.#ctor(System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1InvalidTagException.#ctor(System.Exception)">
+            <inheritdoc />
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1InvalidTagException.#ctor(System.String,System.Exception)">
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">
+            The exception that is the cause of the current exception. If the <strong>innerException</strong> parameter is not a null
+            reference, the current exception is raised in a catch block that handles the inner exception.
+            </param>
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1InvalidTagException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <param name="info">The object that holds the serialized object data.</param>
+            <param name="context">The contextual information about the source or destination.</param>
+            <remarks>This constructor is called during deserialization to reconstitute the exception object transmitted over a stream.</remarks>
+        </member>
+        <member name="P:SysadminsLV.Asn1Parser.Asn1InvalidTagException.Offset">
+            <summary>
+            Gets the offset at which invalid ASN tag appear.
+            </summary>
+        </member>
         <member name="T:SysadminsLV.Asn1Parser.Asn1Reader">
             <summary>
             Provides a set of properties and generic methods to work with ASN.1 structures in Distinguished Encoding
@@ -25,7 +90,7 @@
             </summary>
             <param name="asn">An existing <strong>ASN1</strong> object.</param>
             <remarks>
-            	This constructor creates a copy of a current position of an exisiting <strong>ASN1</strong> object.
+            	This constructor creates a copy of a current position of an existing <strong>ASN1</strong> object.
             </remarks>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Reader.#ctor(System.Byte[])">
@@ -76,7 +141,7 @@
         </member>
         <member name="P:SysadminsLV.Asn1Parser.Asn1Reader.NextCurrentLevelOffset">
             <summary>
-            This property is sibject to change.
+            This property is subject to change.
             </summary>
         </member>
         <member name="P:SysadminsLV.Asn1Parser.Asn1Reader.NextOffset">
@@ -86,13 +151,32 @@
         </member>
         <member name="P:SysadminsLV.Asn1Parser.Asn1Reader.IsConstructed">
             <summary>
-            Indicates whether the current tag is container, so it have childs instead of explicit tag balue.
+            Indicates whether the current tag is container, so it have children instead of explicit tag value.
             </summary>
         </member>
         <member name="P:SysadminsLV.Asn1Parser.Asn1Reader.RawData">
             <summary>
             Get's original ASN.1-encoded byte array.
             </summary>
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1Reader.testNestedForUniversal(System.Int64,System.Int32)">
+            <summary>
+            Checks if current primitive type is sub-typed (contains nested types) or not.
+            </summary>
+            <param name="start">Offset position where suggested nested type is expected.</param>
+            <param name="estimatedLength">
+                Specifies the full length (including header) of suggested nested type.
+            </param>
+            <returns>
+            <strong>True</strong> if current type has proper single nested type, otherwise <strong>False</strong>.
+            </returns>
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1Reader.calculatePredictLength(System.Int64)">
+            <summary>
+            Calculates the length for suggested nested type.
+            </summary>
+            <param name="offset">Start offset for suggested nested type.</param>
+            <returns>Estimated full tag length for nested type.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Reader.GetHeader">
             <summary>
@@ -130,7 +214,7 @@
                 type to the next type.</para>
             </summary>
             <returns>
-                <strong>True</strong> if the current tyoe is not the last in the data contained in
+                <strong>True</strong> if the current type is not the last in the data contained in
                 <strong>RawData</strong> property and there are no inner (wrapped) types, otherwise
                 <strong>False</strong>
             </returns>
@@ -168,7 +252,7 @@
             <summary>
             Moves over current type to the next type at the same level and checks whether the tag number of next type
             matches one of specified in the <strong>expectedTags</strong> parameter. If current position is the last type
-            in the current arrat, or next type's tag doesn't match a list of accepted types, an exception is thrown. See
+            in the current array, or next type's tag doesn't match a list of accepted types, an exception is thrown. See
             exceptions for more details. If the method succeeds, it returns nothing.
             </summary>
             <param name="expectedTags"></param>
@@ -193,7 +277,22 @@
             otherwise <strong>False</strong>.
             </returns>
             <remarks>
-            Specified poisition validity is determined based on internal map and <see cref="M:SysadminsLV.Asn1Parser.Asn1Reader.BuildOffsetMap"/>
+            Specified position validity is determined based on internal map and <see cref="M:SysadminsLV.Asn1Parser.Asn1Reader.BuildOffsetMap"/>
+            method must be called prior to first call of this method. Subsequent <strong>BuildOffsetMap</strong>
+            method calls are not necessary.
+            </remarks>
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1Reader.MoveToPosition(System.Int32)">
+            <summary>
+            Moves to a specified start offset.
+            </summary>
+            <param name="newPosition">ASN structure start position (offset).</param>
+            <returns>
+            <strong>True</strong> if specified offset is valid and pointer was successfully set to specified position,
+            otherwise <strong>False</strong>.
+            </returns>
+            <remarks>
+            Specified position validity is determined based on internal map and <see cref="M:SysadminsLV.Asn1Parser.Asn1Reader.BuildOffsetMap"/>
             method must be called prior to first call of this method. Subsequent <strong>BuildOffsetMap</strong>
             method calls are not necessary.
             </remarks>
@@ -230,37 +329,6 @@
             </summary>
             <param name="tag">Tag numerical value.</param>
             <returns>Formatted tag name</returns>
-        </member>
-        <member name="T:SysadminsLV.Asn1Parser.Asn1Class">
-            <summary>
-            Defines ASN.1 tagging classes.
-            </summary>
-        </member>
-        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.UNIVERSAL">
-            <summary>
-            Represents Universal tag class.
-            </summary>
-        </member>
-        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.CONSTRUCTED">
-            <summary>
-            Represents Constructed tag class.
-            </summary>
-        </member>
-        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.APPLICATION">
-            <summary>
-            Represents Application tag class.
-            </summary>
-        </member>
-        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.CONTEXT_SPECIFIC">
-            <summary>
-            <strong>CONTEXT-SPECIFIC</strong> distinguishes members of a sequence or set, the alternatives of a CHOICE, or
-            universally tagged set members.
-            </summary>
-        </member>
-        <member name="F:SysadminsLV.Asn1Parser.Asn1Class.PRIVATE">
-            <summary>
-            Represents Private tag class.
-            </summary>
         </member>
         <member name="T:SysadminsLV.Asn1Parser.Asn1Type">
             <summary>
@@ -334,8 +402,8 @@
         <member name="F:SysadminsLV.Asn1Parser.Asn1Type.ENUMERATED">
             <summary>
             The type of enumerations is declared with the keyword ENUMERATED.
-            <p>For an ENUMERATED type, a number is associated (implicitely or explicitely) with every
-            identifer whereas, for an <see cref="F:SysadminsLV.Asn1Parser.Asn1Type.INTEGER">INTEGER</see> type, an identier is (explicitely) associated with each
+            <p>For an ENUMERATED type, a number is associated (implicitly or explicitly) with every
+            identifier whereas, for an <see cref="F:SysadminsLV.Asn1Parser.Asn1Type.INTEGER">INTEGER</see> type, an identifier is (explicitly) associated with each
             integer.</p></summary>
         </member>
         <member name="F:SysadminsLV.Asn1Parser.Asn1Type.EMBEDDED_PDV">
@@ -353,8 +421,8 @@
         </member>
         <member name="F:SysadminsLV.Asn1Parser.Asn1Type.RELATIVE_OID">
             <summary>
-            <strong>RELATIVE-OID</strong> is used when many transmitted object identifers denote objects registered in
-            the same sub-tree of the registration tree. Otherwise said, all these identifers relate to a common reference node.
+            <strong>RELATIVE-OID</strong> is used when many transmitted object identifiers denote objects registered in
+            the same sub-tree of the registration tree. Otherwise said, all these identifiers relate to a common reference node.
             </summary>
         </member>
         <member name="F:SysadminsLV.Asn1Parser.Asn1Type.SEQUENCE">
@@ -397,7 +465,7 @@
             <summary>
             The '<strong>International Alphabet number 5</strong>' (or <strong>IA5</strong>) is based on 7-bit characters and
             was jointly published by ISO and ITU-T (1963). It has become the basic character set of most of the communicating
-            systems. It is generally equivalent to the ASCII alphabet (international standard de facto), but national versions,
+            systems. It is generally equivalent to the ASCII alphabet (international standard de-facto), but national versions,
             which can take into account accents or characters specific to some spoken languages may be proposed by national
             standardization organizations.
             </summary>
@@ -507,8 +575,8 @@
             </summary>
             <remarks>This method do not check whether the data in <strong>rawData</strong> is valid data for specified enclosing type.</remarks>
             <param name="rawData">A byte array to wrap.</param>
-            <param name="enclosingtag">An enumeration of <see cref="T:SysadminsLV.Asn1Parser.Asn1Type"/>.</param>
-            <returns>Wrapped ecnoded byte array.</returns>
+            <param name="enclosingTag">An enumeration of <see cref="T:SysadminsLV.Asn1Parser.Asn1Type"/>.</param>
+            <returns>Wrapped encoded byte array.</returns>
             <remarks>If <strong>rawData</strong> is null, an empty tag is encoded.</remarks>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Utils.DecodeInteger(System.Byte[])">
@@ -548,13 +616,6 @@
             <exception cref="T:System.IO.InvalidDataException">The data is not valid ASN.1-encoded octet string.</exception>
             <returns>A sequence of hexadecimal octets.</returns>
         </member>
-        <member name="M:SysadminsLV.Asn1Parser.Asn1Utils.EncodeUTCTime(System.DateTime)">
-            <summary>
-            Encodes <see cref="T:System.DateTime"/> object to an ASN.1-encoded <strong>UTCTime</strong> byte array.
-            </summary>
-            <param name="time">A <see cref="T:System.DateTime"/> object to encode.</param>
-            <returns>ASN.1-encoded byte array.</returns>
-        </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Utils.EncodeUTCTime(System.DateTime,System.Boolean)">
             <summary>
             
@@ -563,13 +624,16 @@
             <param name="usePrecise"></param>
             <returns></returns>
         </member>
-        <member name="M:SysadminsLV.Asn1Parser.Asn1Utils.EncodeUTCTime(System.DateTime,System.TimeZoneInfo)">
+        <member name="M:SysadminsLV.Asn1Parser.Asn1Utils.EncodeUTCTime(System.DateTime,System.TimeZoneInfo,System.Boolean)">
             <summary>
             Encodes a .NET DateTime object to a AN1.1-encoded byte array.
             </summary>
             <param name="time">An instance of <see cref="T:System.DateTime"/> object.</param>
             <param name="zone">
             	Specifies the time zone for the value in <strong>time</strong> parameter.
+            </param>
+            <param name="usePrecise">
+                Specifies whether to include milliseconds in encoded value. Default is <strong>False</strong>.
             </param>
             <returns>ASN.1-encoded byte array.</returns>
             <remarks>
@@ -771,15 +835,16 @@
             after 2050 year are required to be encoded by using Generalized Time encoding. UTC Time encoding is not allowed
             for periods beyond 1950 - 2049 years.
             </summary>
-            <param name="time">An instance of <see cref="T:System.DateTime"/> object.</param>
+            <param name="time">
+            An instance of <see cref="T:System.DateTime"/> object.</param> Value in this parameter is treated as local time. 
             <param name="zone">
             	Specifies the time zone for the value in <strong>time</strong> parameter.
             </param>
             <returns>ASN.1-encoded byte array.</returns>
             <remarks>
-            	If the <strong>Year</strong> value of the <strong>time</strong> object is less or equals to 2049,
-            	the DateTime object is encoded as a UTC time, if greater than 2049, the DateTime object is encoded
-            	as a generalized time.
+            	If the <strong>Year</strong> value of the <strong>time</strong> object is less or equals to 2049
+                and greater or equals to 1950, the DateTime object is encoded as a UTC time.
+                if year value is outside of 1950-2049 range, it is encoded as a generalized time.
             	<para>
             	If <strong>zone</strong> parameter is set to <strong>NULL</strong>, date and time in <strong>time</strong>
             	parameter will be converted to a Zulu time (Universal time). If zone information is not <strong>NULL</strong>,
@@ -787,7 +852,7 @@
             	to encoded value.
             	</para>
             </remarks>
-            <seealso cref="M:SysadminsLV.Asn1Parser.Asn1Utils.EncodeUTCTime(System.DateTime)"/>
+            <seealso cref="!:EncodeUTCTime(DateTime, TimeZoneInfo)"/>
             <seealso cref="M:SysadminsLV.Asn1Parser.Asn1Utils.EncodeGeneralizedTime(System.DateTime,System.TimeZoneInfo)"/>
         </member>
         <member name="T:SysadminsLV.Asn1Parser.AsnFormatter">
@@ -829,7 +894,7 @@
         </member>
         <member name="M:SysadminsLV.Asn1Parser.AsnFormatter.BinaryToString(SysadminsLV.Asn1Parser.Asn1Reader,SysadminsLV.Asn1Parser.EncodingType,SysadminsLV.Asn1Parser.EncodingFormat,System.Boolean)">
             <summary>
-            Converts and formats current poisition af the <see cref="T:SysadminsLV.Asn1Parser.Asn1Reader"/> object.
+            Converts and formats current position af the <see cref="T:SysadminsLV.Asn1Parser.Asn1Reader"/> object.
             </summary>
             <param name="asn"><see cref="T:SysadminsLV.Asn1Parser.Asn1Reader"/> object in the desired state.</param>
             <param name="encoding">Specifies the encoding for formatting. Default is <strong>HexRaw</strong></param>
@@ -880,31 +945,14 @@
             Resolved input string format. If format cannot be determined, <string>Binary</string> type is returned.
             </returns>
         </member>
-        <member name="T:SysadminsLV.Asn1Parser.Asn1InvalidTagException">
+        <member name="T:SysadminsLV.Asn1Parser.EncodingFormat">
             <summary>
-            
-            </summary>
-        </member>
-        <member name="M:SysadminsLV.Asn1Parser.Asn1InvalidTagException.#ctor(System.String,System.Exception)">
-            <param name="message">The error message that explains the reason for the exception.</param>
-            <param name="innerException">
-            The exception that is the cause of the current exception. If the <strong>innerException</strong> parameter is not a null
-            reference, the current exception is raised in a catch block that handles the inner exception.
-            </param>
-        </member>
-        <member name="M:SysadminsLV.Asn1Parser.Asn1InvalidTagException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <param name="info">The object that holds the serialized object data.</param>
-            <param name="context">The contextual information about the source or destination.</param>
-            <remarks>This constructor is called during deserialization to reconstitute the exception object transmitted over a stream.</remarks>
-        </member>
-        <member name="P:SysadminsLV.Asn1Parser.Asn1InvalidTagException.Offset">
-            <summary>
-            Gets the offset at which invalid ASN tag appear.
+            Contains values that specify how line breaks are handled during byte array formatting.
             </summary>
         </member>
         <member name="F:SysadminsLV.Asn1Parser.EncodingFormat.CRLF">
             <summary>
-            Appends a carriage return/line feed (CR/LF) pair (0x0D/0x0A) to the ecncoded string.
+            Appends a carriage return/line feed (CR/LF) pair (0x0D/0x0A) to the encoded string.
             </summary>
         </member>
         <member name="F:SysadminsLV.Asn1Parser.EncodingFormat.NOCRLF">
@@ -1150,7 +1198,7 @@
             </summary>
             <param name="bytes">A byte array to process.</param>
             <returns>The number of unused bits.</returns>
-            <exception cref="T:System.ArgumentNullException"><strong>bytes</strong> paramter is null reference.</exception>
+            <exception cref="T:System.ArgumentNullException"><strong>bytes</strong> parameter is null reference.</exception>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Universal.Asn1BitString.CalculateUnusedBits(System.Byte)">
             <summary>
@@ -1162,7 +1210,7 @@
         <member name="T:SysadminsLV.Asn1Parser.Universal.Asn1BMPString">
             <summary>
             Represents a <strong>BMPString</strong> ASN.1 tag object. <Strong>BMPString</Strong> is a 16-bit unicode
-            string where each character is encoded by using two bytes in Big Endian encoding.
+            string where each character is encoded by using two bytes in Big-Endian encoding.
             </summary>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Universal.Asn1BMPString.#ctor(SysadminsLV.Asn1Parser.Asn1Reader)">
@@ -1195,7 +1243,7 @@
         </member>
         <member name="T:SysadminsLV.Asn1Parser.Universal.Asn1Boolean">
             <summary>
-            Represnts an ASN.1 <strong>BOOLEAN</strong> data type.
+            Represents an ASN.1 <strong>BOOLEAN</strong> data type.
             </summary>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Universal.Asn1Boolean.#ctor(SysadminsLV.Asn1Parser.Asn1Reader)">
@@ -1221,7 +1269,7 @@
             <summary>
             Initializes a new instance of the <strong>Asn1Boolean</strong> class from a boolean value.
             </summary>
-            <param name="fValue">Booelan value to encode.</param>
+            <param name="fValue">Boolean value to encode.</param>
         </member>
         <member name="P:SysadminsLV.Asn1Parser.Universal.Asn1Boolean.Value">
             <summary>
@@ -1298,17 +1346,17 @@
         <member name="M:SysadminsLV.Asn1Parser.Universal.Asn1GeneralizedTime.#ctor(System.DateTime,System.Boolean)">
             <summary>
             Initializes a new instance of the <strong>Asn1GeneralizedTime</strong> class from a date time object
-            to encode and value that indiciates whether to include millisecond information.
+            to encode and value that indicates whether to include millisecond information.
             </summary>
             <param name="time">A <see cref="T:System.DateTime"/> object.</param>
-            <param name="precisetime">
+            <param name="preciseTime">
             <strong>True</strong> if encoded value should contain millisecond information, otherwise <strong>False</strong>.
             </param>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Universal.Asn1GeneralizedTime.#ctor(System.DateTime,System.TimeZoneInfo,System.Boolean)">
             <summary>
             Initializes a new instance of the <strong>Asn1GeneralizedTime</strong> class from a date time object
-            to encode, time zone information and value that indiciates whether to include millisecond information.
+            to encode, time zone information and value that indicates whether to include millisecond information.
             </summary>
             <param name="time">A <see cref="T:System.DateTime"/> object.</param>
             <param name="zone">A <see cref="T:System.TimeZoneInfo"/> object that represents time zone information.</param>
@@ -1419,7 +1467,7 @@
         </member>
         <member name="T:SysadminsLV.Asn1Parser.Universal.Asn1Null">
             <summary>
-            Represnts an ASN.1 <strong>NULL</strong> data type.
+            Represents an ASN.1 <strong>NULL</strong> data type.
             </summary>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Universal.Asn1Null.#ctor">
@@ -1577,7 +1625,7 @@
         </member>
         <member name="T:SysadminsLV.Asn1Parser.Universal.Asn1PrintableString">
             <summary>
-            Represents an ASN.1 <strong>PrintableString</strong> data type. PrintableString consis of the following
+            Represents an ASN.1 <strong>PrintableString</strong> data type. PrintableString consists of the following
             characters: a-z, A-Z, ' () +,-.?:/= and SPACE.
             </summary>
         </member>
@@ -1728,17 +1776,17 @@
         <member name="M:SysadminsLV.Asn1Parser.Universal.Asn1UtcTime.#ctor(System.DateTime,System.Boolean)">
             <summary>
             Initializes a new instance of the <strong>Asn1UtcTime</strong> class from a date time object
-            to encode and value that indiciates whether to include millisecond information.
+            to encode and value that indicates whether to include millisecond information.
             </summary>
             <param name="time">A <see cref="T:System.DateTime"/> object.</param>
-            <param name="precisetime">
+            <param name="preciseTime">
             <strong>True</strong> if encoded value should contain millisecond information, otherwise <strong>False</strong>.
             </param>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Universal.Asn1UtcTime.#ctor(System.DateTime,System.TimeZoneInfo,System.Boolean)">
             <summary>
             Initializes a new instance of the <strong>Asn1UtcTime</strong> class from a date time object
-            to encode, time zone information and value that indiciates whether to include millisecond information.
+            to encode, time zone information and value that indicates whether to include millisecond information.
             </summary>
             <param name="time">A <see cref="T:System.DateTime"/> object.</param>
             <param name="zone">A <see cref="T:System.TimeZoneInfo"/> object that represents time zone information.</param>
@@ -1817,7 +1865,7 @@
         </member>
         <member name="T:SysadminsLV.Asn1Parser.Universal.Asn1VisibleString">
             <summary>
-            Represents ASN.1 <strong>VisibleString</strong> data type. VisibleString consist of characters from internation
+            Represents ASN.1 <strong>VisibleString</strong> data type. VisibleString consist of characters from international
             printing character set. International printing character set contains characters starting from 32 and up to 126
             codes in ASCII character table.
             </summary>
@@ -1861,7 +1909,7 @@
         </member>
         <member name="T:SysadminsLV.Asn1Parser.Universal.UniversalTagBase">
             <summary>
-            Repesents a base class for ASN.1 primitive tag classes. This class provides
+            Represents a base class for ASN.1 primitive tag classes. This class provides
             </summary>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Universal.UniversalTagBase.#ctor">
