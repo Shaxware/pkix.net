@@ -255,7 +255,9 @@ namespace PKI.CertificateServices {
                     case 0x00040001: Version = "2008R2"; break;
                     case 0x00050001: Version = "2012"; break;
                     case 0x00060001: Version = "2012R2"; break;
-                    case 0x00070001: Version = "2016"; break;
+                    // there are no functional changes between 2016 and 2019, so treat them both as 2016
+                    case 0x00070001:
+                    case 0x00080001:  Version = "2016"; break;
                 }
                 SetupStatus = (SetupStatusEnum)CryptoRegistry.GetRReg("SetupStatus", String.Empty, ComputerName);
             } else {
