@@ -77,6 +77,11 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Management\CertificateServices\AdcsAiaUrlEntry.cs" />
+    <Compile Include="Management\CertificateServices\AdcsAiaUrlFlag.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCdpUrlFlag.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCdpUrlEntry.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCertSrvAudits.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbColumnSchema.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbQueryFilter.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbReader.cs" />
@@ -103,6 +108,7 @@
     <Compile Include="Management\ActiveDirectory\DsKraContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsPkiContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />
+    <Compile Include="Management\CertificateServices\UrlProtocolSchemes.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbPropertyCollection.cs" />

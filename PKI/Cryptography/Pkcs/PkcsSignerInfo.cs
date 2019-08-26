@@ -125,6 +125,9 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             EncryptedHashAlgorithm = new AlgorithmIdentifier(asn.GetTagRawData());
             asn.MoveNextCurrentLevel();
             EncryptedHash = asn.GetPayload();
+            if (asn.MoveNextCurrentLevel() && asn.Tag == 0xa1) {
+                UnauthenticatedAttributes.Decode(asn.GetTagRawData());
+            }
         }
 
         /// <summary>

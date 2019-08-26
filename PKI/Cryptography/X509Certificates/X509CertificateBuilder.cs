@@ -140,20 +140,21 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             processExtensions();
         }
         void setFriendlyName(X509Certificate2 cert) {
-            if (!String.IsNullOrWhiteSpace(FriendlyName)) {
-                Byte[] stringBytes = Encoding.Unicode.GetBytes(FriendlyName);
-                IntPtr ptr = Marshal.AllocHGlobal(stringBytes.Length);
-                Marshal.Copy(stringBytes, 0, ptr, stringBytes.Length);
-                var blob = new Wincrypt.CRYPTOAPI_BLOB {
-                    cbData = (UInt32)stringBytes.Length,
-                    pbData = ptr
-                };
-                IntPtr blobPtr = Marshal.AllocHGlobal(Marshal.SizeOf(blob));
-                Marshal.StructureToPtr(blob, blobPtr, false);
-                Crypt32.CertSetCertificateContextProperty(cert.Handle, X509CertificatePropertyType.FriendlyName, 0, blobPtr);
-                Marshal.FreeHGlobal(ptr);
-                Marshal.FreeHGlobal(blobPtr);
+            if (String.IsNullOrWhiteSpace(FriendlyName)) {
+                return;
             }
+            Byte[] stringBytes = Encoding.Unicode.GetBytes(FriendlyName + "\0");
+            IntPtr ptr = Marshal.AllocHGlobal(stringBytes.Length);
+            Marshal.Copy(stringBytes, 0, ptr, stringBytes.Length);
+            var blob = new Wincrypt.CRYPTOAPI_BLOB {
+                                                       cbData = (UInt32)stringBytes.Length,
+                                                       pbData = ptr
+                                                   };
+            IntPtr blobPtr = Marshal.AllocHGlobal(Marshal.SizeOf(blob));
+            Marshal.StructureToPtr(blob, blobPtr, false);
+            Crypt32.CertSetCertificateContextProperty(cert.Handle, X509CertificatePropertyType.FriendlyName, 0, blobPtr);
+            Marshal.FreeHGlobal(ptr);
+            Marshal.FreeHGlobal(blobPtr);
         }
         void postGenerate(X509Certificate2 cert) {
             // write key info to cert property
