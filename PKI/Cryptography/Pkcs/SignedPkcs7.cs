@@ -118,13 +118,14 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         Byte[] extractContent(Asn1Reader asn) {
             Int32 offset = asn.Offset;
             asn.MoveNext();
+            Byte[] payload = null;
             ContentType = new Asn1ObjectIdentifier(asn.GetTagRawData()).Value;
             if (asn.MoveNextCurrentLevel()) { // content [0] EXPLICIT ANY DEFINED BY contentType
-                asn.MoveNextAndExpectTags((Byte)Asn1Type.OCTET_STRING); // octet string
-                return asn.GetPayload();
+                asn.MoveNextAndExpectTags((Byte)Asn1Type.OCTET_STRING, 48); // octet string
+                payload = asn.GetPayload();
             }
             asn.MoveToPoisition(offset);
-            return null;
+            return payload;
         }
         void decodeCertificates(Asn1Reader asn) {
             if (asn.PayloadLength == 0) { return; }
