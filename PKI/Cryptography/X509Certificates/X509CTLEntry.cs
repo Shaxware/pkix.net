@@ -6,8 +6,8 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </summary>
 	public class X509CTLEntry {
 
-		internal X509CTLEntry(String thumprint, X509AttributeCollection attributes) {
-			m_initialize(thumprint, attributes);
+		internal X509CTLEntry(String thumbprint, X509AttributeCollection attributes) {
+			m_initialize(thumbprint, attributes);
 		}
 
 		/// <summary>

@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace PKI.Structs {
-    static class AlgorithmOids {
+    public static class AlgorithmOids {
         // public key group
         public const String RSA             = "1.2.840.113549.1.1.1";
         public const String DSA             = "1.2.840.10040.4.1";

@@ -131,7 +131,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         }
 
         /// <summary>
-        /// Gets the certificate associated with the current instance of 
+        /// Gets the certificate associated with the current instance of <strong>MessageSigner</strong>.
         /// </summary>
         public X509Certificate2 SignerCertificate { get; private set; }
         /// <summary>

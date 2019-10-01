@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
@@ -30,6 +31,11 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
 
 
         */
+
+        readonly X509AttributeCollection _authAttributes = new X509AttributeCollection();
+        readonly X509AttributeCollection _unauthAttributes = new X509AttributeCollection();
+        readonly List<Byte> _rawData = new List<Byte>();
+
         ///  <summary>
         ///  Initializes a new instance of the <strong>PkcsSignerInfo</strong> class from a ASN.1-encoded byte array.
         ///  </summary>
@@ -100,17 +106,21 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         ///		Gets the <see cref="X509AttributeCollection"/> collection of signed attributes that is associated with
         ///		the signer information. Signed attributes are signed along with the rest of the message content.
         /// </summary>
-        public X509AttributeCollection AuthenticatedAttributes { get; } = new X509AttributeCollection();
+        public X509AttributeCollection AuthenticatedAttributes => new X509AttributeCollection(_authAttributes);
         /// <summary>
         ///		Gets the <see cref="X509AttributeCollection"/> collection of unsigned attributes that is associated with
         ///		the <see cref="PkcsSignerInfo"/> content. Unsigned attributes can be modified without invalidating the
         ///		signature.
         /// </summary>
-        public X509AttributeCollection UnauthenticatedAttributes { get; } = new X509AttributeCollection();
+        public X509AttributeCollection UnauthenticatedAttributes => new X509AttributeCollection(_unauthAttributes);
+        /// <summary>
+        /// Gets the ASN-encoded raw data associated with the current object.
+        /// </summary>
+        public Byte[] RawData => _rawData.ToArray();
 
 
         void decode(Byte[] rawData) {
-            Asn1Reader asn = new Asn1Reader(rawData);
+            var asn = new Asn1Reader(rawData);
             asn.MoveNext();
             Version = (Int32)Asn1Utils.DecodeInteger(asn.GetTagRawData());
             asn.MoveNextCurrentLevel();
@@ -119,15 +129,16 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             HashAlgorithm = new AlgorithmIdentifier(asn.GetTagRawData());
             asn.MoveNextCurrentLevel();
             if (asn.Tag == 0xa0) {
-                AuthenticatedAttributes.Decode(asn.GetTagRawData());
+                _authAttributes.Decode(asn.GetTagRawData());
                 asn.MoveNextCurrentLevel();
             }
             EncryptedHashAlgorithm = new AlgorithmIdentifier(asn.GetTagRawData());
             asn.MoveNextCurrentLevel();
             EncryptedHash = asn.GetPayload();
             if (asn.MoveNextCurrentLevel() && asn.Tag == 0xa1) {
-                UnauthenticatedAttributes.Decode(asn.GetTagRawData());
+                _unauthAttributes.Decode(asn.GetTagRawData());
             }
+            _rawData.AddRange(rawData);
         }
 
         /// <summary>

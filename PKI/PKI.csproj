@@ -77,6 +77,15 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cryptography\AlgorithmIdentifierCollection.cs" />
+    <Compile Include="Cryptography\Pkcs\PkcsSignerInfoBuilder.cs" />
+    <Compile Include="Cryptography\Pkcs\PkcsSignerInfoCollection.cs" />
+    <Compile Include="Cryptography\Pkcs\SignedCmsBuilder.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CertificateTrustList.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CRL2Collection.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509TrustListEntryCollection.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509TrustListBuilder.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509TrustListEntry.cs" />
     <Compile Include="Management\CertificateServices\AdcsAiaUrlEntry.cs" />
     <Compile Include="Management\CertificateServices\AdcsAiaUrlFlag.cs" />
     <Compile Include="Management\CertificateServices\AdcsCdpUrlFlag.cs" />
@@ -148,7 +157,7 @@
     <Compile Include="Cryptography\CspProviderInfoCollection.cs" />
     <Compile Include="Cryptography\CspProviderInfo.cs" />
     <Compile Include="Structs\CertConfigConstants.cs" />
-    <Compile Include="Structs\SignatureOids.cs" />
+    <Compile Include="Structs\AlgorithmOids.cs" />
     <Compile Include="Structs\X509CertExtensions.cs" />
     <Compile Include="Utils\CLRExtensions\PublicKeyExtensions.cs" />
     <Compile Include="Tools\MessageOperations\MessageSigner.cs" />
