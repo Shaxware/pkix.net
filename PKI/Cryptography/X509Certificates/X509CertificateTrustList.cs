@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Permissions;
 using System.Text;
 using PKI.ManagedAPI;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography.Pkcs;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 using SysadminsLV.PKI.Win32;
@@ -23,6 +25,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
 
         DefaultSignedPkcs7 cms;
         SafeCTLHandleContext ctx;
+        BigInteger? sequenceNumber;
 
         /// <summary>
         /// Initializes a new instance of the <strong>X509CertificateTrustList</strong> class using the path to a CTL file. 
@@ -161,6 +164,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             ListIdentifier = Encoding.Unicode.GetString(asn.GetPayload()).TrimEnd('\0');
         }
         void decodeSequenceNumber(Asn1Reader asn) {
+            sequenceNumber = new Asn1Integer(asn.GetTagRawData()).Value;
             SequenceNumber = AsnFormatter.BinaryToString(asn.GetPayload());
         }
         void decodeValidity(Asn1Reader asn) {
@@ -180,9 +184,31 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         void decodeEntries(Asn1Reader asn) {
             var collection = new X509TrustListEntryCollection();
             collection.Decode(asn.GetTagRawData());
+            IDictionary<String, X509Certificate2> hashList = hashCerts();
+            foreach (X509TrustListEntry entry in collection) {
+                if (hashList.ContainsKey(entry.Thumbprint)) {
+                    entry.Certificate = hashList[entry.Thumbprint];
+                }
+            }
             if (collection.Count > 0) {
                 _entries.AddRange(collection);
             }
+        }
+        IDictionary<String, X509Certificate2> hashCerts() {
+            var hashList = new Dictionary<String, X509Certificate2>(StringComparer.InvariantCultureIgnoreCase);
+            using (var hasher = HashAlgorithm.Create(SubjectAlgorithm.FriendlyName)) {
+                if (hasher == null) {
+                    return hashList;
+                }
+                foreach (X509Certificate2 cmsCert in cms.Certificates) {
+                    String hashString = AsnFormatter.BinaryToString(hasher.ComputeHash(cmsCert.RawData), format:EncodingFormat.NOCRLF);
+                    if (hashList.ContainsKey(hashString)) {
+                        continue;
+                    }
+                    hashList.Add(hashString, cmsCert);
+                }
+            }
+            return hashList;
         }
         void decodeExtensions(Asn1Reader asn) {
             var extensions = new X509ExtensionCollection();
@@ -195,6 +221,16 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             
         }
 
+        /// <summary>
+        /// Gets the sequence number as integral value.
+        /// </summary>
+        /// <returns>
+        ///     Integral value of sequence number. This method returns <strong>null</strong> if decoded trust list does not have
+        ///     sequence number information.
+        /// </returns>
+        public BigInteger? GetSequenceNumber() {
+            return sequenceNumber;
+        }
         /// <summary>
         ///     Gets a <see cref="SafeCTLHandleContext" /> for the X509 certificate revocation list. The caller of this
         ///     method owns the returned safe handle, and should dispose of it when they no longer need it. 

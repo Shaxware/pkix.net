@@ -34,7 +34,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                     if (hasher == null) {
                         throw new ArgumentException("Specified hashing algorithm doesn't belong to hashing algorithm group.");
                     }
-                    Thumbprint = AsnFormatter.BinaryToString(hasher.ComputeHash(certificate.RawData), forceUpperCase: true);
+                    Thumbprint = AsnFormatter.BinaryToString(hasher.ComputeHash(certificate.RawData), format:EncodingFormat.NOCRLF, forceUpperCase: true);
                 }
             }
         }
@@ -46,7 +46,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             if (thumbprint == null) {
                 throw new ArgumentNullException(nameof(thumbprint));
             }
-            Thumbprint = AsnFormatter.BinaryToString(thumbprint, forceUpperCase: true);
+            Thumbprint = AsnFormatter.BinaryToString(thumbprint, format: EncodingFormat.NOCRLF, forceUpperCase: true);
         }
         /// <summary>
         /// Initializes a new instance of <strong>X509TrustListEntry</strong> class using a byte array that represents certificate's thumbprint.
@@ -76,8 +76,8 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
 
         void decode(Byte[] rawData) {
             var asn = new Asn1Reader(rawData);
-            //asn.MoveNextAndExpectTags((Byte)Asn1Type.OCTET_STRING);
-            Thumbprint = AsnFormatter.BinaryToString(asn.GetPayload(), forceUpperCase: true);
+            asn.MoveNextAndExpectTags((Byte)Asn1Type.OCTET_STRING);
+            Thumbprint = AsnFormatter.BinaryToString(asn.GetPayload(), format:EncodingFormat.NOCRLF, forceUpperCase: true);
             // check if there are attributes
             if (asn.MoveNext() && asn.Tag == 49) {
                 Byte[] attrBytes = asn.GetTagRawData();
