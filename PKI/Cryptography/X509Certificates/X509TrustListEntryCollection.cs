@@ -40,7 +40,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// </returns>
         public Byte[] Encode() {
             if (Count == 0) {
-                return new Byte[0];
+                return new Byte[] { 48, 0 };
             }
             var rawData = new List<Byte>();
             foreach (X509TrustListEntry entry in this) {
