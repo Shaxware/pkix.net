@@ -243,10 +243,10 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         ///     one signer, or any signer has absent signature value to validate, the method will return <strong>false</strong>.
         ///     </para>
         /// </remarks>
-        public Boolean CheckSignature(Boolean checkSignatureOnly, Boolean checkAll) {
+        Boolean CheckSignature(Boolean checkSignatureOnly, Boolean checkAll) {
             return false;
         }
-        public Boolean CheckSignature(X509Certificate2 signingCert, X509Certificate2Collection chain, Boolean checkSignatureOnly) {
+        Boolean CheckSignature(X509Certificate2 signingCert, X509Certificate2Collection chain, Boolean checkSignatureOnly) {
             return false;
         }
         
