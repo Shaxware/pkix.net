@@ -5,6 +5,7 @@ namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
     /// Represents a collection of <see cref="X509CTLEntry"/> objects.
     /// </summary>
+    [Obsolete("X509CTLEntryCollection is replaced with X509CertificateTrustListEntryCollection class.")]
     public class X509CTLEntryCollection : BasicCollection<X509CTLEntry> {
 
         /// <summary>
