@@ -19,7 +19,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     public class X509CertificateTrustList : IDisposable {
         readonly Oid ctlOid                            = new Oid("1.3.6.1.4.1.311.10.1");
         readonly List<Oid> _usages                     = new List<Oid>();
-        readonly X509TrustListEntryCollection _entries = new X509TrustListEntryCollection();
+        readonly X509CertificateTrustListEntryCollection _entries = new X509CertificateTrustListEntryCollection();
         readonly List<X509Extension> _extensions       = new List<X509Extension>();
         readonly List<Byte> _rawData                   = new List<Byte>();
 
@@ -89,14 +89,14 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// </summary>
         public DateTime? NextUpdate { get; private set; }
         /// <summary>
-        /// Gets the algorithm type of the <see cref="X509CTLEntry.Thumbprint">Thumbprint</see> in <see cref="X509TrustListEntry"/> members of the
+        /// Gets the algorithm type of the <see cref="X509CTLEntry.Thumbprint">Thumbprint</see> in <see cref="X509CertificateTrustListEntry"/> members of the
         /// <see cref="Entries"/> member array.
         /// </summary>
         public Oid SubjectAlgorithm { get; private set; }
         /// <summary>
-        /// Gets a collection of <see cref="X509TrustListEntry"/> elements.
+        /// Gets a collection of <see cref="X509CertificateTrustListEntry"/> elements.
         /// </summary>
-        public X509TrustListEntryCollection Entries => new X509TrustListEntryCollection(_entries);
+        public X509CertificateTrustListEntryCollection Entries => new X509CertificateTrustListEntryCollection(_entries);
         /// <summary>
         /// Gets a collection of <see cref="X509Extension">X509Extension</see> objects.
         /// </summary>
@@ -183,10 +183,10 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             SubjectAlgorithm = algId.AlgorithmId;
         }
         void decodeEntries(Asn1Reader asn) {
-            var collection = new X509TrustListEntryCollection();
+            var collection = new X509CertificateTrustListEntryCollection();
             collection.Decode(asn.GetTagRawData());
             IDictionary<String, X509Certificate2> hashList = hashCerts();
-            foreach (X509TrustListEntry entry in collection) {
+            foreach (X509CertificateTrustListEntry entry in collection) {
                 if (hashList.ContainsKey(entry.Thumbprint)) {
                     entry.Certificate = hashList[entry.Thumbprint];
                 }

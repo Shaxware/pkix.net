@@ -15,7 +15,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// <summary>
     /// Contains properties and methods used to create and sign X.509 certificate trust list.
     /// </summary>
-    public class X509TrustListBuilder {
+    public class X509CertificateTrustListBuilder {
         readonly Oid oid = new Oid("1.3.6.1.4.1.311.10.1");
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// <summary>
         /// Gets a collection of trust list entries associated with trust list.
         /// </summary>
-        public X509TrustListEntryCollection Entries { get; } = new X509TrustListEntryCollection();
+        public X509CertificateTrustListEntryCollection Entries { get; } = new X509CertificateTrustListEntryCollection();
         /// <summary>
         /// Gets or sets the hashing algorithm used to create trust list entries. Default algorithm is SHA1.
         /// </summary>
@@ -80,7 +80,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         public X509CertificateTrustList Sign(MessageSigner signer, X509Certificate2Collection chain) {
             var cmsBuilder = new SignedCmsBuilder(oid, encodeCTL());
             cmsBuilder.DigestAlgorithms.Add(new AlgorithmIdentifier(signer.HashingAlgorithm.ToOid()));
-            foreach (X509TrustListEntry entry in Entries.Where(x => x.Certificate != null)) {
+            foreach (X509CertificateTrustListEntry entry in Entries.Where(x => x.Certificate != null)) {
                 cmsBuilder.Certificates.Add(entry.Certificate);
             }
             var signedCms = cmsBuilder.Sign(signer, chain);

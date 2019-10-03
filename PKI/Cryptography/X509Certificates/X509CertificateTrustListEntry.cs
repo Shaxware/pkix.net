@@ -9,11 +9,11 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// Represents a X.509 certificate trust list (<strong>CTL</strong>) entry element. Generally, this elements describes the
     /// certificate in the trust list.
     /// </summary>
-    public class X509TrustListEntry {
+    public class X509CertificateTrustListEntry {
         readonly List<X509Attribute> _attributes = new List<X509Attribute>();
 
         /// <summary>
-        /// Initializes a new instance of <strong>X509TrustListEntry</strong> class using an existing instance of X.509 certificate and hashing
+        /// Initializes a new instance of <strong>X509CertificateTrustListEntry</strong> class using an existing instance of X.509 certificate and hashing
         /// algorithm used to compute the hash.
         /// </summary>
         /// <param name="certificate">
@@ -24,7 +24,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// algorithm is specified, default certificate hashing algorithm is used.
         /// </param>
         /// <exception cref="ArgumentNullException"><strong>certificate</strong> parameter is null.</exception>
-        public X509TrustListEntry(X509Certificate2 certificate, Oid hashAlgorithm = null) {
+        public X509CertificateTrustListEntry(X509Certificate2 certificate, Oid hashAlgorithm = null) {
             Certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
 
             if (hashAlgorithm == null) {
@@ -39,20 +39,20 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             }
         }
         /// <summary>
-        /// Initializes a new instance of <strong>X509TrustListEntry</strong> class using a byte array that represents certificate's thumbprint.
+        /// Initializes a new instance of <strong>X509CertificateTrustListEntry</strong> class using a byte array that represents certificate's thumbprint.
         /// </summary>
         /// <param name="thumbprint">Byte array that represents certificate's thumbprint.</param>
-        public X509TrustListEntry(Byte[] thumbprint) {
+        public X509CertificateTrustListEntry(Byte[] thumbprint) {
             if (thumbprint == null) {
                 throw new ArgumentNullException(nameof(thumbprint));
             }
             Thumbprint = AsnFormatter.BinaryToString(thumbprint, format: EncodingFormat.NOCRLF, forceUpperCase: true);
         }
         /// <summary>
-        /// Initializes a new instance of <strong>X509TrustListEntry</strong> class using a byte array that represents certificate's thumbprint.
+        /// Initializes a new instance of <strong>X509CertificateTrustListEntry</strong> class using a byte array that represents certificate's thumbprint.
         /// </summary>
         /// <param name="encodedData"></param>
-        public X509TrustListEntry(AsnEncodedData encodedData) {
+        public X509CertificateTrustListEntry(AsnEncodedData encodedData) {
             if (encodedData == null) {
                 throw new ArgumentNullException(nameof(encodedData));
             }

@@ -6,27 +6,27 @@ using SysadminsLV.Asn1Parser;
 
 namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// <summary>
-    /// Represents a collection of <see cref="X509TrustListEntry"/> objects.
+    /// Represents a collection of <see cref="X509CertificateTrustListEntry"/> objects.
     /// </summary>
-    public class X509TrustListEntryCollection : BasicCollection<X509TrustListEntry> {
+    public class X509CertificateTrustListEntryCollection : BasicCollection<X509CertificateTrustListEntry> {
         /// <inheritdoc />
-        public X509TrustListEntryCollection() { }
+        public X509CertificateTrustListEntryCollection() { }
         /// <inheritdoc />
-        public X509TrustListEntryCollection(IEnumerable<X509TrustListEntry> collection) : base(collection) { }
+        public X509CertificateTrustListEntryCollection(IEnumerable<X509CertificateTrustListEntry> collection) : base(collection) { }
 
         /// <summary>
-        /// Gets an <see cref="X509TrustListEntry"/> object from the <see cref="X509TrustListEntryCollection"/> object by certificate's
+        /// Gets an <see cref="X509CertificateTrustListEntry"/> object from the <see cref="X509CertificateTrustListEntryCollection"/> object by certificate's
         /// Thumbprint value.
         /// </summary>
-        /// <param name="thumbprint">A string that represents a <see cref="X509TrustListEntry.Thumbprint">Thumbprint</see> property.</param>
+        /// <param name="thumbprint">A string that represents a <see cref="X509CertificateTrustListEntry.Thumbprint">Thumbprint</see> property.</param>
         /// <remarks>
-        /// Use this property to retrieve an <see cref="X509TrustListEntry"/> object from an <see cref="X509TrustListEntryCollection"/>
-        /// object if you know the <see cref="X509TrustListEntry.Thumbprint">Thumbprint</see> value of the <see cref="X509TrustListEntry"/>
-        /// object. You can use the <see cref="this[int]"/> property to retrieve an <see cref="X509TrustListEntry"/> object if you know
+        /// Use this property to retrieve an <see cref="X509CertificateTrustListEntry"/> object from an <see cref="X509CertificateTrustListEntryCollection"/>
+        /// object if you know the <see cref="X509CertificateTrustListEntry.Thumbprint">Thumbprint</see> value of the <see cref="X509CertificateTrustListEntry"/>
+        /// object. You can use the <see cref="this[int]"/> property to retrieve an <see cref="X509CertificateTrustListEntry"/> object if you know
         /// its location in the collection.
         /// </remarks>
-        /// <returns>An <see cref="X509TrustListEntry"/> object if found, or <strong>null</strong> if specified item was not found.</returns>
-        public X509TrustListEntry this[String thumbprint] {
+        /// <returns>An <see cref="X509CertificateTrustListEntry"/> object if found, or <strong>null</strong> if specified item was not found.</returns>
+        public X509CertificateTrustListEntry this[String thumbprint] {
             get {
                 return InternalList.FirstOrDefault(x => x.Thumbprint.Equals(thumbprint, StringComparison.OrdinalIgnoreCase));
             }
@@ -43,7 +43,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                 return new Byte[] { 48, 0 };
             }
             var rawData = new List<Byte>();
-            foreach (X509TrustListEntry entry in this) {
+            foreach (X509CertificateTrustListEntry entry in this) {
                 rawData.AddRange(entry.Encode());
             }
 
@@ -63,7 +63,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             if (asn.PayloadLength == 0) { return; }
             asn.MoveNext();
             do {
-                var entry = new X509TrustListEntry(new AsnEncodedData(asn.GetTagRawData()));
+                var entry = new X509CertificateTrustListEntry(new AsnEncodedData(asn.GetTagRawData()));
                 InternalList.Add(entry);
             } while (asn.MoveNextCurrentLevel());
         }

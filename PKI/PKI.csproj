@@ -83,9 +83,9 @@
     <Compile Include="Cryptography\Pkcs\SignedCmsBuilder.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustList.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CRL2Collection.cs" />
-    <Compile Include="Cryptography\X509Certificates\X509TrustListEntryCollection.cs" />
-    <Compile Include="Cryptography\X509Certificates\X509TrustListBuilder.cs" />
-    <Compile Include="Cryptography\X509Certificates\X509TrustListEntry.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntryCollection.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListBuilder.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntry.cs" />
     <Compile Include="Management\CertificateServices\AdcsAiaUrlEntry.cs" />
     <Compile Include="Management\CertificateServices\AdcsAiaUrlFlag.cs" />
     <Compile Include="Management\CertificateServices\AdcsCdpUrlFlag.cs" />
