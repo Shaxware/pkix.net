@@ -176,6 +176,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             } else {
                 asn.MoveToPosition(offset);
             }
+            //asn.MoveToPosition(offset);
         }
         void decodeAlgId(Asn1Reader asn) {
             var algId = new AlgorithmIdentifier(asn.GetTagRawData());
