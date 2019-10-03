@@ -40,6 +40,10 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// </summary>
         public Oid HashAlgorithm { get; set; } = new Oid(AlgorithmOids.SHA1);
         /// <summary>
+        /// Gets or sets the date and time when trust list validity begins. Default value is current date and time.
+        /// </summary>
+        public DateTime ThisUpdate { get; set; }
+        /// <summary>
         /// Gets or sets the expiration date and time for trust list. If not set, trust list is valid indefinitely.
         /// </summary>
         public DateTime? NextUpdate { get; set; }
@@ -52,7 +56,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             if (SequenceNumber != null) {
                 rawData.AddRange(new Asn1Integer((BigInteger)SequenceNumber).RawData);
             }
-            rawData.AddRange(Asn1Utils.EncodeDateTime(DateTime.UtcNow));
+            rawData.AddRange(Asn1Utils.EncodeDateTime(ThisUpdate.ToUniversalTime()));
             if (NextUpdate != null) {
                 rawData.AddRange(Asn1Utils.EncodeDateTime((DateTime)NextUpdate));
             }
