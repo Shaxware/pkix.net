@@ -42,7 +42,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// <summary>
         /// Gets or sets the date and time when trust list validity begins. Default value is current date and time.
         /// </summary>
-        public DateTime ThisUpdate { get; set; }
+        public DateTime ThisUpdate { get; set; } = DateTime.UtcNow;
         /// <summary>
         /// Gets or sets the expiration date and time for trust list. If not set, trust list is valid indefinitely.
         /// </summary>
