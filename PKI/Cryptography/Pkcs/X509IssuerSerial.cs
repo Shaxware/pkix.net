@@ -11,6 +11,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
     /// This class is a replacement for a .NET native <see href="http://msdn.microsoft.com/en-us/library/system.security.cryptography.xml.x509issuerserial.aspx">X509IssuerSerial</see> structure.
     /// </remarks>
     public sealed class X509IssuerSerial {
+        readonly List<Byte> _rawData = new List<Byte>();
         /// <param name="issuer">An <see cref="X500DistinguishedName"/> object that represents issuer name.</param>
         /// <param name="serialNumber">A string that contains issuer certificate's serial number.</param>
         /// <exception cref="ArgumentNullException">
@@ -51,20 +52,20 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// <summary>
         /// Gets ASN.1-encoded byte array that represents current object.
         /// </summary>
-        public Byte[] RawData { get; private set; }
+        public Byte[] RawData => _rawData.ToArray();
 
         void decode(Byte[] rawData) {
-            Asn1Reader asn = new Asn1Reader(rawData);
+            var asn = new Asn1Reader(rawData);
             asn.MoveNext();
             IssuerName = new X500DistinguishedName(asn.GetTagRawData());
-            asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
+            asn.MoveNextCurrentLevelAndExpectTags((Byte)Asn1Type.INTEGER);
             SerialNumber = AsnFormatter.BinaryToString(asn);
-            RawData = rawData;
+            _rawData.AddRange(rawData);
         }
         void encode() {
-            List<Byte> rawData = new List<Byte>(IssuerName.RawData);
-            rawData.AddRange(Asn1Utils.Encode(AsnFormatter.StringToBinary(SerialNumber, EncodingType.HexRaw), 4));
-            RawData = rawData.ToArray();
+            var rawData = new List<Byte>(IssuerName.RawData);
+            rawData.AddRange(Asn1Utils.Encode(AsnFormatter.StringToBinary(SerialNumber, EncodingType.HexRaw), (Byte)Asn1Type.INTEGER));
+            _rawData.AddRange(Asn1Utils.Encode(rawData.ToArray(), 48));
         }
     }
 }

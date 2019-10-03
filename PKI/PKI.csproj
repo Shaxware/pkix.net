@@ -77,6 +77,20 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cryptography\AlgorithmIdentifierCollection.cs" />
+    <Compile Include="Cryptography\Pkcs\PkcsSignerInfoBuilder.cs" />
+    <Compile Include="Cryptography\Pkcs\PkcsSignerInfoCollection.cs" />
+    <Compile Include="Cryptography\Pkcs\SignedCmsBuilder.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CertificateTrustList.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CRL2Collection.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntryCollection.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListBuilder.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntry.cs" />
+    <Compile Include="Management\CertificateServices\AdcsAiaUrlEntry.cs" />
+    <Compile Include="Management\CertificateServices\AdcsAiaUrlFlag.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCdpUrlFlag.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCdpUrlEntry.cs" />
+    <Compile Include="Management\CertificateServices\AdcsCertSrvAudits.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbColumnSchema.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbQueryFilter.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbReader.cs" />
@@ -103,6 +117,7 @@
     <Compile Include="Management\ActiveDirectory\DsKraContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsPkiContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />
+    <Compile Include="Management\CertificateServices\UrlProtocolSchemes.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbPropertyCollection.cs" />
@@ -142,7 +157,7 @@
     <Compile Include="Cryptography\CspProviderInfoCollection.cs" />
     <Compile Include="Cryptography\CspProviderInfo.cs" />
     <Compile Include="Structs\CertConfigConstants.cs" />
-    <Compile Include="Structs\SignatureOids.cs" />
+    <Compile Include="Structs\AlgorithmOids.cs" />
     <Compile Include="Structs\X509CertExtensions.cs" />
     <Compile Include="Utils\CLRExtensions\PublicKeyExtensions.cs" />
     <Compile Include="Tools\MessageOperations\MessageSigner.cs" />

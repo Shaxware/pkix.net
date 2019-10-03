@@ -107,7 +107,7 @@ namespace SysadminsLV.PKI.Cryptography {
             var signature = signerInfo.SignData(ToBeSignedData).ToList();
             if (signerInfo.PublicKeyAlgorithm.Value == AlgorithmOids.RSA) {
                 signature.Insert(0, 0);
-                Signature = new Asn1BitString(Asn1Utils.Encode(signature.ToArray(), 3));
+                Signature = new Asn1BitString(Asn1Utils.Encode(signature.ToArray(), (Byte)Asn1Type.BIT_STRING));
             } else {
                 // ECDSA, DSA signature consist of two parts, r and s.
                 Int32 divider = signature.Count / 2;
@@ -122,7 +122,7 @@ namespace SysadminsLV.PKI.Cryptography {
                 builder.AddRange(Asn1Utils.Encode(s.ToArray(), (Byte)Asn1Type.INTEGER));
                 builder = new List<Byte>(Asn1Utils.Encode(builder.ToArray(), 48));
                 builder.Insert(0, 0);
-                Signature = new Asn1BitString(Asn1Utils.Encode(builder.ToArray(), 3));
+                Signature = new Asn1BitString(Asn1Utils.Encode(builder.ToArray(), (Byte)Asn1Type.BIT_STRING));
             }
             SignatureAlgorithm = signerInfo.GetAlgorithmIdentifier();
             BlobType = ContentBlobType.SignedBlob;
@@ -142,16 +142,16 @@ namespace SysadminsLV.PKI.Cryptography {
             if (hashAlgorithm == null) {
                 throw new ArgumentNullException(nameof(hashAlgorithm));
             }
-            Oid2 transofrmedOid = Oid2.MapHashToSignatureOid(hashAlgorithm);
+            var transformedOid = Oid2.MapHashToSignatureOid(hashAlgorithm);
             using (var hasher = HashAlgorithm.Create(hashAlgorithm.FriendlyName)) {
                 if (hasher == null) {
                     throw new ArgumentException("Specified hash algorithm is not valid hashing algorithm");
                 }
-                List<Byte> signature = hasher.ComputeHash(ToBeSignedData).ToList();
+                var signature = hasher.ComputeHash(ToBeSignedData).ToList();
                 signature.Insert(0, 0);
                 Signature = new Asn1BitString(Asn1Utils.Encode(signature.ToArray(), (Byte)Asn1Type.BIT_STRING));
             }
-            SignatureAlgorithm = new AlgorithmIdentifier(transofrmedOid.ToOid(), Asn1Utils.EncodeNull());
+            SignatureAlgorithm = new AlgorithmIdentifier(transformedOid.ToOid(), Asn1Utils.EncodeNull());
             BlobType = ContentBlobType.SignedBlob;
         }
         /// <summary>

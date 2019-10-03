@@ -1,13 +1,14 @@
 ﻿
 namespace System.Security.Cryptography.X509Certificates {
-	/// <summary>
-	/// Represents a X.509 certificate trust list (<strong>CTL</strong>) entry element. Generally, this elements describes the
-	/// certificate in the trust list.
-	/// </summary>
+    /// <summary>
+    /// Represents a X.509 certificate trust list (<strong>CTL</strong>) entry element. Generally, this elements describes the
+    /// certificate in the trust list.
+    /// </summary>
+    [Obsolete("X509CTLEntry is replaced with X509CertificateTrustListEntry class.")]
 	public class X509CTLEntry {
 
-		internal X509CTLEntry(String thumprint, X509AttributeCollection attributes) {
-			m_initialize(thumprint, attributes);
+		internal X509CTLEntry(String thumbprint, X509AttributeCollection attributes) {
+			m_initialize(thumbprint, attributes);
 		}
 
 		/// <summary>

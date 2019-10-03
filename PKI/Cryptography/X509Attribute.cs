@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI.Enrollment;
-using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
 namespace System.Security.Cryptography {
@@ -33,13 +31,6 @@ namespace System.Security.Cryptography {
         /// </summary>
         /// <remarks>This property is used only for tagged attributes.</remarks>
         public Int32 BodyPartId { get; private set; }
-
-        void m_initialize2(Wincrypt.CRYPT_ATTRIBUTE blob) {
-            Oid = new Oid(blob.pszObjId);
-            Wincrypt.CRYPTOAPI_BLOB attrStruct = (Wincrypt.CRYPTOAPI_BLOB)Marshal.PtrToStructure(blob.rgValue, typeof(Wincrypt.CRYPTOAPI_BLOB));
-            RawData = new Byte[attrStruct.cbData];
-            Marshal.Copy(attrStruct.pbData, RawData, 0, RawData.Length);
-        }
 
         /// <summary>
         /// Encodes current object to ASN.1-encoded byte array.

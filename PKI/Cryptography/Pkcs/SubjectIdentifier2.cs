@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 using SysadminsLV.Asn1Parser;
 
 namespace SysadminsLV.PKI.Cryptography.Pkcs {
@@ -10,12 +12,27 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
     /// </summary>
     /// <remarks>This class is a replacement for for a .NET native <see cref="SubjectIdentifier"/> class.</remarks>
     public sealed class SubjectIdentifier2 {
+        readonly List<Byte> _rawData = new List<Byte>();
+
+        public SubjectIdentifier2(X509Certificate2 certificate, SubjectIdentifierType subjectType) {
+            if (certificate == null) {
+                throw new ArgumentNullException(nameof(certificate));
+            }
+            Type = subjectType;
+            encode(certificate);
+        }
         /// <summary>
-        /// 
+        ///     Initializes a new instance of <strong>SubjectIdentifier2</strong> class from ASN.1-encoded byte array that represents encoded
+        ///     Subject Identifier structure.
         /// </summary>
-        /// <param name="rawData"></param>
+        /// <param name="rawData">ASN.1-encoded byte array.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>rawData</strong> parameter is <strong>null</strong>.
+        /// </exception>
         public SubjectIdentifier2(Byte[] rawData) {
-            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
+            if (rawData == null) {
+                throw new ArgumentNullException(nameof(rawData));
+            }
             decode(rawData);
         }
 
@@ -88,8 +105,19 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// </summary>
         public Object Value { get; private set; }
 
+        void encode(X509Certificate2 certificate) {
+            switch (Type) {
+                case SubjectIdentifierType.SubjectKeyIdentifier:
+                    break;
+                case SubjectIdentifierType.IssuerAndSerialNumber:
+                    Value = new X509IssuerSerial(certificate.SubjectName, certificate.SerialNumber);
+                    break;
+                default:
+                    throw new ArgumentException("Invalid CMS issuer identifier type.");
+            }
+        }
         void decode(Byte[] rawData) {
-            Asn1Reader asn = new Asn1Reader(rawData);
+            var asn = new Asn1Reader(rawData);
             switch (asn.Tag) {
                 case 48:
                     Type = SubjectIdentifierType.IssuerAndSerialNumber;
@@ -101,6 +129,26 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
                     break;
                 default: throw new ArgumentException("Invalid CMS issuer identifier type.");
             }
+            _rawData.AddRange(rawData);
+        }
+
+        /// <summary>
+        /// Encodes current object to an ASN.1 format.
+        /// </summary>
+        /// <returns>ASN.1-encoded byte array that represents current object.</returns>
+        public Byte[] Encode() {
+            var retValue = new List<Byte>();
+            switch (Type) {
+                case SubjectIdentifierType.IssuerAndSerialNumber:
+                    retValue.AddRange(((X509IssuerSerial)Value).RawData);
+                    break;
+                case SubjectIdentifierType.SubjectKeyIdentifier:
+                    retValue.AddRange(Asn1Utils.Encode(AsnFormatter.StringToBinary(Value.ToString(), EncodingType.HexRaw), 0x80));
+                    break;
+                default:
+                    throw new ArgumentException("Invalid CMS issuer identifier type.");
+            }
+            return retValue.ToArray();
         }
     }
 }

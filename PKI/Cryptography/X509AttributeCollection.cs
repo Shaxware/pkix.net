@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.PKI;
 
@@ -29,10 +30,7 @@ namespace System.Security.Cryptography {
         /// <returns>An <see cref="X509Attribute"/> object.</returns>
         public X509Attribute this[String oid] {
             get {
-                foreach (X509Attribute entry in InternalList) {
-                    if (entry.Oid.Value == oid.ToLower()) { return entry; }
-                }
-                return null;
+                return InternalList.FirstOrDefault(x => x.Oid.Value.Equals(oid, StringComparison.OrdinalIgnoreCase));
             }
         }
         /// <summary>
@@ -56,7 +54,7 @@ namespace System.Security.Cryptography {
         /// Encodes current collection to an ASN.1-encoded byte array.
         /// </summary>
         /// <returns></returns>
-        public Byte[] Encode() {
+        public Byte[] Encode(Byte enclosingType = 48) {
             if (Count == 0) {
                 return new Byte[0];
             }
@@ -65,7 +63,7 @@ namespace System.Security.Cryptography {
                 rawData.AddRange(attribute.Encode());
             }
 
-            return Asn1Utils.Encode(rawData.ToArray(), 48);
+            return Asn1Utils.Encode(rawData.ToArray(), enclosingType);
         }
     }
 }

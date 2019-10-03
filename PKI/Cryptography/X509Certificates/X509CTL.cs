@@ -15,6 +15,7 @@ namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
     /// Represents a X.509 Certificate Trust List (CTL).
     /// </summary>
+    [Obsolete("X509CTL is replaced with X509CertificateTrustList class.")]
     public class X509CTL : IDisposable {
         Wincrypt.CTL_INFO CTLInfo;
         readonly List<X509Extension> _listExtensions = new List<X509Extension>();
