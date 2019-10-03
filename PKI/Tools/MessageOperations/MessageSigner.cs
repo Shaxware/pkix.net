@@ -31,48 +31,20 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         SafeNCryptKeyHandle phPubKey = new SafeNCryptKeyHandle();
         KeyType keyType;
         AsymmetricAlgorithm legacyKey;
+        Oid2 hashAlgorithm;
         readonly IKeyStorageInfo _keyInfo;
 
         MessageSigner() { }
-        MessageSigner(Oid2 hashAlgorithm, PublicKey pubKey) {
+        MessageSigner(Oid2 hashAlg, PublicKey pubKey) {
             PublicKeyAlgorithm = pubKey.Oid;
             acquirePublicKey(pubKey);
-            if (hashAlgorithm.OidGroup == OidGroupEnum.SignatureAlgorithm) {
-                mapSignatureAlgorithmToHashAlgorithm(hashAlgorithm.Value, null);
-            } else {
-                HashingAlgorithm = hashAlgorithm;
-            }
-            switch (PublicKeyAlgorithm.Value) {
-                case AlgorithmOids.RSA:
-                    switch (hashAlgorithm.Value) {
-                        case AlgorithmOids.MD5: // md5
-                            PssSaltByteCount = 16;
-                            break;
-                        case AlgorithmOids.SHA1: // sha1
-                            PssSaltByteCount = 20;
-                            break;
-                        case AlgorithmOids.SHA256: // sha256
-                            PssSaltByteCount = 32;
-                            break;
-                        case AlgorithmOids.SHA384: // sha384
-                            PssSaltByteCount = 48;
-                            break;
-                        case AlgorithmOids.SHA512: // sha512
-                            PssSaltByteCount = 64;
-                            break;
-                    }
-                    break;
-                case AlgorithmOids.DSA:
-                    // force SHA1 for DSA keys
-                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
-                    break;
-            }
+            initializeHashAlgorithm(hashAlg);
         }
         internal MessageSigner(X509PrivateKeyBuilder keyBuilder, Oid2 hashAlgorithm)
             : this(hashAlgorithm, keyBuilder.GetPublicKey()) {
             _keyInfo = keyBuilder;
         }
-        
+
         /// <summary>
         /// Initializes a new instance of the <strong>MessageSigner</strong> class from signer certificate and
         /// default hash algorithm. Default hash algorithm is SHA256.
@@ -139,10 +111,18 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         /// </summary>
         public Oid PublicKeyAlgorithm { get; }
         /// <summary>
-        /// Gets hashing algorithm that is used to calculate the hash during signing or signature verification
+        /// Gets or sets the hashing algorithm that is used to calculate the hash during signing or signature verification
         /// processes.
         /// </summary>
-        public Oid2 HashingAlgorithm { get; private set; }
+        public Oid2 HashingAlgorithm {
+            get => hashAlgorithm;
+            set {
+                if (value == null || value.OidGroup != OidGroupEnum.HashAlgorithm && value.OidGroup != OidGroupEnum.SignatureAlgorithm) {
+                    return;
+                }
+                initializeHashAlgorithm(value);
+            }
+        }
         /// <summary>
         /// Gets resulting signature algorithm identifier.
         /// </summary>
@@ -168,6 +148,38 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
                 return hasher.ComputeHash(message);
             }
         }
+        void initializeHashAlgorithm(Oid2 hashAlg) {
+            if (hashAlg.OidGroup == OidGroupEnum.SignatureAlgorithm) {
+                mapSignatureAlgorithmToHashAlgorithm(hashAlg.Value, null);
+            } else {
+                hashAlgorithm = hashAlg;
+            }
+            switch (PublicKeyAlgorithm.Value) {
+                case AlgorithmOids.RSA:
+                    switch (hashAlgorithm.Value) {
+                        case AlgorithmOids.MD5: // md5
+                            PssSaltByteCount = 16;
+                            break;
+                        case AlgorithmOids.SHA1: // sha1
+                            PssSaltByteCount = 20;
+                            break;
+                        case AlgorithmOids.SHA256: // sha256
+                            PssSaltByteCount = 32;
+                            break;
+                        case AlgorithmOids.SHA384: // sha384
+                            PssSaltByteCount = 48;
+                            break;
+                        case AlgorithmOids.SHA512: // sha512
+                            PssSaltByteCount = 64;
+                            break;
+                    }
+                    break;
+                case AlgorithmOids.DSA:
+                    // force SHA1 for DSA keys
+                    hashAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
+                    break;
+            }
+        }
         void getSignatureAlgorithm() {
             switch (keyType) {
                 case KeyType.EcDsa:
@@ -189,47 +201,47 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
                 // md5
                 case AlgorithmOids.MD5:
                     nullSigned = true;
-                    HashingAlgorithm = new Oid2(signatureOid, false);
+                    hashAlgorithm = new Oid2(signatureOid, false);
                     break;
                 case AlgorithmOids.MD5_RSA:
-                    HashingAlgorithm = new Oid2(AlgorithmOids.MD5, false);
+                    hashAlgorithm = new Oid2(AlgorithmOids.MD5, false);
                     break;
                 // sha1
                 case AlgorithmOids.SHA1:
                     nullSigned = true;
-                    HashingAlgorithm = new Oid2(signatureOid, false);
+                    hashAlgorithm = new Oid2(signatureOid, false);
                     break;
                 case AlgorithmOids.SHA1_ECDSA:
                 case AlgorithmOids.SHA1_RSA:
                 case AlgorithmOids.SHA1_DSA:
-                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
+                    hashAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
                     break;
                 // sha256
                 case AlgorithmOids.SHA256:
                     nullSigned = true;
-                    HashingAlgorithm = new Oid2(signatureOid, false);
+                    hashAlgorithm = new Oid2(signatureOid, false);
                     break;
                 case AlgorithmOids.SHA256_ECDSA:
                 case AlgorithmOids.SHA256_RSA:
-                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA256, false);
+                    hashAlgorithm = new Oid2(AlgorithmOids.SHA256, false);
                     break;
                 // sha384
                 case AlgorithmOids.SHA384:
                     nullSigned = true;
-                    HashingAlgorithm = new Oid2(signatureOid, false);
+                    hashAlgorithm = new Oid2(signatureOid, false);
                     break;
                 case AlgorithmOids.SHA384_ECDSA:
                 case AlgorithmOids.SHA384_RSA:
-                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA384, false);
+                    hashAlgorithm = new Oid2(AlgorithmOids.SHA384, false);
                     break;
                 // sha512
                 case AlgorithmOids.SHA512:
                     nullSigned = true;
-                    HashingAlgorithm = new Oid2(signatureOid, false);
+                    hashAlgorithm = new Oid2(signatureOid, false);
                     break;
                 case AlgorithmOids.SHA512_ECDSA:
                 case AlgorithmOids.SHA512_RSA:
-                    HashingAlgorithm = new Oid2(AlgorithmOids.SHA512, false);
+                    hashAlgorithm = new Oid2(AlgorithmOids.SHA512, false);
                     break;
                 case AlgorithmOids.ECDSA_SPECIFIED:
                     decodeEcdsaSpecified(asn);
@@ -249,12 +261,12 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             mapSignatureAlgorithmToHashAlgorithm(oid.Value, asn);
         }
         void decodeEcdsaSpecified(Asn1Reader asn) {
-            HashingAlgorithm = new Oid2(new AlgorithmIdentifier(asn.GetTagRawData()).AlgorithmId, false);
+            hashAlgorithm = new Oid2(new AlgorithmIdentifier(asn.GetTagRawData()).AlgorithmId, false);
         }
         void decodeRsaPss(Asn1Reader asn) {
             PaddingScheme = SignaturePadding.PSS;
             asn.MoveNext();
-            HashingAlgorithm = asn.Tag == 0xa0
+            hashAlgorithm = asn.Tag == 0xa0
                 ? new Oid2(new AlgorithmIdentifier(asn.GetPayload()).AlgorithmId, false)
                 : new Oid2(AlgorithmOids.SHA1, false);
             // feed asn reader to salt identifier
