@@ -201,7 +201,15 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                 if (hasher == null) {
                     return hashList;
                 }
-                foreach (X509Certificate2 cmsCert in cms.Certificates) {
+                var certList = new X509Certificate2Collection();
+                certList.AddRange(cms.Certificates);
+                foreach (StoreName storeName in new [] {StoreName.Root, StoreName.CertificateAuthority, StoreName.AuthRoot}) {
+                    var store = new X509Store(storeName, StoreLocation.CurrentUser);
+                    store.Open(OpenFlags.ReadOnly);
+                    certList.AddRange(store.Certificates);
+                    store.Close();
+                }
+                foreach (X509Certificate2 cmsCert in certList) {
                     String hashString = AsnFormatter.BinaryToString(hasher.ComputeHash(cmsCert.RawData), format:EncodingFormat.NOCRLF);
                     if (hashList.ContainsKey(hashString)) {
                         continue;
