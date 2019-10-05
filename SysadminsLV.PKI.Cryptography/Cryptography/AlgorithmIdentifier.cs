@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using SysadminsLV.Asn1Parser;
-using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Helpers.CLRExtensions;
 
 namespace SysadminsLV.PKI.Cryptography {
@@ -11,8 +11,12 @@ namespace SysadminsLV.PKI.Cryptography {
     /// Specifies an algorithm used to encrypt or sign data. This class includes the object identifier
     /// (<strong>OID</strong>) of the algorithm and any needed parameters for that algorithm. 
     /// </summary>
-    /// <remarks>This class supports PKCS#2.1 signature format.</remarks>
+    /// <remarks>This class supports PKCS1 v2.1 signature format.</remarks>
     public class AlgorithmIdentifier {
+        readonly List<Byte> _rawData = new List<Byte>();
+        readonly List<Byte> _params = new List<Byte>();
+        Oid algId;
+
         /// <summary>
         /// Initializes a new instance of the <strong>AlgorithmIdentifier</strong> class from a ASN.1-encoded
         /// byte array that represents an <strong>AlgorithmIdentifier</strong> structure.
@@ -41,39 +45,47 @@ namespace SysadminsLV.PKI.Cryptography {
         ///		This parameter can be <strong>NULL</strong>.
         /// </param>
         public AlgorithmIdentifier(Oid oid, Byte[] parameters) {
-            if (oid == null) { throw new ArgumentNullException(nameof(oid)); }
-            if (String.IsNullOrEmpty(oid.Value)) { throw new ArgumentException("Object identifier is empty"); }
+            if (oid == null) {
+                throw new ArgumentNullException(nameof(oid));
+            }
+            if (String.IsNullOrEmpty(oid.Value)) {
+                throw new ArgumentException("Object identifier is empty.");
+            }
             m_encode(oid, parameters);
         }
 
         /// <summary>
         /// Gets an object identifier of an algorithm.
         /// </summary>
-        public Oid AlgorithmId { get; private set; }
+        public Oid AlgorithmId => new Oid(algId.Value, algId.FriendlyName);
         /// <summary>
         /// Gets a byte array that provides encoded algorithm-specific parameters. In many cases, there are no
         /// parameters.
         /// </summary>
-        public Byte[] Parameters { get; private set; }
+        public Byte[] Parameters => _params.Any() ? null : _params.ToArray();
         /// <summary>
         /// Gets algorithm identifier ASN.1-encoded byte array.
         /// </summary>
-        public Byte[] RawData { get; private set; }
+        public Byte[] RawData => _rawData.ToArray();
 
         void m_decode(Byte[] rawData) {
-            Asn1Reader asn = new Asn1Reader(rawData);
+            var asn = new Asn1Reader(rawData);
             if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
             asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
-            AlgorithmId = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
-            Parameters = asn.MoveNext() ? asn.GetTagRawData() : null;
-            RawData = rawData;
+            algId = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
+            if (asn.MoveNext()) {
+                _params.AddRange(asn.GetTagRawData());
+            }
+            _rawData.AddRange(rawData);
         }
         void m_encode(Oid oid, Byte[] parameters) {
-            Parameters = parameters ?? new Asn1Null().RawData;
-            AlgorithmId = oid;
-            List<Byte> rawBytes = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(oid));
+            if (parameters != null) {
+                _params.AddRange(parameters);
+            }
+            algId = oid;
+            var rawBytes = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(oid));
             rawBytes.AddRange(Parameters);
-            RawData = Asn1Utils.Encode(rawBytes.ToArray(), 48);
+            _rawData.AddRange(Asn1Utils.Encode(rawBytes.ToArray(), 48));
         }
 
         /// <summary>
@@ -81,9 +93,12 @@ namespace SysadminsLV.PKI.Cryptography {
         /// </summary>
         /// <returns>Formatted string.</returns>
         public override String ToString() {
-            if (RawData == null) { return String.Empty; }
-            StringBuilder sb = new StringBuilder();
-            StringBuilder algParamString = new StringBuilder();
+            if (!_rawData.Any()) {
+                return String.Empty;
+            }
+
+            var sb = new StringBuilder();
+            var algParamString = new StringBuilder();
             if (Parameters == null) {
                 algParamString.Append(" NULL");
             } else {

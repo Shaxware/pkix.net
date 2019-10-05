@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using SysadminsLV.PKI.Cryptography;
 
 namespace SysadminsLV.PKI.Helpers.CLRExtensions {
     /// <summary>
@@ -36,35 +37,43 @@ namespace SysadminsLV.PKI.Helpers.CLRExtensions {
         /// </remarks>
         public static String Format(this Oid oid, Boolean fullValue) {
             return fullValue
-                ? (String.IsNullOrEmpty(oid.FriendlyName)
+                ? String.IsNullOrEmpty(oid.FriendlyName)
                     ? oid.Value
-                    : $"{oid.FriendlyName} ({oid.Value})")
-                : (String.IsNullOrEmpty(oid.FriendlyName)
+                    : $"{oid.FriendlyName} ({oid.Value})"
+                : String.IsNullOrEmpty(oid.FriendlyName)
                     ? oid.Value
-                    : oid.FriendlyName);
+                    : oid.FriendlyName;
         }
         /// <summary>
-        /// Compares two <strong>Oid</strong> objects for equality.
+        /// Converts hashing algorithm OID to appropriate OID from signature group. For example, translates
+        /// <strong>sha1</strong> hashing algorithm to <strong>sha1NoSign</strong> with the same OID value.
         /// </summary>
-        /// <param name="oid">Source OID</param>
-        /// <param name="other">An <strong>Oid</strong> object to compare to the current object.</param>
-        /// <returns>
-        /// <strong>True</strong> if <see cref="Oid.Value">Value</see> members of two OID instances are equal.
-        /// This method is case-insensitive.
-        /// </returns>
-        /// <remarks>Original <see cref="Oid"/> class do not override <see cref="Object.Equals(Object)"/> method.</remarks>
-        public static Boolean Equals2(this Oid oid, Oid other) {
-            return other != null
-                && oid.Value.Equals(other.Value, StringComparison.InvariantCultureIgnoreCase);
-        }
-        /// <summary>
-        /// Gets hash code for the current OID object.
-        /// </summary>
-        /// <param name="oid"></param>
-        /// <returns></returns>
-        /// <remarks>Original <see cref="Oid"/> class do not override <see cref="Object.GetHashCode"/> method.</remarks>
-        public static Int32 GetHashCode2(this Oid oid) {
-            return oid.Value?.GetHashCode() ?? 0;
+        /// <param name="hashAlgorithm">Hashing algorithm</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>hashAlgorithm</strong> parameter is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Input OID doesn't belong to hash algorithm group or it cannot be translated to a respective
+        /// </exception>
+        /// <returns>OID in signature group.</returns>
+        public static Oid MapHashToSignatureOid(Oid hashAlgorithm) {
+            if (hashAlgorithm == null) {
+                throw new ArgumentNullException(nameof(hashAlgorithm));
+            }
+            switch (hashAlgorithm.Value) {
+                case AlgorithmOids.MD5:
+                    return new Oid(AlgorithmOids.MD5, "md5NoSign");
+                case AlgorithmOids.SHA1:
+                    return new Oid(AlgorithmOids.SHA1, "sha1NoSign");
+                case AlgorithmOids.SHA256:
+                    return new Oid(AlgorithmOids.SHA256, "sha256NoSign");
+                case AlgorithmOids.SHA384:
+                    return new Oid(AlgorithmOids.SHA384, "sha384NoSign");
+                case AlgorithmOids.SHA512:
+                    return new Oid(AlgorithmOids.SHA512, "sha512NoSign");
+                default:
+                    throw new ArgumentException("Cannot translate hashing algorithm to signature algorithm.");
+            }
         }
     }
 }
