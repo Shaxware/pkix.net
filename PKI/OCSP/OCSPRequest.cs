@@ -200,7 +200,7 @@ namespace PKI.OCSP {
             } else {
                 _signerChain.Add(signerCert);
             }
-            AlgorithmIdentifier algId = new AlgorithmIdentifier(signatureAlgID);
+            AlgorithmIdentifier algId = new AlgorithmIdentifier(signatureAlgID, new Byte[0]);
             List<Byte> signatureInfo = new List<Byte>(algId.RawData);
             signatureInfo.AddRange(new Asn1BitString(signature, false).RawData);
             signatureInfo.AddRange(Asn1Utils.Encode(_signerChain.Encode(), 0xa0));

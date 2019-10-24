@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using SysadminsLV.Asn1Parser;
-using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace SysadminsLV.PKI.Cryptography {
@@ -13,6 +13,10 @@ namespace SysadminsLV.PKI.Cryptography {
     /// </summary>
     /// <remarks>This class supports PKCS#2.1 signature format.</remarks>
     public class AlgorithmIdentifier {
+        readonly List<Byte> _rawData = new List<Byte>();
+        Oid algId;
+        Byte[] param;
+
         /// <summary>
         /// Initializes a new instance of the <strong>AlgorithmIdentifier</strong> class from a ASN.1-encoded
         /// byte array that represents an <strong>AlgorithmIdentifier</strong> structure.
@@ -22,58 +26,79 @@ namespace SysadminsLV.PKI.Cryptography {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
-            m_decode(rawData);
+            decode(rawData);
         }
-        /// <summary>
-        /// Initializes a new instance of the <strong>AlgorithmIdentifier</strong> class from an algorithm
-        /// object identifier without parameters.
-        /// </summary>
-        /// <param name="oid">Algorithm object identifier.</param>
-        public AlgorithmIdentifier(Oid oid) : this(oid, null) { }
-        /// <summary>
-        /// Initializes a new instance of the <strong>AlgorithmIdentifier</strong> class from an algorithm
-        /// object identifier and, optionally, algorithm parameters.
-        /// </summary>
-        /// <param name="oid">Algorithm object identifier.</param>
-        /// <param name="parameters">
-        ///		A ASN.1-encoded byte array that represents algorithm parameters.
-        /// 
-        ///		This parameter can be <strong>NULL</strong>.
-        /// </param>
+        ///// <summary>
+        ///// Initializes a new instance of the <strong>AlgorithmIdentifier</strong> class from an algorithm
+        ///// object identifier without parameters.
+        ///// </summary>
+        ///// <param name="oid">Algorithm object identifier.</param>
+        //public AlgorithmIdentifier(Oid oid) : this(oid, null) { }
+        ///  <summary>
+        ///  Initializes a new instance of the <strong>AlgorithmIdentifier</strong> class from an algorithm
+        ///  object identifier and, optionally, algorithm parameters.
+        ///  </summary>
+        ///  <param name="oid">Algorithm object identifier.</param>
+        ///  <param name="parameters">
+        /// 		A ASN.1-encoded byte array that represents algorithm parameters.
+        ///  
+        /// 		This parameter can be <strong>NULL</strong>.
+        ///  </param>
+        ///  <exception cref="ArgumentNullException">
+        ///     <strong>oid</strong> parameter is null.
+        /// </exception>
+        /// <remarks>
+        ///     For signature algorithm identifiers you often add explicit parameters. If there are no explicit parameters (such as when
+        ///     RSA-based signature is used) you should pass empty array in <strong>parameters</strong> parameter. When explicit parameters
+        ///     are not used (such as when hashing or other algorithm group), you must pass <strong>null</strong> value to
+        ///     <strong>parameters</strong> parameter.
+        /// </remarks>
         public AlgorithmIdentifier(Oid oid, Byte[] parameters) {
-            if (oid == null) { throw new ArgumentNullException(nameof(oid)); }
-            if (String.IsNullOrEmpty(oid.Value)) { throw new ArgumentException("Object identifier is empty"); }
-            m_encode(oid, parameters);
+            if (oid == null) {
+                throw new ArgumentNullException(nameof(oid));
+            }
+            encode(oid, parameters);
         }
 
         /// <summary>
         /// Gets an object identifier of an algorithm.
         /// </summary>
-        public Oid AlgorithmId { get; private set; }
+        public Oid AlgorithmId => new Oid(algId.Value, algId.FriendlyName);
         /// <summary>
         /// Gets a byte array that provides encoded algorithm-specific parameters. In many cases, there are no
         /// parameters.
         /// </summary>
-        public Byte[] Parameters { get; private set; }
+        public Byte[] Parameters => param?.ToArray();
         /// <summary>
         /// Gets algorithm identifier ASN.1-encoded byte array.
         /// </summary>
-        public Byte[] RawData { get; private set; }
+        public Byte[] RawData => _rawData.ToArray();
 
-        void m_decode(Byte[] rawData) {
+        void decode(Byte[] rawData) {
             Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new Asn1InvalidTagException(asn.Offset); }
+            if (asn.Tag != 48) {
+                throw new Asn1InvalidTagException(asn.Offset);
+            }
             asn.MoveNextAndExpectTags((Byte)Asn1Type.OBJECT_IDENTIFIER);
-            AlgorithmId = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
-            Parameters = asn.MoveNext() ? asn.GetTagRawData() : null;
-            RawData = rawData;
+            algId = Asn1Utils.DecodeObjectIdentifier(asn.GetTagRawData());
+            if (asn.MoveNext()) {
+                param = asn.GetTagRawData();
+            }
+            _rawData.AddRange(rawData);
         }
-        void m_encode(Oid oid, Byte[] parameters) {
-            Parameters = parameters ?? new Asn1Null().RawData;
-            AlgorithmId = oid;
-            List<Byte> rawBytes = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(oid));
-            rawBytes.AddRange(Parameters);
-            RawData = Asn1Utils.Encode(rawBytes.ToArray(), 48);
+        void encode(Oid oid, Byte[] parameters) {
+            // if empty array received, then parameters is set to ASN.1 NULL type => 5, 0
+            param = parameters != null && parameters.Length == 0
+                ? new Byte[] { 5, 0 }
+                : parameters;
+
+            algId = oid;
+            var rawBytes = new List<Byte>(Asn1Utils.EncodeObjectIdentifier(oid));
+            if (param != null) {
+                rawBytes.AddRange(param);
+            }
+            
+            _rawData.AddRange(Asn1Utils.Encode(rawBytes.ToArray(), 48));
         }
 
         /// <summary>
@@ -81,18 +106,17 @@ namespace SysadminsLV.PKI.Cryptography {
         /// </summary>
         /// <returns>Formatted string.</returns>
         public override String ToString() {
-            if (RawData == null) { return String.Empty; }
-            StringBuilder sb = new StringBuilder();
-            StringBuilder algParamString = new StringBuilder();
-            if (Parameters == null) {
+            var sb = new StringBuilder();
+            var algParamString = new StringBuilder();
+            if (param == null) {
                 algParamString.Append(" NULL");
             } else {
                 algParamString.AppendLine("    ");
                 EncodingType format = EncodingType.Hex;
-                if (Parameters.Length > 16) {
+                if (param.Length > 16) {
                     format = EncodingType.HexAddress;
                 }
-                algParamString.Append(AsnFormatter.BinaryToString(Parameters, format).TrimEnd());
+                algParamString.Append(AsnFormatter.BinaryToString(param, format).TrimEnd());
             }
             sb.Append(
                 // TODO: algorithm identifier is more than signature algorithm identifier, it is commonly used

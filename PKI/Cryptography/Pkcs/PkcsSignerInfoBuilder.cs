@@ -138,13 +138,13 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             var signerID = new SubjectIdentifier2(_signer.SignerCertificate, SubjectIdentifier);
             rawData.AddRange(signerID.Encode());
             // digestAlgorithm
-            rawData.AddRange(new AlgorithmIdentifier(_signer.HashingAlgorithm.ToOid()).RawData);
+            rawData.AddRange(new AlgorithmIdentifier(_signer.HashingAlgorithm.ToOid(), new Byte[0]).RawData);
             // authenticatedAttributes
             if (_authAttributes.Any()) {
                 rawData.AddRange(_authAttributes.Encode(0xa0));
             }
             // digestEncryptionAlgorithm
-            rawData.AddRange(new AlgorithmIdentifier(_signer.PublicKeyAlgorithm).RawData);
+            rawData.AddRange(new AlgorithmIdentifier(_signer.PublicKeyAlgorithm, new Byte[0]).RawData);
             // encryptedDigest
             SignedContentBlob signedBlob;
             if (_authAttributes.Any()) {
