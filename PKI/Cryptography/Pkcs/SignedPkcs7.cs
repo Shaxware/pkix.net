@@ -38,8 +38,10 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// </summary>
         /// <param name="rawData">ASN.1-encoded byte array that represent PKCS# signed message</param>
         protected SignedPkcs7(Byte[] rawData) {
-            if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
-            decode(rawData);
+            if (rawData == null) {
+                throw new ArgumentNullException(nameof(rawData));
+            }
+            decode(new Asn1Reader(rawData));
         }
 
         /// <summary>
@@ -76,14 +78,13 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// </summary>
         public Byte[] RawData => _rawData.ToArray();
 
-        void decode(Byte[] rawData) {
-            var asn = new Asn1Reader(rawData);
+        void decode(Asn1Reader asn) {
             asn.MoveNext();
-            ContentType = new Asn1ObjectIdentifier(asn.GetTagRawData()).Value;
+            ContentType = new Asn1ObjectIdentifier(asn).Value;
             asn.MoveNextAndExpectTags(0xa0); // [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL, 0xa0
             asn.MoveNextAndExpectTags(0x30); // SEQUENCE OF ANY
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER); // version
-            Version = (Int32)new Asn1Integer(asn.GetTagRawData()).Value;
+            Version = (Int32)new Asn1Integer(asn).Value;
             asn.MoveNextCurrentLevelAndExpectTags(0x31);
             decodeDigestAlgorithms(asn);
             asn.MoveNextCurrentLevelAndExpectTags(0x30); // ContentInfo
@@ -103,7 +104,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
                         throw new ArgumentException("Invalid type.");
                 }
             }
-            _rawData.AddRange(rawData);
+            _rawData.AddRange(asn.RawData);
             DecodeContent(content);
         }
         void decodeDigestAlgorithms(Asn1Reader asn) {
