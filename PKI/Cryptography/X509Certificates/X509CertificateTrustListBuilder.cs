@@ -60,7 +60,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             if (NextUpdate != null) {
                 rawData.AddRange(Asn1Utils.EncodeDateTime((DateTime)NextUpdate));
             }
-            rawData.AddRange(new AlgorithmIdentifier(HashAlgorithm).RawData);
+            rawData.AddRange(new AlgorithmIdentifier(HashAlgorithm, new Byte[0]).RawData);
             rawData.AddRange(Entries.Encode());
             return rawData.ToArray();
         }
@@ -79,7 +79,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// </returns>
         public X509CertificateTrustList Sign(MessageSigner signer, X509Certificate2Collection chain) {
             var cmsBuilder = new SignedCmsBuilder(oid, encodeCTL());
-            cmsBuilder.DigestAlgorithms.Add(new AlgorithmIdentifier(signer.HashingAlgorithm.ToOid()));
+            cmsBuilder.DigestAlgorithms.Add(new AlgorithmIdentifier(signer.HashingAlgorithm.ToOid(), new Byte[0]));
             foreach (X509CertificateTrustListEntry entry in Entries.Where(x => x.Certificate != null)) {
                 cmsBuilder.Certificates.Add(entry.Certificate);
             }
