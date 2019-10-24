@@ -13,16 +13,19 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
         /// Encodes existing collection of <see cref="X509Extension"/> objects to ASN.1-encoded byte array.
         /// </summary>
         /// <param name="extensions">Extension collection to encode.</param>
+        /// <param name="enclosingTag">
+        /// Outer ASN.1 type. Default is <strong>SEQUENCE</strong>.
+        /// </param>
         /// <exception cref="ArgumentNullException"><strong>extensions</strong> parameter is null.</exception>
         /// <returns>ASN.1-encoded byte array.</returns>
-        public static Byte[] Encode(this X509ExtensionCollection extensions) {
+        public static Byte[] Encode(this X509ExtensionCollection extensions, Byte enclosingTag = 48) {
             if (extensions == null) { throw new ArgumentNullException(nameof(extensions)); }
 
             List<Byte> rawData = new List<Byte>();
             foreach (X509Extension e in extensions) {
                 rawData.AddRange(e.Encode());
             }
-            return Asn1Utils.Encode(rawData.ToArray(), 48);
+            return Asn1Utils.Encode(rawData.ToArray(), enclosingTag);
         }
         /// <summary>
         /// Decodes ASN.1-encoded byte array that represents a collection of <see cref="X509Extension"/> objects.
@@ -38,9 +41,8 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             if (extensions == null) { throw new ArgumentNullException(nameof(extensions)); }
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
 
-            Asn1Reader asn = new Asn1Reader(rawData);
-            if (asn.Tag != 48) { throw new Asn1InvalidTagException(); }
-            if (!asn.MoveNext() || asn.NextOffset == 0) {
+            var asn = new Asn1Reader(rawData);
+            if (!asn.MoveNext() || asn.PayloadLength == 0) {
                 return;
             }
 
