@@ -131,7 +131,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
         ///                 <item>Request.RevokedReason</item>
         ///                 <item>CommonName</item>
         ///                 <item>SerialNumber</item>
-        ///                 <item>CertificateTemplater</item>
+        ///                 <item>CertificateTemplate</item>
         ///             </list>
         ///         </description>
         ///     </item>
@@ -286,7 +286,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
                 _caView.SetResultColumnCount(columnCount);
                 _columns.Clear();
                 _columns.Add("*");
-                foreach (var columnIndex in Enumerable.Range(0, columnCount)) {
+                foreach (Int32 columnIndex in Enumerable.Range(0, columnCount)) {
                     _caView.SetResultColumn(columnIndex);
                 }
             } else {
@@ -313,9 +313,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices.Database {
             while (dbRow.Next() != -1 && rowsTaken < takeRows) {
                 rowsTaken++;
                 var row = new AdcsDbRow {
-                                            ConfigString = ConfigString,
-                                            Table = table
-                                        };
+                    ConfigString = ConfigString,
+                    Table = table
+                };
                 enumColumnView(dbRow, row);
                 postProcessRow(row);
                 yield return row;

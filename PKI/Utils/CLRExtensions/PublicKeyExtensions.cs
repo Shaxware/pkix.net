@@ -92,9 +92,7 @@ Public Key: UnusedBits = 0
             switch (publicKey.Oid.Value) {
                 case AlgorithmOids.RSA:
                 case AlgorithmOids.DSA:
-                    using (AsymmetricAlgorithm key = publicKey.Key) {
-                        return key.KeySize;
-                    }
+                    return publicKey.Key.KeySize;
                 case AlgorithmOids.ECC:
                     var cryptBlob = publicKey.GetCryptBlob();
                     using (CngKey cngKey = CngKey.Import(cryptBlob, CngKeyBlobFormat.EccPublicBlob)) {

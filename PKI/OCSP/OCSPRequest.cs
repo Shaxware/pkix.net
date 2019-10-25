@@ -6,6 +6,7 @@ using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Web;
 using PKI.Exceptions;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
@@ -200,7 +201,7 @@ namespace PKI.OCSP {
             } else {
                 _signerChain.Add(signerCert);
             }
-            AlgorithmIdentifier algId = new AlgorithmIdentifier(signatureAlgID);
+            AlgorithmIdentifier algId = new AlgorithmIdentifier(signatureAlgID, new Byte[0]);
             List<Byte> signatureInfo = new List<Byte>(algId.RawData);
             signatureInfo.AddRange(new Asn1BitString(signature, false).RawData);
             signatureInfo.AddRange(Asn1Utils.Encode(_signerChain.Encode(), 0xa0));
@@ -224,10 +225,7 @@ namespace PKI.OCSP {
             if (target.EndsWith("/")) {
                 target += Uri.EscapeUriString(Convert.ToBase64String(RawData));
             } else {
-                target += "/" + Uri.EscapeUriString(Convert.ToBase64String(RawData))
-                    .Replace("+", "%2b")
-                    .Replace("/", "%2f")
-                    .Replace("=", "%3d");
+                target += "/" + Uri.EscapeUriString(HttpUtility.UrlEncode(Convert.ToBase64String(RawData)));
             }
             return target;
         }
