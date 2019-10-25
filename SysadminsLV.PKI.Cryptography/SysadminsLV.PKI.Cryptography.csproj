@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <Reference Include="SysadminsLV.Asn1Parser">
-      <HintPath>..\..\PSPKI\PSPKI\Library\SysadminsLV.Asn1Parser.dll</HintPath>
+      <HintPath>.\_References\SysadminsLV.Asn1Parser.dll</HintPath>
     </Reference>
   </ItemGroup>
 
