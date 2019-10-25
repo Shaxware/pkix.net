@@ -82,9 +82,10 @@ namespace SysadminsLV.PKI.Cryptography {
         /// ASN.1-encoded byte array.
         /// </returns>
         public Byte[] Encode() {
-            var rawData = new List<Byte>(AlgorithmIdentifier.RawData);
-            rawData.AddRange(Asn1Utils.Encode(MessageHash, (Byte)Asn1Type.OCTET_STRING));
-            return Asn1Utils.Encode(rawData.ToArray(), 48);
+            return new Asn1Builder()
+                .AddDerData(AlgorithmIdentifier.RawData)
+                .AddOctetString(MessageHash)
+                .GetEncoded();
         }
 
 

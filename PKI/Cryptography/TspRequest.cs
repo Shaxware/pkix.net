@@ -184,25 +184,26 @@ namespace SysadminsLV.PKI.Cryptography {
         /// </summary>
         /// <returns>ASN.1-encoded byte array.</returns>
         public Byte[] Encode() {
-            var rawData = new List<Byte>(new Asn1Integer(Version).RawData);
-            rawData.AddRange(RequestMessage.Encode());
+            var builder = new Asn1Builder()
+                .AddInteger(Version)
+                .AddDerData(RequestMessage.Encode());
             if (PolicyID != null) {
-                rawData.AddRange(new Asn1ObjectIdentifier(PolicyID).RawData);
+                builder.AddObjectIdentifier(PolicyID);
             }
             if (UseNonce) {
                 nonce = Guid.NewGuid().ToByteArray();
-                rawData.AddRange(new Asn1Integer(new BigInteger(nonce)).RawData);
+                builder.AddInteger(new BigInteger(nonce));
             } else {
                 nonce = default;
             }
             if (RequestCertificates) {
-                rawData.AddRange(new Asn1Boolean(RequestCertificates).RawData);
+                builder.AddBoolean(RequestCertificates);
             }
             if (_extensions.Any()) {
-                rawData.AddRange(Extensions.Encode(0xa0));
+                builder.AddExplicit(0, Extensions.Encode(), false);
             }
 
-            return Asn1Utils.Encode(rawData.ToArray(), 48);
+            return builder.GetEncoded();
         }
         /// <summary>
         /// Sends request to specified TSA server and returns response.
