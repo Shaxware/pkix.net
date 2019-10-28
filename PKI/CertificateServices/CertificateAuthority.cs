@@ -486,11 +486,9 @@ namespace PKI.CertificateServices {
         /// <exception cref="UninitializedObjectException">The object is not properly initialized.</exception>
         /// <exception cref="ServerUnavailableException">CA server is not accessible via RPC/DCOM.</exception>
         /// <exception cref="UnauthorizedAccessException">The caller do not have at least <strong>Read</strong> permissions.</exception>
-        /// <exception cref="PlatformNotSupportedException">Current CA is not <strong>Enterprise CA</strong>. Only Enterprise CAs supports this feature.</exception>
         /// <returns>CA Exchange certificate.</returns>
         public X509Certificate2 GetCAExchangeCertificate() {
             if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
-            if (!IsEnterprise) { throw new PlatformNotSupportedException(Error.E_NONENTERPRISE); }
             if (!Ping()) {
                 ServerUnavailableException e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
