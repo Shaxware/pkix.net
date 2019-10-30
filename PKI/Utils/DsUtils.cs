@@ -63,12 +63,12 @@ namespace PKI.Utils {
         }
         public static String GetForestName() {
             return Ping()
-                ? Domain.GetCurrentDomain().Forest.Name
+                ? Domain.GetComputerDomain().Forest.Name
                 : String.Empty;
         }
         public static String GetCurrentDomainName() {
             return Ping()
-                ? Domain.GetCurrentDomain().Name
+                ? Domain.GetComputerDomain().Name
                 : String.Empty;
         }
         public static Object GetEntryProperty(String ldapPath, String prop) {
@@ -121,7 +121,7 @@ namespace PKI.Utils {
         }
         public static Boolean Ping() {
             try {
-                String domain = Domain.GetCurrentDomain().Name;
+                String domain = Domain.GetComputerDomain().Name;
                 return !String.IsNullOrEmpty(domain);
             } catch { return false; }
         }
