@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using PKI.Exceptions;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
@@ -31,7 +32,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </exception>
         public X509PolicyQualifier(String noticeText, String noticeRef) {
             if (String.IsNullOrEmpty(noticeText) && String.IsNullOrEmpty(noticeRef)) {
-                throw new ArgumentNullException(nameof(noticeText),"Both 'noticeText' and 'noticeRef' parameters cannot be null");
+                throw new ArgumentNullException(nameof(noticeText), "Both 'noticeText' and 'noticeRef' parameters cannot be null");
             }
             if (!String.IsNullOrEmpty(noticeText) && noticeText.Length > 200) {
                 throw new OverflowException("Notice text cannot be larger than 200 characters.");
@@ -49,7 +50,7 @@ namespace System.Security.Cryptography.X509Certificates {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             m_decode(rawData);
         }
-        
+
         /// <summary>
         /// Gets policy qualifier type.
         /// </summary>
@@ -92,7 +93,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 case "1.3.6.1.5.5.7.2.1":
                     Type = X509PolicyQualifierType.CpsUrl;
                     asn.MoveNext();
-                    PolicyUrl = new Uri(Asn1Utils.DecodeIA5String(asn.GetTagRawData()).Replace("\0",null));
+                    PolicyUrl = new Uri(Asn1Utils.DecodeIA5String(asn.GetTagRawData()).Replace("\0", null));
                     break;
                 case "1.3.6.1.5.5.7.2.2":
                     Type = X509PolicyQualifierType.UserNotice;
@@ -106,7 +107,7 @@ namespace System.Security.Cryptography.X509Certificates {
                         asn.MoveNext();
                         asn.MoveNext();
                         NoticeNumber = (Int32)Asn1Utils.DecodeInteger(asn.GetTagRawData());
-                        asn.MoveToPoisition(offset);
+                        asn.MoveToPosition(offset);
                         if (asn.MoveNextCurrentLevel()) {
                             NoticeText = Asn1Utils.DecodeAnyString(asn.GetTagRawData(), new[] { Asn1Type.IA5String, Asn1Type.VisibleString, Asn1Type.BMPString, Asn1Type.UTF8String });
                         }
@@ -127,9 +128,9 @@ namespace System.Security.Cryptography.X509Certificates {
 
         static IEnumerable<Byte> EncodeString(String str) {
             try {
-                return Asn1Utils.EncodeVisibleString(str);
+                return new Asn1VisibleString(str).RawData;
             } catch {
-                return Asn1Utils.EncodeBMPString(str);
+                return new Asn1UTF8String(str).RawData;
             }
         }
 
@@ -146,24 +147,24 @@ namespace System.Security.Cryptography.X509Certificates {
             switch (Type) {
                 case X509PolicyQualifierType.CpsUrl:
                     if (String.IsNullOrEmpty(PolicyUrl.AbsoluteUri)) { throw new UninitializedObjectException(); }
-                    List<Byte> rawData = new List<Byte>();
-                    rawData.AddRange(Asn1Utils.EncodeObjectIdentifier(new Oid("1.3.6.1.5.5.7.2.1")));
-                    rawData.AddRange(Asn1Utils.EncodeIA5String(PolicyUrl.AbsoluteUri));
-                    return Asn1Utils.Encode(rawData.ToArray(), 48);
+                    return new Asn1Builder()
+                               .AddObjectIdentifier(new Oid("1.3.6.1.5.5.7.2.1"))
+                               .AddIA5String(PolicyUrl.AbsoluteUri)
+                               .GetEncoded();
                 case X509PolicyQualifierType.UserNotice:
-                    List<Byte> refpart = new List<Byte>();
+                    var refBuilder = new Asn1Builder();
                     if (!String.IsNullOrEmpty(NoticeReference)) {
-                        refpart.AddRange(EncodeString(NoticeReference));
-                        refpart.AddRange(Asn1Utils.Encode(new Asn1Integer(NoticeNumber).RawData, 48));
-                        refpart = new List<Byte>(Asn1Utils.Encode(refpart.ToArray(), 48));
+                        refBuilder.AddDerData(EncodeString(NoticeReference).ToArray())
+                            .AddSequence(x => x.AddInteger(NoticeNumber))
+                            .Encode();
                     }
                     if (!String.IsNullOrEmpty(NoticeText)) {
-                        refpart.AddRange(Asn1Utils.EncodeBMPString(NoticeText));
+                        refBuilder.AddUTF8String(NoticeText);
                     }
-                    List<Byte> oid = new List<Byte>();
-                    oid.AddRange(Asn1Utils.EncodeObjectIdentifier(new Oid("1.3.6.1.5.5.7.2.2")));
-                    oid.AddRange(Asn1Utils.Encode(refpart.ToArray(), 48));
-                    return Asn1Utils.Encode(oid.ToArray(), 48);
+                    return new Asn1Builder()
+                        .AddObjectIdentifier(new Oid("1.3.6.1.5.5.7.2.2"))
+                        .AddSequence(refBuilder.GetEncoded())
+                        .GetEncoded();
                 default: throw new UninitializedObjectException();
             }
         }
