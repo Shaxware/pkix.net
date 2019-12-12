@@ -14,6 +14,7 @@ namespace SysadminsLV.PKI.Cryptography {
     /// Represents a RFC 3161 implementation of Time-Stamp Protocol response.
     /// </summary>
     public class TspResponse {
+        const String TSP_OID = "1.3.6.1.5.5.7.3.8";
         readonly IList<X509Extension> _extensions = new List<X509Extension>();
         readonly List<Byte> _rawData = new List<Byte>();
         readonly X509AlternativeNameCollection _tsaName = new X509AlternativeNameCollection();
@@ -100,6 +101,14 @@ namespace SysadminsLV.PKI.Cryptography {
             }
         }
         /// <summary>
+        /// Specifies the status of response.
+        /// </summary>
+        public TspValidationErrorStatus ResponseErrors { get; private set; }
+        /// <summary>
+        /// Specifies the certificate chain status.
+        /// </summary>
+        public X509ChainStatusFlags ChainErrors { get; private set; }
+        /// <summary>
         /// Gets the ASN.1-encoded byte array that represents current Time-Stamp response object.
         /// </summary>
         public Byte[] RawData => _rawData.ToArray();
@@ -133,10 +142,10 @@ namespace SysadminsLV.PKI.Cryptography {
         void decodeOptionalFields(Asn1Reader asn) {
             while (asn.MoveNextCurrentLevel()) {
                 switch (asn.Tag) {
-                    case (Byte) Asn1Type.BOOLEAN:
+                    case (Byte)Asn1Type.BOOLEAN:
                         Ordering = new Asn1Boolean(asn).Value;
                         break;
-                    case (Byte) Asn1Type.INTEGER:
+                    case (Byte)Asn1Type.INTEGER:
                         NonceReceived = true;
                         nonce = asn.GetPayload();
                         break;
@@ -157,6 +166,44 @@ namespace SysadminsLV.PKI.Cryptography {
                         }
                         break;
                 }
+            }
+        }
+        void validate() {
+            if (signedCms == null || signedCms.Certificates.Count == 0) {
+                ResponseErrors |= TspValidationErrorStatus.NoResponse;
+            }
+            validateChain();
+            validateSignature();
+        }
+        void validateNonce(TspRequest request) {
+            if (request.UseNonce && !NonceReceived) {
+                ResponseErrors |= TspValidationErrorStatus.MissingNonce;
+            }
+            if (request.UseNonce && NonceReceived) {
+                Byte[] reqNonce = request.GetNonceBytes();
+                Byte[] rspNonce = GetNonceBytes();
+                if (reqNonce.Intersect(rspNonce).Count() != rspNonce.Length) {
+                    ResponseErrors |= TspValidationErrorStatus.NonceMismatch;
+                }
+            }
+        }
+        void validateChain() {
+            var chain = new X509Chain {
+                ChainPolicy = {
+                    VerificationTime = GenerationTimestamp
+                }
+            };
+            chain.ChainPolicy.ApplicationPolicy.Add(new Oid(TSP_OID));
+            chain.ChainPolicy.ExtraStore.AddRange(signedCms.Certificates);
+            chain.Build(signedCms.Certificates[0]);
+            ChainErrors = chain.ChainStatus[0].Status;
+            if ((ChainErrors & X509ChainStatusFlags.NotValidForUsage) > 0) {
+                ResponseErrors |= TspValidationErrorStatus.SignerNotValidForUsage;
+            }
+        }
+        void validateSignature() {
+            if (!signedCms.CheckSignature(true, false)) {
+                ResponseErrors |= TspValidationErrorStatus.SignatureMismatch;
             }
         }
 
@@ -181,6 +228,20 @@ namespace SysadminsLV.PKI.Cryptography {
             return signedCms == null
                 ? null
                 : new DefaultSignedPkcs7(signedCms.RawData);
+        }
+
+        /// <summary>
+        /// Validates nonce in request and response.
+        /// </summary>
+        /// <param name="request">Request against which this response was produced.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>request</strong> parameter is null.
+        /// </exception>
+        public void ValidateNonce(TspRequest request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            validateNonce(request);
         }
     }
 }
