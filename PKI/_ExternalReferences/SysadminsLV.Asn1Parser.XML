@@ -421,6 +421,14 @@
                 ASN.1-encoded byte array.
             </returns>
         </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.GetRawData">
+            <summary>
+            Gets a raw data of the current state of the builder.
+            </summary>
+            <returns>
+            Raw data.
+            </returns>
+        </member>
         <member name="T:SysadminsLV.Asn1Parser.Asn1Class">
             <summary>
             Defines ASN.1 tagging classes.
