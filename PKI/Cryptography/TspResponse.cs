@@ -11,10 +11,18 @@ using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
-    /// Represents a RFC 3161 implementation of Time-Stamp Protocol response.
+    /// Represents a <see href="https://tools.ietf.org/html/rfc3161">RFC 3161</see> implementation of Time-Stamp Protocol response.
     /// </summary>
+    /// <remarks>
+    ///     This class has full support of <see href="https://tools.ietf.org/html/rfc3161">RFC 3161</see> response format returned when
+    ///     using <see cref="TspRfc3161Request"/> Time-Stamp request format. Using other time-Stamp requests, Time-Stamp  Authority (TSA)
+    ///     may respond with other encapsulated data. In this case, only <see cref="Status"/>, <see cref="ResponseType"/>,
+    ///     <see cref="GenerationTimestamp"/> and <see cref="RawData"/> properties are presented. Other properties have their default value
+    ///     and <see cref="RequestMessage"/> is null.
+    /// </remarks>
     public class TspResponse {
         const String TSP_OID = "1.3.6.1.5.5.7.3.8";
+        const String SIGNING_TIME = "1.2.840.113549.1.9.5";
         readonly IList<X509Extension> _extensions = new List<X509Extension>();
         readonly List<Byte> _rawData = new List<Byte>();
         readonly X509AlternativeNameCollection _tsaName = new X509AlternativeNameCollection();
@@ -40,9 +48,9 @@ namespace SysadminsLV.PKI.Cryptography {
         /// <summary>
         /// Gets the status of Time-Stamp Response and additional information if error occured.
         /// </summary>
-        public TspStatusInfo Status { get; private set; }
+        public TspStatusInfo Status { get; private set; } = new TspStatusInfo();
         /// <summary>
-        /// Gets the response type. This value shall be Time-Stamp Token Info (1.2.840.113549.1.9.16.1.4).
+        /// Gets the response type. This value is Time-Stamp Token Info (1.2.840.113549.1.9.16.1.4) or PKCS 7 Data (1.2.840.113549.1.7.1).
         /// </summary>
         public Oid ResponseType { get; private set; }
         /// <summary>
@@ -114,16 +122,37 @@ namespace SysadminsLV.PKI.Cryptography {
         public Byte[] RawData => _rawData.ToArray();
 
         void decodeCms(Asn1Reader asn) {
-            asn.MoveNextAndExpectTags(48);
-            Status = new TspStatusInfo(asn.GetTagRawData());
-            if (Status.ResponseStatus != TspResponseStatus.Granted && Status.ResponseStatus != TspResponseStatus.GrantedWithModifications) {
-                return;
+            asn.MoveNextAndExpectTags(48, (Byte)Asn1Type.OBJECT_IDENTIFIER);
+            if (asn.Tag == 48) {
+                Status = new TspStatusInfo(asn.GetTagRawData());
+                if (Status.ResponseStatus != TspResponseStatus.Granted && Status.ResponseStatus != TspResponseStatus.GrantedWithModifications) {
+                    return;
+                }
+                asn.MoveNextCurrentLevelAndExpectTags(48);
+            } else {
+                asn.MoveToPosition(0);
             }
-            asn.MoveNextCurrentLevelAndExpectTags(48);
             signedCms = new DefaultSignedPkcs7(asn.GetTagRawData());
+
             ResponseType = signedCms.ContentType;
-            decodeTstInfo(new Asn1Reader(signedCms.Content));
+            switch (ResponseType.Value) {
+                // TimeStamp Token
+                case "1.2.840.113549.1.9.16.1.4":
+                    decodeTstInfo(new Asn1Reader(signedCms.Content));
+                    break;
+                // PKCS 7 DATA
+                case "1.2.840.113549.1.7.1":
+                    break;
+            }
+            getSigningTime();
             _rawData.AddRange(asn.RawData);
+            validate();
+        }
+        void getSigningTime() {
+            var timeAttr = signedCms.SignerInfos[0].AuthenticatedAttributes[SIGNING_TIME];
+            if (timeAttr != null) {
+                GenerationTimestamp = Asn1Utils.DecodeDateTime(timeAttr.RawData);
+            }
         }
         void decodeTstInfo(Asn1Reader asn) {
             asn.MoveNextAndExpectTags((Byte)Asn1Type.INTEGER);
@@ -169,13 +198,17 @@ namespace SysadminsLV.PKI.Cryptography {
             }
         }
         void validate() {
-            if (signedCms == null || signedCms.Certificates.Count == 0) {
+            if (signedCms == null) {
                 ResponseErrors |= TspValidationErrorStatus.NoResponse;
+                return;
+            }
+            if (signedCms.Certificates.Count == 0) {
+                ResponseErrors |= TspValidationErrorStatus.MissingSigningCertificate;
             }
             validateChain();
             validateSignature();
         }
-        void validateNonce(TspRequest request) {
+        void validateNonce(TspRfc3161Request request) {
             if (request.UseNonce && !NonceReceived) {
                 ResponseErrors |= TspValidationErrorStatus.MissingNonce;
             }
@@ -195,10 +228,12 @@ namespace SysadminsLV.PKI.Cryptography {
             };
             chain.ChainPolicy.ApplicationPolicy.Add(new Oid(TSP_OID));
             chain.ChainPolicy.ExtraStore.AddRange(signedCms.Certificates);
-            chain.Build(signedCms.Certificates[0]);
-            ChainErrors = chain.ChainStatus[0].Status;
-            if ((ChainErrors & X509ChainStatusFlags.NotValidForUsage) > 0) {
-                ResponseErrors |= TspValidationErrorStatus.SignerNotValidForUsage;
+            Boolean status = chain.Build(signedCms.Certificates[0]);
+            if (!status) {
+                ChainErrors = chain.ChainElements[0].ChainElementStatus[0].Status;
+                if ((ChainErrors & X509ChainStatusFlags.NotValidForUsage) > 0) {
+                    ResponseErrors |= TspValidationErrorStatus.SignerNotValidForUsage;
+                }
             }
         }
         void validateSignature() {
@@ -213,6 +248,9 @@ namespace SysadminsLV.PKI.Cryptography {
         /// <returns>
         /// A 16-byte long random byte array if nonce is received or 0-byte long array if nonce is not present.
         /// </returns>
+        /// <remarks>
+        /// If response does not contain nonce (<see cref="NonceReceived"/> is set to <strong>False</strong>), an empty array is returned.
+        /// </remarks>
         public Byte[] GetNonceBytes() {
             return nonce == default
                 ? new Byte[0]
@@ -237,7 +275,8 @@ namespace SysadminsLV.PKI.Cryptography {
         /// <exception cref="ArgumentNullException">
         /// <strong>request</strong> parameter is null.
         /// </exception>
-        public void ValidateNonce(TspRequest request) {
+        /// <remarks>Nonce validation failure is added to <see cref="ResponseErrors"/> property.</remarks>
+        public void ValidateNonce(TspRfc3161Request request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }

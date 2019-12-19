@@ -82,12 +82,15 @@
     <Compile Include="Cryptography\Pkcs\PkcsSignerInfoBuilder.cs" />
     <Compile Include="Cryptography\Pkcs\PkcsSignerInfoCollection.cs" />
     <Compile Include="Cryptography\Pkcs\SignedCmsBuilder.cs" />
+    <Compile Include="Cryptography\TspAuthenticodeRequest.cs" />
     <Compile Include="Cryptography\TspFailureStatus.cs" />
     <Compile Include="Cryptography\TspMessageImprint.cs" />
     <Compile Include="Cryptography\TspRequest.cs" />
     <Compile Include="Cryptography\TspResponse.cs" />
     <Compile Include="Cryptography\TspResponseStatus.cs" />
+    <Compile Include="Cryptography\TspRfc3161Request.cs" />
     <Compile Include="Cryptography\TspStatusInfo.cs" />
+    <Compile Include="Cryptography\TspValidationStatus.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustList.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CRL2Collection.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntryCollection.cs" />
@@ -225,7 +228,7 @@
     <Compile Include="Cryptography\Pkcs\ContentInfo2.cs" />
     <Compile Include="Cryptography\Pkcs\PKCS7SignedMessage.cs" />
     <Compile Include="Cryptography\Pkcs\PkcsSignerInfo.cs" />
-    <Compile Include="Cryptography\Pkcs\SubjectIdentifier2.cs" />
+    <Compile Include="Cryptography\Pkcs\PkcsSubjectIdentifier.cs" />
     <Compile Include="Cryptography\Pkcs\X509IssuerSerial.cs" />
     <Compile Include="Cryptography\X509Certificates\X509IssuerAlternativeNamesExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509AlternativeNameCollection.cs" />

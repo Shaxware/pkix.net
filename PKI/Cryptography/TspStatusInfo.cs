@@ -8,6 +8,9 @@ namespace SysadminsLV.PKI.Cryptography {
     /// Represents Time-Stamp Response status information.
     /// </summary>
     public class TspStatusInfo {
+        internal TspStatusInfo() {
+            
+        }
         internal TspStatusInfo(Byte[] rawData) {
             decode(new Asn1Reader(rawData));
         }

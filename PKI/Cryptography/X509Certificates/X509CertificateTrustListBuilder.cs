@@ -7,7 +7,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
-using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography.Pkcs;
 using SysadminsLV.PKI.Tools.MessageOperations;
 
@@ -16,7 +15,36 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// Contains properties and methods used to create and sign X.509 certificate trust list.
     /// </summary>
     public class X509CertificateTrustListBuilder {
-        readonly Oid oid = new Oid("1.3.6.1.4.1.311.10.1");
+        const String CTL_CONTENT_TYPE = "1.3.6.1.4.1.311.10.1";
+        readonly Oid oid = new Oid(CTL_CONTENT_TYPE);
+
+        /// <summary>
+        /// Initializes a new instance of <strong>X509CertificateTrustListBuilder</strong>
+        /// </summary>
+        public X509CertificateTrustListBuilder() { }
+
+        /// <summary>
+        /// Initializes a new instance of <strong>X509CertificateTrustListBuilder</strong> from existing trust list. All data from existing
+        /// list is copied to builder.
+        /// </summary>
+        /// <param name="ctl">Existing trust list to use as a base object.</param>
+        /// <exception cref="ArgumentNullException">
+        ///     <strong>ctl</strong> parameter is null.
+        /// </exception>
+        public X509CertificateTrustListBuilder(X509CertificateTrustList ctl) {
+            if (ctl == null) {
+                throw new ArgumentNullException(nameof(ctl));
+            }
+            ListIdentifier = ctl.ListIdentifier;
+            SequenceNumber = ctl.GetSequenceNumber();
+            foreach (Oid usage in ctl.SubjectUsage) {
+                SubjectUsages.Add(usage);
+            }
+            Entries.AddRange(ctl.Entries);
+            HashAlgorithm = ctl.SubjectAlgorithm;
+            ThisUpdate = ctl.ThisUpdate;
+            NextUpdate = ctl.NextUpdate;
+        }
 
         /// <summary>
         /// Gets or sets the trust list identifier. Often, it is a friendly name of the list.
@@ -30,7 +58,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// Gets a list that identifies the intended usage of the list as a sequence of object identifiers. This is the same as in
         /// the Enhanced Key Usage extension.
         /// </summary>
-        public OidCollection ListUsages { get; } = new OidCollection();
+        public OidCollection SubjectUsages { get; } = new OidCollection();
         /// <summary>
         /// Gets a collection of trust list entries associated with trust list.
         /// </summary>
@@ -49,20 +77,22 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         public DateTime? NextUpdate { get; set; }
 
         Byte[] encodeCTL() {
-            var rawData = new List<Byte>(new X509EnhancedKeyUsageExtension(ListUsages, false).RawData);
+            var builder = new Asn1Builder()
+                .AddDerData(new X509EnhancedKeyUsageExtension(SubjectUsages, false).RawData);
+            var rawData = new List<Byte>(new X509EnhancedKeyUsageExtension(SubjectUsages, false).RawData);
             if (!String.IsNullOrEmpty(ListIdentifier)) {
-                rawData.AddRange(Asn1Utils.Encode(Encoding.Unicode.GetBytes(ListIdentifier + "\0"), (Byte)Asn1Type.OCTET_STRING));
+                builder.AddOctetString(Encoding.Unicode.GetBytes(ListIdentifier + "\0"));
             }
             if (SequenceNumber != null) {
-                rawData.AddRange(new Asn1Integer((BigInteger)SequenceNumber).RawData);
+                builder.AddInteger(SequenceNumber.Value);
             }
-            rawData.AddRange(Asn1Utils.EncodeDateTime(ThisUpdate.ToUniversalTime()));
+            builder.AddDerData(Asn1Utils.EncodeDateTime(ThisUpdate.ToUniversalTime()));
             if (NextUpdate != null) {
-                rawData.AddRange(Asn1Utils.EncodeDateTime((DateTime)NextUpdate));
+                builder.AddDerData(Asn1Utils.EncodeDateTime(NextUpdate.Value.ToUniversalTime()));
             }
-            rawData.AddRange(new AlgorithmIdentifier(HashAlgorithm, new Byte[0]).RawData);
-            rawData.AddRange(Entries.Encode());
-            return rawData.ToArray();
+            return builder.AddDerData(new AlgorithmIdentifier(HashAlgorithm, new Byte[0]).RawData)
+                .AddDerData(Entries.Encode())
+                .GetRawData();
         }
 
 

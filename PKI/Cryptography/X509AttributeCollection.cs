@@ -54,7 +54,7 @@ namespace System.Security.Cryptography {
         /// Encodes current collection to an ASN.1-encoded byte array.
         /// </summary>
         /// <returns></returns>
-        public Byte[] Encode(Byte enclosingType = 48) {
+        public Byte[] Encode() {
             if (Count == 0) {
                 return new Byte[0];
             }
@@ -63,7 +63,7 @@ namespace System.Security.Cryptography {
                 rawData.AddRange(attribute.Encode());
             }
 
-            return Asn1Utils.Encode(rawData.ToArray(), enclosingType);
+            return Asn1Utils.Encode(rawData.ToArray(), 0x30);
         }
     }
 }

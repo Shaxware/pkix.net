@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
+using SysadminsLV.PKI.Tools.MessageOperations;
 
 namespace SysadminsLV.PKI.Cryptography.Pkcs {
     /*
@@ -24,6 +26,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
     /// <typeparam name="T">Any reference type that represents the contents of signed message.</typeparam>
     /// <remarks>This class is <strong>abstract</strong> and cannot be instantiated.</remarks>
     public abstract class SignedPkcs7<T> where T : class {
+        const String MESSAGE_DIGEST = "1.2.840.113549.1.9.4";
         readonly List<AlgorithmIdentifier> _digestAlgorithms = new List<AlgorithmIdentifier>();
         readonly IList<X509Certificate2> _certificates = new List<X509Certificate2>();
         readonly List<X509CRL2> _crls = new List<X509CRL2>();
@@ -37,11 +40,14 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// Initializes a new instance of <strong>SignedPkcs7</strong> message from ASN.1-encoded PKCS# signed message.
         /// </summary>
         /// <param name="rawData">ASN.1-encoded byte array that represent PKCS# signed message</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>rawData</strong> parameter is null.
+        /// </exception>
         protected SignedPkcs7(Byte[] rawData) {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
-            decode(new Asn1Reader(rawData));
+            DecodeCms(new Asn1Reader(rawData));
         }
 
         /// <summary>
@@ -78,7 +84,8 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// </summary>
         public Byte[] RawData => _rawData.ToArray();
 
-        void decode(Asn1Reader asn) {
+        protected void DecodeCms(Asn1Reader asn) {
+            reset();
             asn.MoveNext();
             ContentType = new Asn1ObjectIdentifier(asn).Value;
             asn.MoveNextAndExpectTags(0xa0); // [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL, 0xa0
@@ -106,6 +113,13 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             }
             _rawData.AddRange(asn.RawData);
             DecodeContent(content);
+        }
+        void reset() {
+            _rawData.Clear();
+            _digestAlgorithms.Clear();
+            _certificates.Clear();
+            _crls.Clear();
+            _signerInfos.Clear();
         }
         void decodeDigestAlgorithms(Asn1Reader asn) {
             // asn tag -> SET (0x31)
@@ -171,8 +185,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             }
         }
         Byte[] getHashValue(PkcsSignerInfo signerInfo) {
-            // Message Digest
-            X509Attribute attr = signerInfo.AuthenticatedAttributes.FirstOrDefault(x => x.Oid.Value == "1.2.840.113549.1.9.4");
+            X509Attribute attr = signerInfo.AuthenticatedAttributes[MESSAGE_DIGEST];
             if (attr == null) {
                 return null;
             }
@@ -192,6 +205,50 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             }
             Byte[] hash = calculateHash(signerInfo.HashAlgorithm.AlgorithmId);
             return compareHashes(hashValue, hash);
+        }
+        Boolean checkSingleSignature(PkcsSignerInfo signerInfo, Boolean validOnly) {
+            X509Certificate2Collection certs;
+            X509Certificate2 signerCert = null;
+
+            switch (signerInfo.Issuer.Type) {
+                case SubjectIdentifierType.IssuerAndSerialNumber:
+                    var issuerAndSerial = (X509IssuerSerial)signerInfo.Issuer.Value;
+                    certs = Certificates.Find(X509FindType.FindBySerialNumber, issuerAndSerial.SerialNumber, validOnly);
+                    certs = certs.Find(X509FindType.FindByIssuerDistinguishedName, issuerAndSerial.Issuer, validOnly);
+                    if (certs.Count > 0) {
+                        signerCert = certs[0];
+                    }
+                    break;
+                case SubjectIdentifierType.SubjectKeyIdentifier:
+                    String si = signerInfo.Issuer.Value.ToString();
+                    certs = Certificates.Find(X509FindType.FindBySubjectKeyIdentifier, si, true);
+                    if (certs.Count > 0) {
+                        signerCert = certs[0];
+                    }
+                    break;
+                case SubjectIdentifierType.NoSignature:
+                    return checkSingleHash(signerInfo);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            // return False if we can't find signer certificate.
+            if (signerCert == null) {
+                return false;
+            }
+
+            // if hash check passed, do hash signature validation.
+            var signer = new MessageSigner(signerCert, new Oid2(signerInfo.HashAlgorithm.AlgorithmId, false));
+            Byte[] data = signerInfo.AuthenticatedAttributes.Encode();
+            data[0] = 0x31;
+            if (validOnly) {
+                return signer.VerifyData(data, signerInfo.EncryptedHash) && checkCertChain(signerCert);
+            }
+            return signer.VerifyData(data, signerInfo.EncryptedHash);
+        }
+        Boolean checkCertChain(X509Certificate2 cert) {
+            var chain = new X509Chain();
+            chain.ChainPolicy.ExtraStore.AddRange(Certificates);
+            return chain.Build(cert);
         }
 
         /// <summary>
@@ -244,13 +301,23 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         ///     one signer, or any signer has absent signature value to validate, the method will return <strong>false</strong>.
         ///     </para>
         /// </remarks>
-        Boolean CheckSignature(Boolean checkSignatureOnly, Boolean checkAll) {
-            return false;
+        public Boolean CheckSignature(Boolean checkSignatureOnly, Boolean checkAll) {
+            if (_signerInfos.Count == 0) {
+                return false;
+            }
+            return checkAll
+                ? _signerInfos.All(x => checkSingleSignature(x, !checkSignatureOnly))
+                : _signerInfos.Any(x => checkSingleSignature(x, !checkSignatureOnly));
         }
-        Boolean CheckSignature(X509Certificate2 signingCert, X509Certificate2Collection chain, Boolean checkSignatureOnly) {
-            return false;
+        /// <summary>
+        /// Returns an instance of <see cref="SignedCms"/> provided by .NET Framework.
+        /// </summary>
+        /// <returns>an instance of <see cref="SignedCms"/> that represents current object.</returns>
+        public SignedCms GetSignedCms() {
+            var cms = new SignedCms();
+            cms.Decode(_rawData.ToArray());
+            return cms;
         }
-        
         /// <summary>
         /// Implementers use this method to decode content of the signed message and set it in
         /// <see cref="Content"/> member.

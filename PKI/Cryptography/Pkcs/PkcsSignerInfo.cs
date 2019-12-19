@@ -84,7 +84,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// <summary>
         ///		Gets the certificate identifier of the signer associated with the signer information.
         /// </summary>
-        public SubjectIdentifier2 Issuer { get; private set; }
+        public PkcsSubjectIdentifier Issuer { get; private set; }
         /// <summary>
         ///		Gets the signing certificate associated with the signer information.
         /// </summary>
@@ -124,7 +124,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             asn.MoveNext();
             Version = (Int32)Asn1Utils.DecodeInteger(asn.GetTagRawData());
             asn.MoveNextCurrentLevel();
-            Issuer = new SubjectIdentifier2(asn.GetTagRawData());
+            Issuer = new PkcsSubjectIdentifier(asn.GetTagRawData());
             asn.MoveNextCurrentLevel();
             HashAlgorithm = new AlgorithmIdentifier(asn.GetTagRawData());
             asn.MoveNextCurrentLevel();

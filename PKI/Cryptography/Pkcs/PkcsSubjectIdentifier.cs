@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
+using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 
 namespace SysadminsLV.PKI.Cryptography.Pkcs {
@@ -11,10 +12,21 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
     /// or the subject key.
     /// </summary>
     /// <remarks>This class is a replacement for for a .NET native <see cref="SubjectIdentifier"/> class.</remarks>
-    public sealed class SubjectIdentifier2 {
+    public sealed class PkcsSubjectIdentifier {
         readonly List<Byte> _rawData = new List<Byte>();
 
-        public SubjectIdentifier2(X509Certificate2 certificate, SubjectIdentifierType subjectType) {
+        /// <summary>
+        /// Initializes a new instance of <strong>PkcsSubjectIdentifier</strong> class using signer certificate and type how this certificate
+        /// is referenced in signer information of <see cref="PkcsSignerInfo"/> object.
+        /// </summary>
+        /// <param name="certificate">
+        /// A certificate used to sign data.
+        /// </param>
+        /// <param name="subjectType">A type how presented certificate will be referenced in <see cref="PkcsSignerInfo"/>.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>certificate</strong> parameter is null.
+        /// </exception>
+        public PkcsSubjectIdentifier(X509Certificate2 certificate, SubjectIdentifierType subjectType) {
             if (certificate == null) {
                 throw new ArgumentNullException(nameof(certificate));
             }
@@ -29,7 +41,7 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// <exception cref="ArgumentNullException">
         /// <strong>rawData</strong> parameter is <strong>null</strong>.
         /// </exception>
-        public SubjectIdentifier2(Byte[] rawData) {
+        public PkcsSubjectIdentifier(Byte[] rawData) {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
             }
@@ -104,10 +116,19 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// </para>
         /// </summary>
         public Object Value { get; private set; }
+        /// <summary>
+        /// Gets the raw data associated with the current object.
+        /// </summary>
+        public Byte[] RawData => _rawData.ToArray();
 
         void encode(X509Certificate2 certificate) {
             switch (Type) {
                 case SubjectIdentifierType.SubjectKeyIdentifier:
+                    if (certificate.Extensions[X509CertExtensions.X509SubjectKeyIdentifier] is X509SubjectKeyIdentifierExtension ski) {
+                        Value = ski.SubjectKeyIdentifier;
+                    } else {
+                        throw new ArgumentException("Specified certificate does not contain X.509 Subject Key Identifier extension.");
+                    }
                     break;
                 case SubjectIdentifierType.IssuerAndSerialNumber:
                     Value = new X509IssuerSerial(certificate.SubjectName, certificate.SerialNumber);
