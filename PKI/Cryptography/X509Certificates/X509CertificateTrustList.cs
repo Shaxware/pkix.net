@@ -17,11 +17,11 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// Represents a Microsoft Certificate Trust List (CTL) object.
     /// </summary>
     public class X509CertificateTrustList : IDisposable {
-        readonly Oid ctlOid                            = new Oid("1.3.6.1.4.1.311.10.1");
-        readonly List<Oid> _usages                     = new List<Oid>();
+        readonly Oid ctlOid = new Oid("1.3.6.1.4.1.311.10.1");
+        readonly List<Oid> _usages = new List<Oid>();
         readonly X509CertificateTrustListEntryCollection _entries = new X509CertificateTrustListEntryCollection();
-        readonly List<X509Extension> _extensions       = new List<X509Extension>();
-        readonly List<Byte> _rawData                   = new List<Byte>();
+        readonly List<X509Extension> _extensions = new List<X509Extension>();
+        readonly List<Byte> _rawData = new List<Byte>();
 
         DefaultSignedPkcs7 cms;
         SafeCTLHandleContext ctx;
@@ -116,7 +116,15 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// </summary>
         public Byte[] RawData => _rawData.ToArray();
 
+        void reset() {
+            _usages.Clear();
+            _entries.Clear();
+            _extensions.Clear();
+            _rawData.Clear();
+            sequenceNumber = null;
+        }
         void decode(Byte[] rawData) {
+            reset();
             _rawData.AddRange(rawData);
             cms = new DefaultSignedPkcs7(rawData);
             if (cms.ContentType.Value != ctlOid.Value) {
@@ -203,14 +211,14 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                 }
                 var certList = new X509Certificate2Collection();
                 certList.AddRange(cms.Certificates);
-                foreach (StoreName storeName in new [] {StoreName.Root, StoreName.CertificateAuthority, StoreName.AuthRoot}) {
+                foreach (StoreName storeName in new[] { StoreName.Root, StoreName.CertificateAuthority, StoreName.AuthRoot }) {
                     var store = new X509Store(storeName, StoreLocation.CurrentUser);
                     store.Open(OpenFlags.ReadOnly);
                     certList.AddRange(store.Certificates);
                     store.Close();
                 }
                 foreach (X509Certificate2 cmsCert in certList) {
-                    String hashString = AsnFormatter.BinaryToString(hasher.ComputeHash(cmsCert.RawData), format:EncodingFormat.NOCRLF);
+                    String hashString = AsnFormatter.BinaryToString(hasher.ComputeHash(cmsCert.RawData), format: EncodingFormat.NOCRLF);
                     if (hashList.ContainsKey(hashString)) {
                         continue;
                     }
@@ -227,9 +235,32 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             }
         }
         void processCertificates() {
-            
+
         }
 
+        /// <summary>
+        /// Timestamps the specified signature using external Time-Stamp Authority.
+        /// </summary>
+        /// <param name="tsaUrl">
+        ///     An URL to a Time-Stamp Authority.
+        /// </param>
+        /// <param name="hashAlgorithm">
+        ///     Hash algorithm to use by TSA to sign response.
+        /// </param>
+        /// <param name="signerInfoIndex">
+        ///     A zero-based index of signature to timestamp. Default value is 0.
+        /// </param>
+        /// <remarks>This method adds an RFC3161 Counter Signature.</remarks>
+        public void AddTimestamp(String tsaUrl, Oid hashAlgorithm, Int32 signerInfoIndex = 0) {
+            var tspReq = new TspRfc3161Request(hashAlgorithm, cms.SignerInfos[signerInfoIndex].EncryptedHash) {
+                TsaUrl = new Uri(tsaUrl)
+            };
+            TspResponse rsp = tspReq.SendRequest();
+
+            var builder = new SignedCmsBuilder(cms);
+            builder.AddTimestamp(rsp, 0);
+            decode(builder.Encode().RawData);
+        }
         /// <summary>
         /// Gets the sequence number as integral value.
         /// </summary>
