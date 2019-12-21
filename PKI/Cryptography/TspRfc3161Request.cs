@@ -10,6 +10,9 @@ using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace SysadminsLV.PKI.Cryptography {
+    /// <summary>
+    /// Represents an <see href="https://tools.ietf.org/html/rfc3161">RFC 3161</see> Time-Stamp Protocol request message.
+    /// </summary>
     public class TspRfc3161Request : TspRequest {
         const String RFC_3161_TIMESTAMP_REQUEST = "1.2.840.113549.1.9.16.1.4";
         readonly IList<X509Extension> _extensions = new List<X509Extension>();
@@ -39,6 +42,16 @@ namespace SysadminsLV.PKI.Cryptography {
             }
             initialize(hashAlgorithm, data);
         }
+        /// <summary>
+        ///     Initializes a new instance of <strong>TspRequest</strong> from ASN.1-encoded byte array.
+        /// </summary>
+        /// <param name="rawData">
+        ///     ASN.1-encoded byte array that represents an <see href="https://tools.ietf.org/html/rfc3161">RFC 3161</see> Time-Stamp
+        ///     Protocol request message
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     <strong>rawData</strong> parameter is null.
+        /// </exception>
         public TspRfc3161Request(Byte[] rawData) : base(new Oid(RFC_3161_TIMESTAMP_REQUEST)) {
             if (rawData == null) {
                 throw new ArgumentNullException(nameof(rawData));
@@ -66,6 +79,12 @@ namespace SysadminsLV.PKI.Cryptography {
         /// <para>When presented, same nonce value must be returned by TSA server.</para>
         /// </remarks>
         public Boolean UseNonce { get; set; }
+        /// <summary>
+        /// Indicates whether the TSA's public key certificate that is referenced by the ESSCertID
+        /// (<see href="https://tools.ietf.org/html/rfc2634">RFC 2634</see>) field inside a SigningCertificate attribute or by the ESSCertIDv2
+        /// (<see href="https://tools.ietf.org/html/rfc5035">RFC 5035</see>) field inside a SigningCertificateV2 attribute in the response MUST be provided by the
+        /// TSA in the certificates field from the SignedData structure in that response.
+        /// </summary>
         public Boolean RequestCertificates { get; set; }
         /// <summary>
         /// Gets a collection of optional extensions associated with the current TSP request.
@@ -111,6 +130,7 @@ namespace SysadminsLV.PKI.Cryptography {
             }
         }
 
+        /// <inheritdoc />
         public override Byte[] Encode() {
             var builder = new Asn1Builder()
                 .AddInteger(Version)

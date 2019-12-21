@@ -4,8 +4,15 @@ using System.Reflection;
 using System.Security.Cryptography;
 
 namespace SysadminsLV.PKI.Cryptography {
+    /// <summary>
+    /// Provides an abstract class that represents a Time-Stamp Request object.
+    /// </summary>
     public abstract class TspRequest {
 
+        /// <summary>
+        /// Initializes a new instance of <strong>TspRequest</strong> from an object identifier that specifies the request type.
+        /// </summary>
+        /// <param name="requestType"></param>
         protected TspRequest(Oid requestType) {
             RequestType = requestType;
         }
@@ -32,6 +39,10 @@ namespace SysadminsLV.PKI.Cryptography {
 
 
         
+        /// <summary>
+        /// Adds required headers to web client.
+        /// </summary>
+        /// <param name="wc">Web client instance.</param>
         protected static void PrepareWebClient(WebClient wc) {
             Version ver = Assembly.GetExecutingAssembly().GetName().Version;
             wc.Headers.Add("Content-Type", "application/timestamp-query");

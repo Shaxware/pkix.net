@@ -1,4 +1,7 @@
 ﻿namespace SysadminsLV.PKI.Cryptography {
+    /// <summary>
+    /// Contains values that represent nonce status. Nonce is often used in Time-Stamp Protocol (TSP), Online Certificate Status Protocol (OCSP).
+    /// </summary>
     public enum NonceStatus {
         /// <summary>
         /// Nonce information is not available.

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using SysadminsLV.Asn1Parser;
 
 namespace SysadminsLV.PKI.Cryptography.Pkcs {
+    /// <summary>
+    /// Represents a strongly-typed collection of <see cref="PkcsSignerInfo"/> objects.
+    /// </summary>
     public class PkcsSignerInfoCollection : BasicCollection<PkcsSignerInfo> {
         /// <summary>
         /// Initializes a new instance of the <see cref="PkcsSignerInfoCollection"/> class without any <see cref="PkcsSignerInfo"/> information.

@@ -84,6 +84,10 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
         /// </summary>
         public Byte[] RawData => _rawData.ToArray();
 
+        /// <summary>
+        /// Decodes cms from ASN reader.
+        /// </summary>
+        /// <param name="asn">An instance of ASN.1 reader that contains signed PKCS#7 data.</param>
         protected void DecodeCms(Asn1Reader asn) {
             reset();
             asn.MoveNext();

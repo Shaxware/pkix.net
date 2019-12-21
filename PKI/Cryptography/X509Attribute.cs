@@ -252,13 +252,15 @@ namespace System.Security.Cryptography {
             return base.Format(multiLine);
         }
 
+        /// <inheritdoc />
         public override Boolean Equals(Object obj) {
-            return Equals(obj as X509Attribute);
+            return equals(obj as X509Attribute);
 
         }
-        protected Boolean Equals(X509Attribute other) {
+        Boolean equals(X509Attribute other) {
             return other != null && (ReferenceEquals(this, other) || other.Oid.Value == Oid.Value);
         }
+        /// <inheritdoc />
         public override Int32 GetHashCode() {
             return Oid.Value.GetHashCode();
         }
