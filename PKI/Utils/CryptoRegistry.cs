@@ -1,8 +1,8 @@
-﻿using CERTADMINLib;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using CERTADMINLib;
+using Microsoft.Win32;
 
 namespace PKI.Utils {
 	static class CryptoRegistry {
@@ -29,6 +29,7 @@ namespace PKI.Utils {
 		public static Boolean Ping(String computerName) {
 			try {
 				RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, computerName);
+				key.OpenSubKey(@"System\CurrentControlSet\Services\CertSvc\Configuration\", false);
 				key.Close();
 			} catch { return false; }
 			return true;
