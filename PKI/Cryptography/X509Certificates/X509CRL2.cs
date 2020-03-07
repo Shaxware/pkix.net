@@ -447,13 +447,26 @@ namespace System.Security.Cryptography.X509Certificates {
         /// Verifies whether the specified certificate is in the current revocation list.
         /// </summary>
         /// <param name="cert">Certificate to verify.</param>
-        /// <returns><strong>True</strong> if the specified certificate is presented in the CRL. Otherwise <strong>False</strong>.</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     <strong>cert</strong> parameter is null.
+        /// </exception>
+        /// <exception cref="UninitializedObjectException">
+        ///     An object is not initialized.
+        /// </exception>
+        /// <returns>
+        ///     <strong>True</strong> if the specified certificate is presented in the CRL. Otherwise <strong>False</strong>.
+        /// </returns>
         /// <remarks>This method do not check, whether the certificate was issued by the same issuer, as this CRL.</remarks>
-        /// <exception cref="UninitializedObjectException">An object is not initialized.</exception>
         public Boolean CertificateInCrl(X509Certificate2 cert) {
-            if (RawData == null) { throw new UninitializedObjectException(); }
-            if (RevokedCertificates == null || RevokedCertificates.Count < 1) { return false; }
-            //if (!GenericArray.CompareArray(IssuerName.RawData, cert.IssuerName.RawData)) { return false; }
+            if (cert == null) {
+                throw new ArgumentNullException(nameof(cert));
+            }
+            if (RawData == null) {
+                throw new UninitializedObjectException();
+            }
+            if (RevokedCertificates.Count < 1) {
+                return false;
+            }
             return RevokedCertificates[cert.SerialNumber] == null;
         }
         /// <summary>
