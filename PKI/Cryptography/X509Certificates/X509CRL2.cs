@@ -429,7 +429,7 @@ namespace System.Security.Cryptography.X509Certificates {
         ///		A potential issuer's certificate.
         /// </param>
         /// <param name="strict">
-        ///		Specifies whether to perform CRL issuer and certificate's subject name binary comparison.
+        ///		Specifies whether to perform CRL issuer and certificate's subject name binary comparison. This parameter is not implemented.
         /// </param>
         /// <exception cref="CryptographicException">
         /// 		The data is invalid.
