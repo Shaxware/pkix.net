@@ -222,12 +222,11 @@ namespace PKI.OCSP {
         }
         String prepareGetUrl() {
             String target = URL.OriginalString.Replace("\0", null);
-            if (target.EndsWith("/")) {
-                target += Uri.EscapeUriString(Convert.ToBase64String(RawData));
-            } else {
-                target += "/" + Uri.EscapeUriString(HttpUtility.UrlEncode(Convert.ToBase64String(RawData)));
+
+            if (!target.EndsWith("/")) {
+                target += "/";
             }
-            return target;
+            return target + HttpUtility.UrlEncode(Convert.ToBase64String(RawData));
         }
         void prepareWebClient(WebClient wc) {
             Version ver = Assembly.GetExecutingAssembly().GetName().Version;
