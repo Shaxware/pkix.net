@@ -4,7 +4,7 @@ using System.DirectoryServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using PKI.Exceptions;
-using PKI.Structs;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
     /// <summary>
@@ -29,7 +29,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 return true;
             }
             if (status && cert.Version == 3) {
-                var ext = (X509EnhancedKeyUsageExtension)cert.Extensions[X509CertExtensions.X509EnhancedKeyUsage];
+                var ext = (X509EnhancedKeyUsageExtension)cert.Extensions[X509ExtensionOid.X509EnhancedKeyUsage];
                 if (ext != null) {
                     foreach (Oid oid in ext.EnhancedKeyUsages) {
                         if (oid.Value == "1.3.6.1.4.1.311.21.6") {

@@ -91,6 +91,7 @@
     <Compile Include="Cryptography\TspRfc3161Request.cs" />
     <Compile Include="Cryptography\TspStatusInfo.cs" />
     <Compile Include="Cryptography\TspValidationStatus.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509CertExtensions.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustList.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CRL2Collection.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntryCollection.cs" />
@@ -167,8 +168,7 @@
     <Compile Include="Cryptography\CspProviderInfoCollection.cs" />
     <Compile Include="Cryptography\CspProviderInfo.cs" />
     <Compile Include="Structs\CertConfigConstants.cs" />
-    <Compile Include="Structs\AlgorithmOids.cs" />
-    <Compile Include="Structs\X509CertExtensions.cs" />
+    <Compile Include="Cryptography\AlgorithmOid.cs" />
     <Compile Include="Utils\CLRExtensions\PublicKeyExtensions.cs" />
     <Compile Include="Tools\MessageOperations\MessageSigner.cs" />
     <Compile Include="Utils\ServiceOperationResult.cs" />

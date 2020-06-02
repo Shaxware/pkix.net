@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using PKI.Cryptography;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
@@ -105,7 +106,7 @@ namespace SysadminsLV.PKI.Cryptography {
         /// <param name="signerInfo">Configured message signer object which is used to sign the data.</param>
         public void Sign(MessageSigner signerInfo) {
             var signature = signerInfo.SignData(ToBeSignedData).ToList();
-            if (signerInfo.PublicKeyAlgorithm.Value == AlgorithmOids.RSA) {
+            if (signerInfo.PublicKeyAlgorithm.Value == AlgorithmOid.RSA) {
                 signature.Insert(0, 0);
                 Signature = new Asn1BitString(Asn1Utils.Encode(signature.ToArray(), (Byte)Asn1Type.BIT_STRING));
             } else {

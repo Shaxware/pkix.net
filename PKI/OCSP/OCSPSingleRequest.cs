@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using PKI.Exceptions;
-using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace PKI.OCSP {
@@ -93,11 +93,11 @@ namespace PKI.OCSP {
         }
         void m_generateextensions(X509Certificate2 cert) {
             List<Byte> sext = new List<Byte>();
-            Oid oid = new Oid(X509CertExtensions.X509ServiceLocator);
+            Oid oid = new Oid(X509ExtensionOid.X509ServiceLocator);
 
             sext.AddRange(cert.IssuerName.RawData);
             if (cert.Extensions.Count > 0) {
-                X509Extension ext = cert.Extensions[X509CertExtensions.X509AuthorityInformationAccess];
+                X509Extension ext = cert.Extensions[X509ExtensionOid.X509AuthorityInformationAccess];
                 if (ext != null) {
                     sext.AddRange(ext.RawData);
                 }

@@ -8,10 +8,10 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Web;
 using PKI.Exceptions;
-using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Tools.MessageOperations;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
@@ -249,7 +249,7 @@ namespace PKI.OCSP {
         static Uri getOcspUrl(IEnumerable<X509Certificate2> certs) {
             foreach (X509Certificate2 cert in certs) {
                 if (cert.Handle.Equals(IntPtr.Zero)) { continue; }
-                X509Extension aiaExtension = cert.Extensions[X509CertExtensions.X509AuthorityInformationAccess];
+                X509Extension aiaExtension = cert.Extensions[X509ExtensionOid.X509AuthorityInformationAccess];
                 if (aiaExtension == null) { continue; }
                 X509AuthorityInformationAccessExtension aia = new X509AuthorityInformationAccessExtension(aiaExtension.RawData, false);
                 if (aia.OnlineCertificateStatusProtocol == null || aia.OnlineCertificateStatusProtocol.Length == 0) {

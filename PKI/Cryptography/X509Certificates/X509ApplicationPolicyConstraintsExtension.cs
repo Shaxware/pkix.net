@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -13,7 +13,7 @@ namespace System.Security.Cryptography.X509Certificates {
     /// in a path contain an acceptable policy identifier.
     /// </summary>
     public sealed class X509ApplicationPolicyConstraintsExtension : X509Extension {
-        readonly Oid _oid = new Oid(X509CertExtensions.X509ApplicationPolicyConstraints);
+        readonly Oid _oid = new Oid(X509ExtensionOid.X509ApplicationPolicyConstraints);
 
         /// <summary>
         /// Initializes a new instance of the <strong>X509ApplicationPolicyConstraintsExtension</strong> class from
@@ -22,7 +22,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <param name="constraints"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public X509ApplicationPolicyConstraintsExtension(AsnEncodedData constraints)
-            : base(new Oid(X509CertExtensions.X509ApplicationPolicyConstraints), constraints.RawData, true) {
+            : base(new Oid(X509ExtensionOid.X509ApplicationPolicyConstraints), constraints.RawData, true) {
             if (constraints == null) { throw new ArgumentNullException(nameof(constraints)); }
             m_decode(constraints.RawData);
         }

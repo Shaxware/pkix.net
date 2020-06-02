@@ -3,8 +3,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Tools.MessageOperations;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
@@ -123,7 +123,7 @@ namespace SysadminsLV.PKI.Cryptography.X509CertificateRequests {
             if (asn.PayloadLength == 0) { return; }
             do {
                 X509Attribute attribute = X509Attribute.Decode(asn.GetTagRawData());
-                if (attribute.Oid.Value == X509CertExtensions.X509CertificateExtensions) {
+                if (attribute.Oid.Value == X509ExtensionOid.X509CertificateExtensions) {
                     //Extensions
                     Extensions.Decode(attribute.RawData);
                 } else {

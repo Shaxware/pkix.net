@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace PKI.Structs {
+namespace SysadminsLV.PKI.Cryptography.X509Certificates {
     /// <summary>
     /// Contains OIDs for most commonly used X.509 certificate and certificate revocation list
     /// extensions.
     /// </summary>
     /// <remarks>Do not rely on this class until further notice. It is going to change at some point.</remarks>
-    public static class X509CertExtensions {
+    public static class X509ExtensionOid {
         public const String X509CertificateExtensions           = "1.2.840.113549.1.9.14";
         public const String X509CertTemplateInfoV2              = "1.3.6.1.4.1.311.20.2";
         public const String X509CAVersion                       = "1.3.6.1.4.1.311.21.1";

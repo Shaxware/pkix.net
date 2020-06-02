@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
@@ -9,10 +9,10 @@ namespace System.Security.Cryptography.X509Certificates {
     /// a certification authority to provide information about CRL publication location in Active Directory.
     /// </summary>
     public sealed class X509PublishedCrlLocationsExtension : X509Extension {
-        readonly Oid _oid = new Oid(X509CertExtensions.X509PublishedCrlLocations);
+        readonly Oid _oid = new Oid(X509ExtensionOid.X509PublishedCrlLocations);
 
         internal X509PublishedCrlLocationsExtension(Byte[] rawData, Boolean critical)
-            : base(X509CertExtensions.X509PublishedCrlLocations, rawData, critical) {
+            : base(X509ExtensionOid.X509PublishedCrlLocations, rawData, critical) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             m_decode(rawData);
         }

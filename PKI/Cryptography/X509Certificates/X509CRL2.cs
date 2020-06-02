@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Security.Permissions;
 using System.Text;
+using PKI.Cryptography.X509Certificates;
 using PKI.Exceptions;
 using PKI.ManagedAPI;
 using PKI.Structs;
@@ -214,10 +215,10 @@ namespace System.Security.Cryptography.X509Certificates {
         }
         void getExts(Asn1Reader asn) {
             Extensions.Decode(asn.GetPayload());
-            if (Extensions[X509CertExtensions.X509DeltaCRLIndicator] != null) {
+            if (Extensions[X509ExtensionOid.X509DeltaCRLIndicator] != null) {
                 Type = X509CrlType.DeltaCrl;
             }
-            var crlNumExt = (X509CRLNumberExtension)Extensions[X509CertExtensions.X509CRLNumber];
+            var crlNumExt = (X509CRLNumberExtension)Extensions[X509ExtensionOid.X509CRLNumber];
             CRLNumber = crlNumExt?.CRLNumber ?? 0;
         }
         void m_import(Byte[] rawData) {
@@ -493,7 +494,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="UninitializedObjectException">An object is not initialized.</exception>
         public BigInteger GetCRLNumber() {
             if (RawData == null) { throw new UninitializedObjectException(); }
-            X509Extension e = Extensions[X509CertExtensions.X509CRLNumber];
+            X509Extension e = Extensions[X509ExtensionOid.X509CRLNumber];
             return ((X509CRLNumberExtension)e)?.CRLNumber ?? 0;
         }
         /// <summary>
@@ -505,7 +506,7 @@ namespace System.Security.Cryptography.X509Certificates {
         public DateTime? GetNextPublish() {
             if (RawData == null) { throw new UninitializedObjectException(); }
             if (Extensions == null) { return NextUpdate; }
-            X509Extension e = Extensions[X509CertExtensions.X509NextCRLPublish];
+            X509Extension e = Extensions[X509ExtensionOid.X509NextCRLPublish];
             return e == null ? NextUpdate : Asn1Utils.DecodeDateTime(e.RawData);
         }
         /// <summary>
@@ -516,7 +517,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// <exception cref="UninitializedObjectException">An object is not initialized.</exception>
         public Boolean HasDelta() {
             if (RawData == null) { throw new UninitializedObjectException(); }
-            return Type != X509CrlType.DeltaCrl && Extensions[X509CertExtensions.X509FreshestCRL] != null;
+            return Type != X509CrlType.DeltaCrl && Extensions[X509ExtensionOid.X509FreshestCRL] != null;
         }
         /// <summary>
         /// Displays a X.509 Certificate Revocation List UI dialog.

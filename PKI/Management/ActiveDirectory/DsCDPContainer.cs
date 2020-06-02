@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Web;
+using PKI.Cryptography.X509Certificates;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.PKI.Cryptography.X509Certificates;
@@ -84,7 +85,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         }
         static String getHostName(String suggestedHostName, X509CRL2 crl) {
             if (String.IsNullOrWhiteSpace(suggestedHostName)) {
-                X509PublishedCrlLocationsExtension pubCrl = (X509PublishedCrlLocationsExtension)crl.Extensions[X509CertExtensions.X509PublishedCrlLocations];
+                X509PublishedCrlLocationsExtension pubCrl = (X509PublishedCrlLocationsExtension)crl.Extensions[X509ExtensionOid.X509PublishedCrlLocations];
                 if (pubCrl == null) {
                     throw new ArgumentException("Cannot find target location.");
                 }
@@ -98,7 +99,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             return suggestedHostName;
         }
         static String getEntryName(X509CRL2 crl) {
-            X509PublishedCrlLocationsExtension pubCrl = (X509PublishedCrlLocationsExtension)crl.Extensions[X509CertExtensions.X509PublishedCrlLocations];
+            X509PublishedCrlLocationsExtension pubCrl = (X509PublishedCrlLocationsExtension)crl.Extensions[X509ExtensionOid.X509PublishedCrlLocations];
             return pubCrl == null
                 ? getEntryNameFromIssuer(crl)
                 : getEntryNameFromUrl(pubCrl);
@@ -127,7 +128,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             else {
                 objectName = tokens[0].Value;
             }
-            var caVersion = (X509CAVersionExtension) crl.Extensions[X509CertExtensions.X509CAVersion];
+            var caVersion = (X509CAVersionExtension) crl.Extensions[X509ExtensionOid.X509CAVersion];
             if (caVersion == null || caVersion.CAKeyVersion < 1) {
                 return objectName;
             }

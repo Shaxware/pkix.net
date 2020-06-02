@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using PKI.Cryptography;
 using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.PKI.Cryptography.Pkcs;
@@ -66,7 +67,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// <summary>
         /// Gets or sets the hashing algorithm used to create trust list entries. Default algorithm is SHA1.
         /// </summary>
-        public Oid HashAlgorithm { get; set; } = new Oid(AlgorithmOids.SHA1);
+        public Oid HashAlgorithm { get; set; } = new Oid(AlgorithmOid.SHA1);
         /// <summary>
         /// Gets or sets the date and time when trust list validity begins. Default value is current date and time.
         /// </summary>
