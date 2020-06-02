@@ -129,6 +129,7 @@
     <Compile Include="Management\ActiveDirectory\DsPkiContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />
     <Compile Include="Management\CertificateServices\UrlProtocolSchemes.cs" />
+    <Compile Include="Utils\CLRExtensions\FileInfoExtensions.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbPropertyCollection.cs" />

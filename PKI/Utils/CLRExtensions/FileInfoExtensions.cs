@@ -6,7 +6,15 @@ using SysadminsLV.PKI.Cryptography.Pkcs;
 using SysadminsLV.PKI.Win32;
 
 namespace SysadminsLV.Utils.CLRExtensions {
+    /// <summary>
+    /// Contains extension methods for <see cref="FileInfo"/> class.
+    /// </summary>
     public static class FileInfoExtensions {
+        /// <summary>
+        /// Gets PKCS#7 signature object from authenticode-signed files. If file is not authenticode signed, method returns null.
+        /// </summary>
+        /// <param name="fileInfo">Instance of <see cref="FileInfo"/> class.</param>
+        /// <returns>PKCS#7 signature object.</returns>
         public static DefaultSignedPkcs7 GetSignatureObject(this FileInfo fileInfo) {
             if (!fileInfo.Exists) {
                 return null;
