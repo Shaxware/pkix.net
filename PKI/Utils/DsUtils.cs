@@ -66,6 +66,10 @@ namespace PKI.Utils {
                 ? Domain.GetComputerDomain().Forest.Name
                 : String.Empty;
         }
+        /// <summary>
+        /// Gets the current computer domain name
+        /// </summary>
+        /// <returns></returns>
         public static String GetCurrentDomainName() {
             return Ping()
                 ? Domain.GetComputerDomain().Name
