@@ -55,14 +55,17 @@ namespace PKI.Utils {
             }
         }
 
-        internal const Int32 FileNotFoundException = unchecked((Int32)0x80070002);
-        internal const Int32 AccessDeniedException = unchecked((Int32)0x80070005);
-        internal const Int32 InavlidHandleException = unchecked((Int32)0x80070006);
-        internal const Int32 InvalidDataException = unchecked((Int32)0x8007000d);
-        internal const Int32 InvalidParameterException = unchecked((Int32)0x80070057);
-        internal const Int32 AlreadyInitializedException = unchecked((Int32)0x800704df);
-        internal const Int32 InvalidCryptObjectException = unchecked((Int32)0x80092009);
-        internal const Int32 TemplateNotSupportedException = unchecked((Int32)0x80094800);
+        internal const Int32 FileNotFoundException           = unchecked((Int32)0x80070002);
+        internal const Int32 AccessDeniedException           = unchecked((Int32)0x80070005);
+        internal const Int32 InavlidHandleException          = unchecked((Int32)0x80070006);
+        internal const Int32 InvalidDataException            = unchecked((Int32)0x8007000d);
+        internal const Int32 InvalidParameterException       = unchecked((Int32)0x80070057);
+        internal const Int32 AlreadyInitializedException     = unchecked((Int32)0x800704df);
+        internal const Int32 RpcUnavailableException         = unchecked((Int32)0x800706ba);
+        internal const Int32 E_OBJECT_NOT_FOUND              = unchecked((Int32)0x800710D8);
+        internal const Int32 E_INVALID_STATE                 = unchecked((Int32)0x8007139f);
+        internal const Int32 InvalidCryptObjectException     = unchecked((Int32)0x80092009);
+        internal const Int32 TemplateNotSupportedException   = unchecked((Int32)0x80094800);
         //internal const Int32 TemplateNotSupportedException = unchecked((Int32)0x80094813);
 
         internal const String E_DCUNAVAILABLE = "Unable to contact any domain controller.";
