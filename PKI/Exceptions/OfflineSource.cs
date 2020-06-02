@@ -17,5 +17,9 @@ namespace PKI.Exceptions {
 		/// Identifies the remote registry access issue.
 		/// </summary>
 		Registry	= 2,
+		/// <summary>
+		/// Identifies the both, RPC/DCOM and remote registry communication issue.
+		/// </summary>
+		All         = DCOM | Registry
 	}
 }
