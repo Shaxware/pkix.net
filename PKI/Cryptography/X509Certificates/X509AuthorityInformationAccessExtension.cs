@@ -110,7 +110,7 @@ namespace System.Security.Cryptography.X509Certificates {
                     case "1.3.6.1.5.5.7.48.2": aiaUrls.Add(Encoding.ASCII.GetString(asn.GetPayload())); break;
                     case "1.3.6.1.5.5.7.48.1": ocspUrls.Add(Encoding.ASCII.GetString(asn.GetPayload())); break;
                 }
-                asn.MoveToPoisition(offset);
+                asn.MoveToPosition(offset);
             } while (asn.MoveNextCurrentLevel());
             CertificationAuthorityIssuer = aiaUrls.ToArray();
             OnlineCertificateStatusProtocol = ocspUrls.ToArray();
