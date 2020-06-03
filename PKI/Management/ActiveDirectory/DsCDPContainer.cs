@@ -6,8 +6,6 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Web;
-using PKI.Cryptography.X509Certificates;
-using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Utils.CLRExtensions;
@@ -63,7 +61,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         }
         static X509CRL2 readBaseCRL(DirectoryEntry entry) {
             Byte[] baseCrlBytes = (Byte[])entry.Properties[dsAttrBaseCrl].Value;
-            if (baseCrlBytes.Length <= 1) {
+            if (baseCrlBytes != null && baseCrlBytes.Length <= 1) {
                 return null;
             }
             try {
