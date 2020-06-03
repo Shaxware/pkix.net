@@ -324,9 +324,16 @@ namespace PKI.CertificateServices {
         }
         void getInfoFromDs() {
             if (IsEnterprise && DsUtils.Ping()) {
-                string domain = (string) DsUtils.GetEntryProperty(String.Join(".", this.ComputerName.Split('.').Where((v, i) => i != 0)) + "/RootDSE", "rootDomainNamingContext");
-                String dn = "CN=" + this.Name +
-                    ",CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration," + domain;
+                Console.WriteLine($"DEBUG: user forest     : {DsUtils.GetUserForestName()}");
+                Console.WriteLine($"DEBUG: computer forest : {DsUtils.GetComputerForestName()}");
+                Console.WriteLine($"DEBUG: user domain     : {DsUtils.GetUserDomainName()}");
+                Console.WriteLine($"DEBUG: computer domain : {DsUtils.GetComputerDomainName()}");
+                Console.WriteLine($"DEBUG: domain path 1   : {String.Join(".", ComputerName.Split('.').Where((v, i) => i != 0))}");
+                Console.WriteLine($"DEBUG: domain path     : {String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0))}");
+                Console.WriteLine($"DEBUG: config context  : {DsUtils.ConfigContext}");
+                String domain = String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0));
+                String dn = $"CN={Name},CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,DC={domain}";
+                Console.WriteLine($"DEBUG: full dn         : {dn}");
                 DistinguishedName = dn;
                 DisplayName = (String)DsUtils.GetEntryProperty(dn, "DisplayName");
                 try {
