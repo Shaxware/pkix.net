@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace PKI.ServiceProviders {
+namespace SysadminsLV.PKI.Cryptography {
     /// <summary>
     /// <strong>AlgorithmOperationsEnumeration</strong> type specifies the operations that an algorithm can perform.
     /// <para>This enumeration has a <see cref="FlagsAttribute"/> attribute that allows a bitwise combination of its member values.</para> 
     /// </summary>
     [Flags]
-    public enum AlgorithmOperationsEnum {
+    public enum CspAlgorithmOperation {
         /// <summary>
         /// No operation is specified.
         /// </summary>

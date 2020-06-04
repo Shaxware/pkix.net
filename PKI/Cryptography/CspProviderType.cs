@@ -1,9 +1,9 @@
-﻿namespace PKI.ServiceProviders {
+﻿namespace SysadminsLV.PKI.Cryptography {
 	/// <summary>
 	/// specifies the type of cryptographic provider. Providers implement cryptographic standards and algorithms
 	/// in software and hardware.
 	/// </summary>
-	public enum ProviderTypeEnum {
+	public enum CspProviderType {
 		/// <summary>
 		/// No provider is identified.
 		/// </summary>

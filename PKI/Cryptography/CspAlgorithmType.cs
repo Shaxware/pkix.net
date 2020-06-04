@@ -1,9 +1,9 @@
-﻿namespace PKI.ServiceProviders {
+﻿namespace SysadminsLV.PKI.Cryptography {
 	/// <summary>
 	/// The AlgorithmType enumeration type specifies the intended purpose of a cryptographic algorithm supported
 	/// by a cryptographic provider.
 	/// </summary>
-	public enum AlgorithmTypeEnum {
+	public enum CspAlgorithmType {
 		/// <summary>
 		/// The algorithm type is not defined.
 		/// </summary>

@@ -78,10 +78,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cryptography\AlgorithmIdentifierCollection.cs" />
+    <Compile Include="Cryptography\CspAlgorithmOperation.cs" />
+    <Compile Include="Cryptography\CspAlgorithmType.cs" />
     <Compile Include="Cryptography\NonceStatus.cs" />
     <Compile Include="Cryptography\Pkcs\PkcsSignerInfoBuilder.cs" />
     <Compile Include="Cryptography\Pkcs\PkcsSignerInfoCollection.cs" />
     <Compile Include="Cryptography\Pkcs\SignedCmsBuilder.cs" />
+    <Compile Include="Cryptography\CspProviderType.cs" />
     <Compile Include="Cryptography\TspAuthenticodeRequest.cs" />
     <Compile Include="Cryptography\TspFailureStatus.cs" />
     <Compile Include="Cryptography\TspMessageImprint.cs" />
@@ -285,20 +288,6 @@
     <Compile Include="Security\CARoleEnum.cs" />
     <Compile Include="Security\TemplateRight.cs" />
     <Compile Include="Security\SecurityDescriptor2.cs" />
-    <Compile Include="ServiceProviders\AlgorithmOperationsEnum.cs" />
-    <Compile Include="ServiceProviders\ALG_ID.cs" />
-    <Compile Include="ServiceProviders\ALG_IDCollection.cs" />
-    <Compile Include="ServiceProviders\ALG_ID_CNGCollection.cs" />
-    <Compile Include="ServiceProviders\ALG_ID_CNG.cs" />
-    <Compile Include="ServiceProviders\AlgorithmTypeEnum.cs" />
-    <Compile Include="ServiceProviders\ProviderAlgorithm.cs" />
-    <Compile Include="ServiceProviders\ProviderTypeEnum.cs" />
-    <Compile Include="ServiceProviders\CspCNGCollection.cs" />
-    <Compile Include="ServiceProviders\CspCNG.cs" />
-    <Compile Include="ServiceProviders\CspCollection.cs" />
-    <Compile Include="ServiceProviders\CspLegacy.cs" />
-    <Compile Include="ServiceProviders\Csp.cs" />
-    <Compile Include="ServiceProviders\CspObject.cs" />
     <Compile Include="Structs\CertAdmConstants.cs" />
     <Compile Include="Structs\Certbcli.cs" />
     <Compile Include="Structs\nCrypt2.cs" />
