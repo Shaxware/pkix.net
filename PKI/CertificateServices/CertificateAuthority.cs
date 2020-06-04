@@ -730,7 +730,7 @@ namespace PKI.CertificateServices {
         /// </summary>
         /// <param name="findType">Specifies CA object search type. The search type can be either: <strong>Name</strong>
         /// or <strong>Server</strong>.</param>
-        /// <param name="findValue">Specifies search pattern for a type specifed in <strong>findType</strong> argument.
+        /// <param name="findValue">Specifies search pattern for a type specified in <strong>findType</strong> argument.
         /// Wildcard characters: * and ? are accepted.</param>
         /// <returns>Enterprise Certification Authority collection.</returns>
         public static CertificateAuthority[] EnumEnterpriseCAs(String findType, String findValue) {
