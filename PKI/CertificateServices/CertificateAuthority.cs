@@ -726,19 +726,6 @@ namespace PKI.CertificateServices {
             return new CertificateAuthority(computerName);
         }
         /// <summary>
-        /// <para>This method is obsolete.</para>
-        /// Enumerates registered Enterprise Certification Authorities from the current Active Directory forest.
-        /// </summary>
-        /// <param name="findType">Specifies CA object search type. The search type can be either: <strong>Name</strong>
-        /// or <strong>Server</strong>.</param>
-        /// <param name="findValue">Specifies search pattern for a type specifed in <strong>findType</strong> argument.
-        /// Wildcard characters: * and ? are accepted.</param>
-        /// <returns>Enterprise Certification Authority collection.</returns>
-        [Obsolete("This method is obsolete. Use 'EnumEnterpriseCAs' method instead.", true)]
-        public static CertificateAuthority[] GetCA(String findType, String findValue) {
-            return EnumEnterpriseCAs(findType, findValue);
-        }
-        /// <summary>
         /// Enumerates registered Enterprise Certification Authorities from the current Active Directory forest.
         /// </summary>
         /// <param name="findType">Specifies CA object search type. The search type can be either: <strong>Name</strong>
