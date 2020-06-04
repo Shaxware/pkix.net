@@ -143,11 +143,13 @@ namespace PKI.CertificateServices {
         /// <summary>
         /// Gets the most recent Base CRL object.
         /// </summary>
-        public X509CRL2 BaseCRL { get; private set; }
+        [Obsolete("Use 'GetBaseCRL()' method instead", true)]
+        public X509CRL2 BaseCRL => null;
         /// <summary>
         /// Gets the most recent Delta CRL. If CA server is not configured to use Delta CRLs, the property is empty.
         /// </summary>
-        public X509CRL2 DeltaCRL { get; private set; }
+        [Obsolete("Use 'GetDeltaCRL()' method instead", true)]
+        public X509CRL2 DeltaCRL => null;
         /// <summary>
         /// Gets or sets an array of Certification Authority's web services URI.
         /// </summary>
@@ -297,20 +299,6 @@ namespace PKI.CertificateServices {
                     (String)_certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcert, count - 1, 3, 1)
                     )
                 );
-            // loop over cert index from higher index to lower. Get first entry where CRL appears
-            for (Int32 index = count - 1; index >= 0; index--) {
-                try {
-                    String crl = (String)_certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropBasecrl, index, 3, 1);
-                    if (crl != String.Empty) {
-                        BaseCRL = new X509CRL2(Convert.FromBase64String(crl));
-                        try {
-                            String crl2 = (String)_certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropDeltacrl, index, 3, 1);
-                            if (crl2 != String.Empty) { DeltaCRL = new X509CRL2(Convert.FromBase64String(crl2)); }
-                        } catch { }
-                        break;
-                    }
-                } catch { }
-            }
         }
         void getCertSvcServiceStatus() {
             if (RegistryOnline || IsAccessible) {
@@ -324,16 +312,16 @@ namespace PKI.CertificateServices {
         }
         void getInfoFromDs() {
             if (IsEnterprise && DsUtils.Ping()) {
-                Console.WriteLine($"DEBUG: user forest     : {DsUtils.GetUserForestName()}");
-                Console.WriteLine($"DEBUG: computer forest : {DsUtils.GetComputerForestName()}");
-                Console.WriteLine($"DEBUG: user domain     : {DsUtils.GetUserDomainName()}");
-                Console.WriteLine($"DEBUG: computer domain : {DsUtils.GetComputerDomainName()}");
-                Console.WriteLine($"DEBUG: domain path 1   : {String.Join(".", ComputerName.Split('.').Where((v, i) => i != 0))}");
-                Console.WriteLine($"DEBUG: domain path     : {String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0))}");
-                Console.WriteLine($"DEBUG: config context  : {DsUtils.ConfigContext}");
+                //Console.WriteLine($"DEBUG: user forest     : {DsUtils.GetUserForestName()}");
+                //Console.WriteLine($"DEBUG: computer forest : {DsUtils.GetComputerForestName()}");
+                //Console.WriteLine($"DEBUG: user domain     : {DsUtils.GetUserDomainName()}");
+                //Console.WriteLine($"DEBUG: computer domain : {DsUtils.GetComputerDomainName()}");
+                //Console.WriteLine($"DEBUG: domain path 1   : {String.Join(".", ComputerName.Split('.').Where((v, i) => i != 0))}");
+                //Console.WriteLine($"DEBUG: domain path     : {String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0))}");
+                //Console.WriteLine($"DEBUG: config context  : {DsUtils.ConfigContext}");
                 String domain = String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0));
                 String dn = $"CN={Name},CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,DC={domain}";
-                Console.WriteLine($"DEBUG: full dn         : {dn}");
+                //Console.WriteLine($"DEBUG: full dn         : {dn}");
                 DistinguishedName = dn;
                 DisplayName = (String)DsUtils.GetEntryProperty(dn, "DisplayName");
                 try {
@@ -369,12 +357,46 @@ namespace PKI.CertificateServices {
             keyMap = new Boolean[count];
             for (Int32 index = count - 1; index >= 0; index--) {
                 try {
-                    _certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropBasecrl, index, CertAdmConstants.ProptypeBinary, 0);
+                    _certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropBaseCrl, index, CertAdmConstants.ProptypeBinary, 0);
                     keyMap[index] = true;
                 } catch {
                     keyMap[index] = false;
                 }
             }
+        }
+
+        X509CRL2 getCRL(Boolean delta) {
+            if (String.IsNullOrEmpty(Name)) {
+                throw new UninitializedObjectException();
+            }
+            if (!Ping()) {
+                var e = new ServerUnavailableException(DisplayName);
+                e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
+                throw e;
+            }
+            Int32 propID = delta
+                ? CertAdmConstants.CrPropDeltaCrl
+                : CertAdmConstants.CrPropBaseCrl;
+
+            var certRequest = new CCertRequest();
+            Int32 count = (Int32)certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcertcount, 0, 1, 0);
+            try {
+                while (count >= 0) {
+                    try {
+                        String crl = (String)certRequest.GetCAProperty(ConfigString, propID, count, 3, 1);
+                        if (!String.IsNullOrEmpty(crl)) {
+                            return new X509CRL2(Convert.FromBase64String(crl));
+                        }
+                    } catch {
+
+                    } finally {
+                        count--;
+                    }
+                }
+            } finally {
+                CryptographyUtils.ReleaseCom(certRequest);
+            }
+            return null;
         }
 
         internal Boolean[] GetKeyMap() {
@@ -470,7 +492,9 @@ namespace PKI.CertificateServices {
         /// </exception>
         /// <returns>A collection of CA certificates.</returns>
         public X509Certificate2Collection GetCACerts() {
-            if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
+            if (String.IsNullOrEmpty(Name)) {
+                throw new UninitializedObjectException();
+            }
             if (!Ping()) {
                 var e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
@@ -513,6 +537,32 @@ namespace PKI.CertificateServices {
             } finally {
                 CryptographyUtils.ReleaseCom(CertRequest);
             }
+        }
+        /// <summary>
+        /// Returns the most recent version of Base CRL.
+        /// </summary>
+        /// <exception cref="UninitializedObjectException">
+        ///     The object is not properly initialized.
+        /// </exception>
+        /// <exception cref="ServerUnavailableException">
+        ///     CA server is not accessible via RPC/DCOM.
+        /// </exception>
+        /// <returns>Base CRL.</returns>
+        public X509CRL2 GetBaseCRL() {
+            return getCRL(false);
+        }
+        /// <summary>
+        /// Returns the most recent version of Delta CRL. If Certification Authority is not configured for Delta CRL, the method returns null.
+        /// </summary>
+        /// <exception cref="UninitializedObjectException">
+        ///     The object is not properly initialized.
+        /// </exception>
+        /// <exception cref="ServerUnavailableException">
+        ///     CA server is not accessible via RPC/DCOM.
+        /// </exception>
+        /// <returns>Delta CRL.</returns>
+        public X509CRL2 GetDeltaCRL() {
+            return getCRL(true);
         }
         /// <summary>
         /// Stops Certification Authority service.
