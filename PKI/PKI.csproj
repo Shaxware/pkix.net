@@ -135,7 +135,6 @@
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbPropertyCollection.cs" />
-    <Compile Include="CertificateServices\DB\AdcsDbValue.cs" />
     <Compile Include="CertificateServices\UrlProtocolSchemes.cs" />
     <Compile Include="CertificateTemplates\CertTemplateSubjectType.cs" />
     <Compile Include="Cryptography\AlgorithmIdentifier.cs" />
@@ -208,10 +207,6 @@
     <Compile Include="CertificateServices\CRLValiditySetting.cs" />
     <Compile Include="CertificateServices\CRLDistributionPoint.cs" />
     <Compile Include="CertificateServices\KRA.cs" />
-    <Compile Include="CertificateServices\DB\RequestRow.cs" />
-    <Compile Include="CertificateServices\DB\DataTypeEnum.cs" />
-    <Compile Include="CertificateServices\DB\Schema.cs" />
-    <Compile Include="CertificateServices\DB\TableList.cs" />
     <Compile Include="CertificateServices\Flags\InterfaceFlag.cs" />
     <Compile Include="CertificateServices\Flags\KRAFlag.cs" />
     <Compile Include="CertificateServices\Flags\CRLFlag.cs" />
