@@ -8,7 +8,6 @@ using System.ServiceProcess;
 using System.Text.RegularExpressions;
 using CERTADMINLib;
 using CERTCLILib;
-using PKI.CertificateServices.DB;
 using PKI.Exceptions;
 using PKI.Security;
 using PKI.Security.AccessControl;
@@ -428,48 +427,6 @@ namespace PKI.CertificateServices {
             Boolean online = false;
             CertAdm.CertSrvIsServerOnline(ComputerName, ref online);
             return online;
-        }
-        /// <summary>
-        /// Gets Certification Authority database schema for specified table.
-        /// </summary>
-        /// <param name="table">Database table to process.</param>
-        /// <exception cref="UninitializedObjectException">
-        /// Current object is not initialized.
-        /// </exception>
-        /// <exception cref="ServerUnavailableException">
-        /// Current CA server could not be contacted via remote registry and RPC protocol.
-        /// </exception>
-        /// <returns>Database schema (column name, data type, cell capacity).</returns>
-        [Obsolete("Use 'AdcsDbReader.GetTableSchema()' method instead.", true)]
-        public Schema[] GetSchema(TableList table = TableList.Request) {
-            if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
-            if (!Ping()) {
-                ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-                e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
-                throw e;
-            }
-            CCertView CaView = new CCertView();
-            try {
-                List<Schema> items = new List<Schema>();
-                CaView.OpenConnection(ConfigString);
-                CaView.SetTable((Int32)table);
-                IEnumCERTVIEWCOLUMN columns = CaView.EnumCertViewColumn(0);
-                while (columns.Next() != -1) {
-                    String name = columns.GetName();
-                    String displayname = columns.GetDisplayName();
-                    DataTypeEnum dataType = (DataTypeEnum)columns.GetType();
-                    Int32 maxLength = columns.GetMaxLength();
-                    Boolean isIndexed = Convert.ToBoolean(columns.IsIndexed());
-                    items.Add(new Schema(name, displayname, dataType, maxLength, isIndexed));
-                }
-                columns.Reset();
-                CryptographyUtils.ReleaseCom(columns);
-                return items.ToArray();
-            } catch (Exception e) {
-                throw Error.ComExceptionHandler(e);
-            } finally {
-                CryptographyUtils.ReleaseCom(CaView);
-            }
         }
         /// <summary>
         /// Returns an instance of ADCS database reader.
