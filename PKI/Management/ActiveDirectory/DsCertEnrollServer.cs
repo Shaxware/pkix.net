@@ -9,6 +9,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
     public class DsCertEnrollServer {
 
         internal DsCertEnrollServer(DirectoryEntry entry) {
+            DistinguishedName = entry.Properties["distinguishedName"].Value?.ToString();
             Name = entry.Properties["cn"].Value?.ToString();
             DisplayName = entry.Properties["displayName"].Value?.ToString();
             ComputerName = entry.Properties["dNSHostName"].Value?.ToString();
@@ -17,7 +18,13 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             if (certProp?.Length > 1) {
                 Certificate = new X509Certificate2(certProp);
             }
+            Flags = (DsEnrollServerFlag)Convert.ToInt32(entry.Properties["flags"].Value);
         }
+
+        /// <summary>
+        /// Gets the distinguished name of Enrollment Server entry.
+        /// </summary>
+        public String DistinguishedName { get; }
         /// <summary>
         /// Gets the common name of Certification Authority.
         /// </summary>
@@ -39,5 +46,9 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// its common name.
         /// </summary>
         public String[] CertificateTemplates { get; }
+        /// <summary>
+        /// Gets Enrollment Server directory services flags.
+        /// </summary>
+        public DsEnrollServerFlag Flags { get; }
     }
 }
