@@ -10,10 +10,17 @@ namespace SysadminsLV.PKI.Dcom {
         /// </summary>
         String ComputerName { get; }
         /// <summary>
-        /// Get common name of the server.
+        /// Gets common name of the server.
         /// </summary>
         String CommonName { get; }
+        /// <summary>
+        /// Gets display name of CA certificate.
+        /// </summary>
         String DisplayName { get; }
+        /// <summary>
+        /// Gets description of CA server.
+        /// </summary>
+        String Description { get; }
         /// <summary>
         /// Gets organizational unit of CA certificate.
         /// </summary>
@@ -60,6 +67,6 @@ namespace SysadminsLV.PKI.Dcom {
         /// <summary>
         /// An array of certificate enrollment Web service URLs for a specific CA configuration in the Active Directory.
         /// </summary>
-        String[] WebEnrollmentServers { get; }
+        ICertConfigEnrollEndpointD[] WebEnrollmentServers { get; }
     }
 }

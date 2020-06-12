@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Reflection;
 using CERTCLILib;
 
@@ -8,6 +8,8 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
     /// Represents a Windows implementation of <see cref="ICertConfigEntryD"/> interface.
     /// </summary>
     public class CertConfigEntry : ICertConfigEntryD {
+        readonly List<ICertConfigEnrollEndpointD> _webUriList = new List<ICertConfigEnrollEndpointD>();
+
         const String CONFIG_COMMONNAME           = "CommonName";
         const String CONFIG_ORGUNIT              = "OrgUnit";
         const String CONFIG_ORGANIZATION         = "Organization";
@@ -47,6 +49,9 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
                     case CONFIG_AUTHORITY:
                         DisplayName = (String)value;
                         break;
+                    case CONFIG_DESCRIPTION:
+                        Description = (String)value;
+                        break;
                     case CONFIG_ORGUNIT:
                         OrganizationUnit = (String)value;
                         break;
@@ -85,10 +90,13 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
                         if (uriArray == null) {
                             break;
                         }
-                        WebEnrollmentServers = uriArray
-                            .Select(uri => uri.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
-                            .Where(tokens => tokens.Length > 3)
-                            .Select(tokens => tokens[3].TrimEnd()).ToArray();
+
+                        foreach (String dsUri in uriArray) {
+                            var webUri = new CertConfigEnrollEndpointD(dsUri);
+                            if (webUri.Uri != null) {
+                                _webUriList.Add(webUri);
+                            }
+                        }
                         break;
                 }
             }
@@ -100,6 +108,8 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
         public String CommonName { get; }
         /// <inheritdoc />
         public String DisplayName { get; }
+        /// <inheritdoc />
+        public String Description { get; }
         /// <inheritdoc />
         public String OrganizationUnit { get; }
         /// <inheritdoc />
@@ -121,6 +131,6 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
         /// <inheritdoc />
         public String SanitizedShortName { get; }
         /// <inheritdoc />
-        public String[] WebEnrollmentServers { get; }
+        public ICertConfigEnrollEndpointD[] WebEnrollmentServers => _webUriList.ToArray();
     }
 }
