@@ -373,20 +373,20 @@ namespace System.Security.Cryptography.X509Certificates {
                 RawData = new Byte[] { 136, 0 };
             } else {
                 Asn1Reader asn;
-                switch (value.GetType().FullName) {
-                    case "System.String":
-                        Value = (String)value;
-                        Oid oid = new Oid((String)value);
+                switch (value) {
+                    case String sValue:
+                        Value = sValue;
+                        Oid oid = new Oid(sValue);
                         asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier(oid));
                         Value = oid.Value;
                         break;
-                    case "System.Security.Oid":
-                        asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier((Oid)value));
-                        Value = ((Oid)value).Value;
+                    case Oid oid1:
+                        asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier(oid1));
+                        Value = oid1.Value;
                         break;
-                    case "System.Security.Oid2":
-                        asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier(new Oid(((Oid2)value).Value)));
-                        Value = ((Oid2)value).Value;
+                    case Oid2 oid2:
+                        asn = new Asn1Reader(Asn1Utils.EncodeObjectIdentifier(new Oid(oid2.Value)));
+                        Value = oid2.Value;
                         break;
                     default: throw new ArgumentException("The input data is not valid registered ID.");
                 }
