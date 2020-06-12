@@ -2,7 +2,7 @@
 
 namespace SysadminsLV.PKI.Dcom {
     /// <summary>
-    /// Represents an <see cref="https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wstep/4766a85d-0d18-4fa1-a51f-e5cb98b752ea">[MS-WSTEP]</see>
+    /// Represents an <see href="https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wstep/4766a85d-0d18-4fa1-a51f-e5cb98b752ea">[MS-WSTEP]</see>
     /// ADCS Enrollment Web Services enrollment endpoint.
     /// </summary>
     public interface ICertConfigEnrollEndpointD {
