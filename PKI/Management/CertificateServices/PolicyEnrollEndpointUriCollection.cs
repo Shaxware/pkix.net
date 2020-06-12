@@ -17,7 +17,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// </summary>
         /// <returns>Encoded and formatted string.</returns>
         public String DsEncode() {
-            return String.Join("\n\n", this.Select(x => x.Encode()));
+            return this.Any()
+                ? String.Join("\n\n", this.Select(x => x.Encode()))
+                : null;
         }
     }
 }
