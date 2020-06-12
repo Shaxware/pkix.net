@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Numerics;
@@ -60,7 +61,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// 	</item>
         /// 	<item>
         /// 		<term>URL</term>
-        /// 		<description>Can be a string that represents an absulute or relative URL or a <see cref="Uri"/> object.</description>
+        /// 		<description>Can be a string that represents an absolute or relative URL or a <see cref="Uri"/> object.</description>
         /// 	</item>
         /// 	<item>
         /// 		<term>IpAddress</term>
@@ -172,7 +173,7 @@ namespace System.Security.Cryptography.X509Certificates {
         /// </summary>
         public X509AlternativeNamesEnum Type { get; private set; }
         /// <summary>
-        /// Gets an object idientifier of the other name. For common names, this property returns null.
+        /// Gets an object identifier of the other name. For common names, this property returns null.
         /// </summary>
         public Oid OID { get; private set; }
         /// <summary>
@@ -223,13 +224,18 @@ namespace System.Security.Cryptography.X509Certificates {
         // specific name types encoders
         void encodeOtherName(Object value, Oid oid) {
             Byte[] rawBytes;
-            if (value as String != null) {
-                rawBytes = Encoding.UTF8.GetBytes((String)value);
-            } else if (value as Byte[] != null) {
-                rawBytes = (Byte[])value;
-            } else {
-                rawBytes = new Byte[0];
+            switch (value) {
+                case String sValue:
+                    rawBytes = Encoding.UTF8.GetBytes(sValue);
+                    break;
+                case Byte[] pbValue:
+                    rawBytes = pbValue;
+                    break;
+                default:
+                    rawBytes = new Byte[0];
+                    break;
             }
+
             Asn1Type tag;
             switch (oid.Value) {
                 // UPN
@@ -275,12 +281,15 @@ namespace System.Security.Cryptography.X509Certificates {
             }
         }
         void encodeDnsName(String value) {
-            if (value == null) {
+            if (String.IsNullOrWhiteSpace(value)) {
                 RawData = new Byte[] { 130, 0 };
             } else {
                 try {
-                    Value = value;
-                    RawData = Asn1Utils.Encode(Encoding.UTF8.GetBytes(Value), 130);
+                    String idnName = new IdnMapping().GetAscii(value);
+                    Value = value.Equals(idnName, StringComparison.OrdinalIgnoreCase)
+                        ? value
+                        : $"{value} ({idnName})";
+                    RawData = Asn1Utils.Encode(Encoding.UTF8.GetBytes(idnName), 130);
                 } catch { throw new ArgumentException("The string is not valid DNS name"); }
             }
         }
@@ -289,9 +298,9 @@ namespace System.Security.Cryptography.X509Certificates {
                 RawData = new Byte[] { 164, 2, 48, 0 };
             } else {
                 X500DistinguishedName name;
-                if (value as String != null) {
+                if (value is String dn) {
                     try {
-                        name = new X500DistinguishedName((String)value);
+                        name = new X500DistinguishedName(dn);
                     } catch { throw new ArgumentException("The string is not valid X.500 name."); }
                 } else {
                     try {
@@ -307,9 +316,9 @@ namespace System.Security.Cryptography.X509Certificates {
                 RawData = new Byte[] { 134, 0 };
             } else {
                 Uri url;
-                if (value as String != null) {
+                if (value is String uri) {
                     try {
-                        url = new Uri((String)value);
+                        url = new Uri(uri);
                     } catch { throw new ArgumentException("The string is not valid URL."); }
                 } else {
                     try {
@@ -336,7 +345,7 @@ namespace System.Security.Cryptography.X509Certificates {
                 }
                 if (tokens.Length == 2) {
                     netMask = "/" + tokens[1];
-                    var maskLength = Convert.ToByte(tokens[1]);
+                    Byte maskLength = Convert.ToByte(tokens[1]);
                     if (ipv4 && maskLength > 32) {
                         throw new ArgumentException("The IPv4 netmask value is invalid.");
                     }
@@ -476,8 +485,17 @@ namespace System.Security.Cryptography.X509Certificates {
             Type = X509AlternativeNamesEnum.DnsName;
             try {
                 Asn1Reader asn = new Asn1Reader(RawData);
-                if (asn.PayloadLength == 0) { return; }
-                Value = Encoding.UTF8.GetString(asn.GetPayload());
+                if (asn.PayloadLength == 0) {
+                    return;
+                }
+
+                String idnName = Encoding.UTF8.GetString(asn.GetPayload());
+                if (!String.IsNullOrEmpty(idnName)) {
+                    String uniName = new IdnMapping().GetUnicode(idnName);
+                    Value = idnName.Equals(uniName, StringComparison.OrdinalIgnoreCase)
+                        ? idnName
+                        : $"{uniName} ({idnName})";
+                }
             } catch { throw new ArgumentException("Input data is not valid DNS name."); }
         }
         void decodeDirectoryName() {
