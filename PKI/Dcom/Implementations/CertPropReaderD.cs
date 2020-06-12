@@ -19,14 +19,17 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
         const Int32 MAX_INDEX = unchecked((Int32)0xffffffff);
 
         /// <summary>
-        /// Initializes a new instance of <strong>CertAdminD</strong> class from a Certification Authority configuration string.
+        /// Initializes a new instance of <strong>CertPropReaderD</strong> class from a Certification Authority configuration string.
         /// </summary>
         /// <param name="configString">Certification Authority configuration string.</param>
         /// <param name="forceCertAdmin">
         /// <strong>True</strong> to force ICertAdmin implementation which requires extra privileges, otherwise ICertRequest implementation is used.
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <strong>configString</strong> parameter is null.
+        /// </exception>
         public CertPropReaderD(String configString, Boolean forceCertAdmin) {
-            _configString = configString;
+            _configString = configString ?? throw new ArgumentNullException(nameof(configString));
             _forceCertAdmin = forceCertAdmin;
             _getCAProperty = forceCertAdmin
                 ? typeof(CCertAdminClass).GetMethod(GET_CA_PROPERTY)
