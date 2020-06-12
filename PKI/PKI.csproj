@@ -159,6 +159,7 @@
     <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />
     <Compile Include="Management\CertificateServices\PolicyEnrollAuthenticationType.cs" />
     <Compile Include="Management\CertificateServices\PolicyEnrollEndpointUri.cs" />
+    <Compile Include="Management\CertificateServices\PolicyEnrollEndpointUriCollection.cs" />
     <Compile Include="Management\CertificateServices\UrlProtocolScheme.cs" />
     <Compile Include="Utils\CLRExtensions\FileInfoExtensions.cs" />
     <Compile Include="Win32\AdvAPI.cs" />

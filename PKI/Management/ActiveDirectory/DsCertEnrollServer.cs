@@ -1,6 +1,8 @@
 ﻿using System;
 using System.DirectoryServices;
 using System.Security.Cryptography.X509Certificates;
+using SysadminsLV.PKI.Dcom.Implementations;
+using SysadminsLV.PKI.Management.CertificateServices;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
     /// <summary>
@@ -19,6 +21,17 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
                 Certificate = new X509Certificate2(certProp);
             }
             Flags = (DsEnrollServerFlag)Convert.ToInt32(entry.Properties["flags"].Value);
+            if (entry.Properties.Contains("msPKI-Enrollment-Servers")) {
+                String[] uriArray = entry.Properties["msPKI-Enrollment-Servers"].Value.ToString()
+                    .Split(new[] { "\n\n" }, StringSplitOptions.None);
+
+                foreach (String dsUri in uriArray) {
+                    var webUri = new PolicyEnrollEndpointUri(new CertConfigEnrollEndpointD(dsUri));
+                    if (webUri.Uri != null) {
+                        PolicyEnrollmentEndpoints.Add(webUri);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -50,5 +63,10 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
         /// Gets Enrollment Server directory services flags.
         /// </summary>
         public DsEnrollServerFlag Flags { get; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public PolicyEnrollEndpointUriCollection PolicyEnrollmentEndpoints { get; }
+            = new PolicyEnrollEndpointUriCollection();
     }
 }
