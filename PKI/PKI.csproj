@@ -102,6 +102,7 @@
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntry.cs" />
     <Compile Include="Dcom\AdcsBinaryFormat.cs" />
     <Compile Include="Dcom\AdcsCAPropertyName.cs" />
+    <Compile Include="Dcom\AdcsEnrollAuthenticationType.cs" />
     <Compile Include="Dcom\AdcsPropCaType.cs" />
     <Compile Include="Dcom\AdcsPropCertState.cs" />
     <Compile Include="Dcom\AdcsPropCrlPublishState.cs" />
@@ -111,8 +112,10 @@
     <Compile Include="Dcom\AdcsOfficerRole.cs" />
     <Compile Include="Dcom\AdcsCAPropertyValueType.cs" />
     <Compile Include="Dcom\AdcsRequestStatus.cs" />
+    <Compile Include="Dcom\Implementations\CertConfigEnrollEndpointD.cs" />
     <Compile Include="Dcom\CertConfigOption.cs" />
     <Compile Include="Dcom\CertConfigLocation.cs" />
+    <Compile Include="Dcom\ICertConfigEnrollEndpointD.cs" />
     <Compile Include="Dcom\ICertPropReaderD.cs" />
     <Compile Include="Dcom\ICertConfigD.cs" />
     <Compile Include="Dcom\ICertConfigEntryD.cs" />
@@ -154,7 +157,9 @@
     <Compile Include="Management\ActiveDirectory\DsKraContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsPkiContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />
-    <Compile Include="Management\CertificateServices\UrlProtocolSchemes.cs" />
+    <Compile Include="Management\CertificateServices\PolicyEnrollAuthenticationType.cs" />
+    <Compile Include="Management\CertificateServices\PolicyEnrollEndpointUri.cs" />
+    <Compile Include="Management\CertificateServices\UrlProtocolScheme.cs" />
     <Compile Include="Utils\CLRExtensions\FileInfoExtensions.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
