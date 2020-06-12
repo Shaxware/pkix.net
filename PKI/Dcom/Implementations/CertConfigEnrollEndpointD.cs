@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace SysadminsLV.PKI.Dcom.Implementations {
-    public class CertConfigEnrollEndpointD : ICertConfigEnrollEndpointD {
+    class CertConfigEnrollEndpointD : ICertConfigEnrollEndpointD {
 
         internal CertConfigEnrollEndpointD(String dsUriString) {
             String[] tokens = dsUriString.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -18,5 +18,8 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
         public AdcsEnrollAuthenticationType Authentication { get; }
         public Int32 Priority { get; }
         public Boolean RenewalOnly { get; }
+        public String DsEncode() {
+            return $"{Priority}\n{Authentication}\n{Convert.ToInt32(RenewalOnly)}\n{Uri}";
+        }
     }
 }

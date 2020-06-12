@@ -37,6 +37,10 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// </summary>
         public Boolean RenewalOnly { get; }
 
+        /// <summary>
+        /// Encodes a collection of enrollment web service URLs to an Active Directory compatible format.
+        /// </summary>
+        /// <returns>Encoded and formatted string.</returns>
         public String Encode() {
             return $"{Priority}\n{Authentication}\n{Convert.ToInt32(RenewalOnly)}\n{Uri.AbsoluteUri}";
 
