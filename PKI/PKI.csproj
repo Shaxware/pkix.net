@@ -116,9 +116,11 @@
     <Compile Include="Dcom\ICertPropReaderD.cs" />
     <Compile Include="Dcom\ICertConfigD.cs" />
     <Compile Include="Dcom\ICertConfigEntryD.cs" />
+    <Compile Include="Dcom\ICertRegManagerD.cs" />
     <Compile Include="Dcom\Implementations\CertPropReaderD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigEntry.cs" />
+    <Compile Include="Dcom\Implementations\CertRegManagerD.cs" />
     <Compile Include="Management\ActiveDirectory\DsCertEnrollServer.cs" />
     <Compile Include="Management\ActiveDirectory\DsEnrollServerFlag.cs" />
     <Compile Include="Management\CertificateServices\AdcsAiaUrlEntry.cs" />
