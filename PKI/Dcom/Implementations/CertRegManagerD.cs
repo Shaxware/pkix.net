@@ -24,9 +24,12 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
             ActiveConfig = readActiveConfig();
         }
 
+        /// <inheritdoc />
         public String ComputerName { get; }
+        /// <inheritdoc />
         public Boolean IsAccessible { get; private set; }
-        public String ActiveConfig { get; }
+        /// <inheritdoc />
+        public String ActiveConfig { get; private set; }
 
         String readActiveConfig() {
             ICertAdmin2 certAdmin = new CCertAdminClass();
@@ -166,9 +169,10 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
                 CryptographyUtils.ReleaseCom(certAdmin);
             }
         }
+        /// <inheritdoc />
         public void SetRootNode(Boolean forceActive) {
             useActive = forceActive;
-            readActiveConfig();
+            ActiveConfig = readActiveConfig() ?? ActiveConfig;
         }
     }
 }
