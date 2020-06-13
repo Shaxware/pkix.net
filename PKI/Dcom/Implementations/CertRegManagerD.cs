@@ -10,24 +10,52 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
     /// Represents a managed implementation of <see cref="ICertRegManagerD"/> interface and used to manage ADCS Certification Authority configuration.
     /// </summary>
     public class CertRegManagerD : ICertRegManagerD {
-        readonly String _configString;
+        Boolean useActive;
 
         /// <summary>
         /// Initializes a new instance of <strong>CertRegManagerD</strong> class from a Certification Authority configuration string.
         /// </summary>
-        /// <param name="configString"></param>
+        /// <param name="serverName"></param>
         /// <exception cref="ArgumentNullException">
         /// <strong>configString</strong> parameter is null.
         /// </exception>
-        public CertRegManagerD(String configString) {
-            _configString = configString ?? throw new ArgumentNullException(nameof(configString));
+        public CertRegManagerD(String serverName) {
+            ComputerName = serverName ?? throw new ArgumentNullException(nameof(serverName));
+            ActiveConfig = readActiveConfig();
+        }
+
+        public String ComputerName { get; }
+        public Boolean IsAccessible { get; private set; }
+        public String ActiveConfig { get; }
+
+        String readActiveConfig() {
+            ICertAdmin2 certAdmin = new CCertAdminClass();
+            try {
+                String active = (String)certAdmin.GetConfigEntry(ComputerName, String.Empty, "Active");
+                IsAccessible = true;
+                return active;
+            } catch {
+                IsAccessible = false;
+            } finally {
+                CryptographyUtils.ReleaseCom(certAdmin);
+            }
+            return null;
         }
 
         /// <inheritdoc />
-        public Object GetConfigEntry(String entryName, String node = "") {
+        public Object GetConfigEntry(String entryName, String node = null) {
+            if (entryName == null) {
+                throw new ArgumentNullException(nameof(entryName));
+            }
+            if (String.Empty.Equals(entryName)) {
+                throw new ArgumentException("'entryName' parameter cannot be empty string.");
+            }
+
             ICertAdmin2 certAdmin = new CCertAdminClass();
             try {
-                return certAdmin.GetConfigEntry(_configString, node ?? String.Empty, entryName ?? String.Empty);
+                return useActive
+                    ? certAdmin.GetConfigEntry($"{ComputerName}\\{ActiveConfig}", node ?? String.Empty, entryName)
+                    : certAdmin.GetConfigEntry(ComputerName, String.Empty, entryName);
             } catch (Exception ex) {
                 if (ex is FileNotFoundException) {
                     return null;
@@ -38,56 +66,80 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
             }
         }
         /// <inheritdoc />
-        public T GetConfigEntry<T>(String entryName, String node = "") {
+        public T GetConfigEntry<T>(String entryName, String node = null) {
+            if (entryName == null) {
+                throw new ArgumentNullException(nameof(entryName));
+            }
+            if (String.Empty.Equals(entryName)) {
+                throw new ArgumentException("'entryName' parameter cannot be empty string.");
+            }
+
             ICertAdmin2 certAdmin = new CCertAdminClass();
             try {
-                return (T)certAdmin.GetConfigEntry(_configString, node ?? String.Empty, entryName ?? String.Empty);
+                return (T)(useActive
+                    ? certAdmin.GetConfigEntry($"{ComputerName}\\{ActiveConfig}", node ?? String.Empty, entryName)
+                    : certAdmin.GetConfigEntry(ComputerName, String.Empty, entryName));
             } finally {
                 CryptographyUtils.ReleaseCom(certAdmin);
             }
         }
         /// <inheritdoc />
-        public String GetStringConfigEntry(String entryName, String node = "") {
+        public String GetStringConfigEntry(String entryName, String node = null) {
             return GetConfigEntry<String>(entryName, node);
         }
         /// <inheritdoc />
-        public String[] GetMultiStringConfigEntry(String entryName, String node = "") {
+        public String[] GetMultiStringConfigEntry(String entryName, String node = null) {
             return GetConfigEntry<String[]>(entryName, node);
         }
         /// <inheritdoc />
-        public Int32 GetNumericConfigEntry(String entryName, String node = "") {
+        public Int32 GetNumericConfigEntry(String entryName, String node = null) {
             return GetConfigEntry<Int32>(entryName, node);
         }
         /// <inheritdoc />
-        public Boolean GetBooleanConfigEntry(String entryName, String node = "") {
+        public Boolean GetBooleanConfigEntry(String entryName, String node = null) {
             return GetConfigEntry<Int32>(entryName, node) != 0;
         }
         /// <inheritdoc />
-        public Byte[] GetBinaryConfigEntry(String entryName, String node = "") {
+        public Byte[] GetBinaryConfigEntry(String entryName, String node = null) {
             return GetConfigEntry<Byte[]>(entryName, node);
         }
         /// <inheritdoc />
-        public void SetConfigEntry(Object data, String entryName, String node = "") {
+        public void SetConfigEntry(Object data, String entryName, String node = null) {
             if (data == null) {
                 throw new ArgumentNullException(nameof(data));
             }
 
             ICertAdmin2 certAdmin = new CCertAdminClass();
-
             try {
                 switch (data) {
                     case String _:
                     case Int32 _:
-                        certAdmin.SetConfigEntry(_configString, node, entryName, data);
+                        if (useActive) {
+                            certAdmin.SetConfigEntry($"{ComputerName}\\{ActiveConfig}", node ?? String.Empty, entryName, data);
+                        } else {
+                            certAdmin.SetConfigEntry(ComputerName, String.Empty, entryName, data);
+                        }
                         break;
                     case Boolean b:
-                        certAdmin.SetConfigEntry(_configString, node, entryName, b ? 1 : 0);
+                        if (useActive) {
+                            certAdmin.SetConfigEntry($"{ComputerName}\\{ActiveConfig}", node ?? String.Empty, entryName, b ? 1 : 0);
+                        } else {
+                            certAdmin.SetConfigEntry(ComputerName, String.Empty, entryName, b ? 1 : 0);
+                        }
                         break;
                     case IEnumerable<String> array:
-                        certAdmin.SetConfigEntry(_configString, node, entryName, array.ToArray());
+                        if (useActive) {
+                            certAdmin.SetConfigEntry($"{ComputerName}\\{ActiveConfig}", node ?? String.Empty, entryName, array.ToArray());
+                        } else {
+                            certAdmin.SetConfigEntry(ComputerName, String.Empty, entryName, array.ToArray());
+                        }
                         break;
                     case IEnumerable<Byte> array:
-                        certAdmin.SetConfigEntry(_configString, node, entryName, array.ToArray());
+                        if (useActive) {
+                            certAdmin.SetConfigEntry($"{ComputerName}\\{ActiveConfig}", node ?? String.Empty, entryName, array.ToArray());
+                        } else {
+                            certAdmin.SetConfigEntry(ComputerName, String.Empty, entryName, array.ToArray());
+                        }
                         break;
                     default:
                         throw new ArgumentException();
@@ -98,10 +150,14 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
             }
         }
         /// <inheritdoc />
-        public void DeleteConfigEntry(String entryName, String node = "") {
+        public void DeleteConfigEntry(String entryName, String node = null) {
             ICertAdmin2 certAdmin = new CCertAdminClass();
             try {
-                certAdmin.SetConfigEntry(_configString, node ?? String.Empty, entryName ?? String.Empty, null);
+                if (useActive) {
+                    certAdmin.SetConfigEntry($"{ComputerName}\\{ActiveConfig}", node ?? String.Empty, entryName, null);
+                } else {
+                    certAdmin.SetConfigEntry(ComputerName, String.Empty, entryName, null);
+                }
             } catch (Exception ex) {
                 if (!(ex is FileNotFoundException)) {
                     throw;
@@ -109,6 +165,10 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
             } finally {
                 CryptographyUtils.ReleaseCom(certAdmin);
             }
+        }
+        public void SetRootNode(Boolean forceActive) {
+            useActive = forceActive;
+            readActiveConfig();
         }
     }
 }
