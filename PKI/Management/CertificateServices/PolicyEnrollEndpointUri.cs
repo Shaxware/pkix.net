@@ -7,7 +7,10 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
     /// </summary>
     public class PolicyEnrollEndpointUri {
         public PolicyEnrollEndpointUri(String uri, PolicyEnrollAuthenticationType authentication, Int32 priority, Boolean renewalOnly) {
-            if (String.IsNullOrEmpty(uri)) { throw new ArgumentNullException(nameof(uri)); }
+            if (String.IsNullOrEmpty(uri)) {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
             Uri = new Uri(uri);
             Authentication = authentication;
             Priority = priority;
