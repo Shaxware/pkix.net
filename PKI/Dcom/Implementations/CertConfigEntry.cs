@@ -92,10 +92,9 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
                         }
 
                         foreach (String dsUri in uriArray) {
-                            var webUri = new CertConfigEnrollEndpointD(dsUri);
-                            if (webUri.Uri != null) {
-                                _webUriList.Add(webUri);
-                            }
+                            try {
+                                _webUriList.Add(new CertConfigEnrollEndpointD(dsUri));
+                            } catch { }
                         }
                         break;
                 }
