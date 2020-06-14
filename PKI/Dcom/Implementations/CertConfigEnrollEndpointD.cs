@@ -5,9 +5,10 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
 
         internal CertConfigEnrollEndpointD(String dsUriString) {
             String[] tokens = dsUriString.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            if (tokens.Length < 3) {
-                return;
+            if (tokens.Length < 4) {
+                throw new ArgumentException("Input string is not valid policy enrollment URI.");
             }
+
             Priority = Convert.ToInt32(tokens[0]);
             Authentication = (AdcsEnrollAuthenticationType)Convert.ToInt32(tokens[1]);
             RenewalOnly = Convert.ToBoolean(Byte.Parse(tokens[2]));
