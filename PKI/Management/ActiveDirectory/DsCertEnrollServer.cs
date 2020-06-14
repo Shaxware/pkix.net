@@ -22,15 +22,24 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             }
             Flags = (DsEnrollServerFlag)Convert.ToInt32(entry.Properties["flags"].Value);
             if (entry.Properties.Contains("msPKI-Enrollment-Servers")) {
-                String[] uriArray = entry.Properties["msPKI-Enrollment-Servers"].Value.ToString()
-                    .Split(new[] { "\n\n" }, StringSplitOptions.None);
+                Object enrollUri = entry.Properties["msPKI-Enrollment-Servers"].Value;
 
-                foreach (String dsUri in uriArray) {
-                    var webUri = new PolicyEnrollEndpointUri(new CertConfigEnrollEndpointD(dsUri));
-                    if (webUri.Uri != null) {
-                        PolicyEnrollmentEndpoints.Add(webUri);
+                if (enrollUri is Object[] uriArray) {
+                    foreach (Object dsUri in uriArray) {
+                        try {
+                            var webUri = new PolicyEnrollEndpointUri(new CertConfigEnrollEndpointD(dsUri.ToString()));
+                            PolicyEnrollmentEndpoints.Add(webUri);
+                        } catch { }
                     }
+                } else {
+                    try {
+                        var webUri = new PolicyEnrollEndpointUri(new CertConfigEnrollEndpointD(enrollUri.ToString()));
+                        PolicyEnrollmentEndpoints.Add(webUri);
+                    } catch { }
                 }
+
+
+                
             }
         }
 
