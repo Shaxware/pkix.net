@@ -422,9 +422,9 @@ namespace System.Security.Cryptography.X509Certificates {
         }
 
         // main decoder
-        void decodeFromRawData(Byte[] rawData) {
-            rawData = rawData;
-            switch (rawData[0]) {
+        void decodeFromRawData(Byte[] asnData) {
+            rawData = asnData;
+            switch (asnData[0]) {
                 case 129:
                     decodeEmailName(); break;
                 case 130:
