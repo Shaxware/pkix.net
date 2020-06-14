@@ -8,6 +8,7 @@ using SysadminsLV.PKI.Dcom;
 namespace PKI.Utils {
     public class RemoteRegManager : ICertRegManagerD {
         const String CERTSRV_CONFIG = @"System\CurrentControlSet\Services\CertSvc\Configuration\";
+        const String CERTSRV_ACTIVE = "Active";
         const String FAKE_VALUE = "FAKE_VALUE";
         String runtimePath;
 
@@ -29,7 +30,7 @@ namespace PKI.Utils {
             try {
                 using (RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, ComputerName, RegistryView.Default)) {
                     RegistryKey root = key.OpenSubKey(CERTSRV_CONFIG, false);
-                    String active = (String)root?.GetValue("Active", FAKE_VALUE);
+                    String active = (String)root?.GetValue(CERTSRV_ACTIVE, FAKE_VALUE);
                     root?.Close();
                     if (FAKE_VALUE.Equals(active)) {
                         throw new FileNotFoundException();
@@ -55,7 +56,7 @@ namespace PKI.Utils {
 
             using (RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, ComputerName, RegistryView.Default)) {
                 RegistryKey root = key.OpenSubKey(runtimePath, false);
-                Object value = (String)root?.GetValue("Active", FAKE_VALUE);
+                Object value = (String)root?.GetValue(CERTSRV_ACTIVE, FAKE_VALUE);
                 root?.Close();
                 if (value == null || FAKE_VALUE.Equals(value)) {
                     return null;
@@ -74,7 +75,7 @@ namespace PKI.Utils {
 
             using (RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, ComputerName, RegistryView.Default)) {
                 RegistryKey root = key.OpenSubKey(runtimePath, false);
-                Object value = (String)root?.GetValue("Active", FAKE_VALUE);
+                Object value = (String)root?.GetValue(CERTSRV_ACTIVE, FAKE_VALUE);
                 root?.Close();
                 if (value == null || FAKE_VALUE.Equals(value)) {
                     throw new FileNotFoundException();
