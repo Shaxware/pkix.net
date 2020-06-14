@@ -154,6 +154,7 @@
     <Compile Include="Management\CertificateServices\AdcsCdpUrlEntry.cs" />
     <Compile Include="Management\CertificateServices\AdcsCertSrvAudits.cs" />
     <Compile Include="Management\CertificateServices\CertSrvConfigUtil.cs" />
+    <Compile Include="Management\CertificateServices\CertSrvPlatformVersion.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbColumnSchema.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbQueryFilter.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbReader.cs" />

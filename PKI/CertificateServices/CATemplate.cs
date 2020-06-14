@@ -8,13 +8,15 @@ using PKI.CertificateTemplates;
 using PKI.Exceptions;
 using PKI.Structs;
 using PKI.Utils;
+using SysadminsLV.PKI.Management.CertificateServices;
 
 namespace PKI.CertificateServices {
     /// <summary>
     /// Represents Certification Authority object with assigned certificate templates.
     /// </summary>
     public class CATemplate {
-        String version, sku, configString;
+        String sku, configString;
+        CertSrvPlatformVersion version;
 
         /// <param name="certificateAuthority">Specifies an existing <see cref="CertificateServices"/> object.</param>
         /// <exception cref="UninitializedObjectException">An object in the <strong>certificateAuthority</strong> parameter is not initialized.</exception>
@@ -79,14 +81,16 @@ namespace PKI.CertificateServices {
         }
         Boolean IsSupported(Int32 schemaVersion) {
             switch (version) {
-                case "2003":
+                case CertSrvPlatformVersion.Win2000:
+                    return schemaVersion == 1;
+                case CertSrvPlatformVersion.Win2003:
                     switch (schemaVersion) {
                         case 1: return true;
                         case 2:
                             return sku == "Enterprise" || sku == "Datacenter";
                         default: return false;
                     }
-                case "2008":
+                case CertSrvPlatformVersion.Win2008:
                     switch (schemaVersion) {
                         case 1: return true;
                         case 2:
@@ -94,7 +98,7 @@ namespace PKI.CertificateServices {
                             return sku == "Enterprise" || sku == "Datacenter";
                         default: return false;
                     }
-                case "2008R2" :
+                case CertSrvPlatformVersion.Win2008R2 :
                     return schemaVersion < 4;
                 default: return true;
             }

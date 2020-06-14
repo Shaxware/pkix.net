@@ -42,7 +42,6 @@ namespace PKI.CertificateServices {
             // temporary. Can be overwritten later from more trustworthy source (readInfoFromDsEntry)
             ComputerName = computerName;
 
-            IsAccessible = Ping(computerName);
             _regReader = new CertSrvConfigUtil(computerName);
             // try to find in AD if possible
             lookInDs(computerName);
@@ -60,10 +59,7 @@ namespace PKI.CertificateServices {
             dsEntry = entry;
             // write basic info from ICertConfig without contacting the server.
             readInfoFromDsEntry();
-
-            // attempt to connect via DCOM. Cause delay
-            IsAccessible = Ping(ComputerName);
-
+            
             _regReader = new CertSrvConfigUtil(ComputerName); // Cause delay 2x (1xRegistry, 1xDCOM)
             _propReader = new CertPropReaderD(ComputerName, false);
 
@@ -141,7 +137,7 @@ namespace PKI.CertificateServices {
         /// <para>This property does not indicate whether remote registry is available or not. Refer to <see cref="RegistryOnline"/>
         /// property to determine remote registry availability.</para>
         /// </summary>
-        public Boolean IsAccessible { get; }
+        public Boolean IsAccessible => _regReader.DcomOnline;
         /// <summary>
         /// Gets remote registry accessibility status for Certification Authority. Returns <strong>True</strong> if Certification Authority
         /// if remote registry is accessible, otherwise <strong>False</strong>.
@@ -182,7 +178,7 @@ namespace PKI.CertificateServices {
         /// </summary>
         public PolicyEnrollEndpointUriCollection EnrollmentEndpoints { get; }
             = new PolicyEnrollEndpointUriCollection();
-        internal String Version { get; private set; }
+        internal CertSrvPlatformVersion Version { get; private set; }
         internal String Sku { get; private set; }
 
         void lookInDs(String computerName) {
@@ -201,7 +197,8 @@ namespace PKI.CertificateServices {
         }
         void initialize() {
             if (!_regReader.RegistryOnline && !_regReader.DcomOnline) {
-                initialize();
+                getDistinguishedName();
+                return;
             }
 
             getType();
@@ -238,7 +235,6 @@ namespace PKI.CertificateServices {
         void getType() {
             _regReader.SetRootNode(true);
             Int32 type = _regReader.GetNumericEntry("CAType");
-            Console.WriteLine(type);
             switch (type) {
                 case 0:
                     Type = "Enterprise Root CA";
@@ -264,15 +260,15 @@ namespace PKI.CertificateServices {
         void getVersion() {
             _regReader.SetRootNode(false);
             switch (_regReader.GetNumericEntry("Version")) {
-                case 0x00010001: Version = "2000"; break;
-                case 0x00020002: Version = "2003"; break;
-                case 0x00030001: Version = "2008"; break;
-                case 0x00040001: Version = "2008R2"; break;
-                case 0x00050001: Version = "2012"; break;
-                case 0x00060001: Version = "2012R2"; break; // without [MSKB-3013769] can look like 2012 RTM
+                case 0x00010001: Version = CertSrvPlatformVersion.Win2000; break;
+                case 0x00020002: Version = CertSrvPlatformVersion.Win2003; break;
+                case 0x00030001: Version = CertSrvPlatformVersion.Win2008; break;
+                case 0x00040001: Version = CertSrvPlatformVersion.Win2008R2; break;
+                case 0x00050001: Version = CertSrvPlatformVersion.Win2012; break;
+                case 0x00060001: Version = CertSrvPlatformVersion.Win2012R2; break; // without [MSKB-3013769] can look like 2012 RTM
                 // there are no functional changes between 2016 and 2019, so treat them both as 2016
-                case 0x00070001:
-                case 0x00080001: Version = "2016"; break;
+                case 0x00070001: Version = CertSrvPlatformVersion.Win2016; break;
+                case 0x00080001: Version = CertSrvPlatformVersion.Win2019; break;
             }
             SetupStatus = (SetupStatusEnum)_regReader.GetNumericEntry("SetupStatus");
         }
