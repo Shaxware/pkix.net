@@ -7,12 +7,14 @@ using System.Security.Cryptography.X509Certificates;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
 using CERTADMINLib;
-using CERTCLILib;
 using PKI.Exceptions;
 using PKI.Security;
 using PKI.Security.AccessControl;
-using PKI.Structs;
 using PKI.Utils;
+using SysadminsLV.PKI.Dcom;
+using SysadminsLV.PKI.Dcom.Implementations;
+using SysadminsLV.PKI.Management.ActiveDirectory;
+using SysadminsLV.PKI.Management.CertificateServices;
 using SysadminsLV.PKI.Management.CertificateServices.Database;
 using SysadminsLV.PKI.Win32;
 
@@ -21,9 +23,9 @@ namespace PKI.CertificateServices {
     /// The class represents Certification Authority (<strong>CA</strong>) object and contains related properties and methods.
     /// </summary>
     public class CertificateAuthority {
-        readonly CCertRequest _certRequest = new CCertRequest();
-        readonly CCertConfig _certConfig = new CCertConfig();
-        Boolean foundInDs;
+        readonly CertSrvConfigUtil _regReader;
+        readonly ICertPropReaderD _propReader;
+        ICertConfigEntryD dsEntry;
         Boolean[] keyMap;
 
         /// <param name="computerName">Specifies the fully qualified domain name (FQDN) of the computer where Certificate Services
@@ -31,23 +33,42 @@ namespace PKI.CertificateServices {
         /// <exception cref="ArgumentNullException">Te <strong>computerName</strong> parameter is null or empty.</exception>
         /// <exception cref="ServerUnavailableException">The computer specified in the <strong>computerName</strong>
         /// parameter could not be contacted via remote registry.</exception>
+        [Obsolete("Deprecated. Use 'Connect(String)' static method instead.")]
         public CertificateAuthority(String computerName) {
-            if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
-            pingRegistry(computerName);
-            IsAccessible = Ping(computerName);
-            lookInDs(computerName);
-            if (foundInDs) {
-                buildFromCertConfigOnly();
-                initializeFromConfigString(ComputerName, Name);
-            } else {
-                if (RegistryOnline) {
-                    initializeFromServerName(computerName);
-                } else {
-                    ServerUnavailableException e = new ServerUnavailableException(computerName);
-                    e.Data.Add(nameof(e.Source), OfflineSource.Registry);
-                    throw e;
-                }
+            if (String.IsNullOrEmpty(computerName)) {
+                throw new ArgumentNullException(nameof(computerName));
             }
+
+            // temporary. Can be overwritten later from more trustworthy source (readInfoFromDsEntry)
+            ComputerName = computerName;
+
+            IsAccessible = Ping(computerName);
+            _regReader = new CertSrvConfigUtil(computerName);
+            // try to find in AD if possible
+            lookInDs(computerName);
+            // if we found in AD, then it is easy money. Or read directly from server
+            if (dsEntry != null) {
+                readInfoFromDsEntry();
+            } else {
+                readInfoFromServer();
+            }
+            _propReader = new CertPropReaderD(ConfigString, false);
+            // read other stuff
+            initialize();
+        }
+        CertificateAuthority(ICertConfigEntryD entry) {
+            dsEntry = entry;
+            // write basic info from ICertConfig without contacting the server.
+            readInfoFromDsEntry();
+
+            // attempt to connect via DCOM. Cause delay
+            IsAccessible = Ping(ComputerName);
+
+            _regReader = new CertSrvConfigUtil(ComputerName); // Cause delay 2x (1xRegistry, 1xDCOM)
+            _propReader = new CertPropReaderD(ComputerName, false);
+
+            // read other stuff
+            initialize();
         }
         /// <param name="computerName">
         /// Specifies the computer name where Certificate Services are installed.
@@ -65,14 +86,8 @@ namespace PKI.CertificateServices {
         /// unsuccessful, the code falls back to RPC/DCOM connections (by using <strong>ICertAdmin2</strong> COM interface) to
         /// get registry data.</para>
         /// </remarks>
-        public CertificateAuthority(String computerName, String name) {
-            if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
-            if (String.IsNullOrEmpty(name)) { throw new ArgumentNullException(nameof(name)); }
-            pingRegistry(computerName);
-            IsAccessible = Ping(computerName);
-            lookInDs(computerName);
-            initializeFromConfigString(computerName, name);
-        }
+        [Obsolete("Deprecated. Use 'Connect(String)' static method instead.", true)]
+        public CertificateAuthority(String computerName, String name) : this(computerName) { }
 
         /// <summary>
         /// Gets the common name of the Certification Authority in a sanitized form as specified in
@@ -109,12 +124,20 @@ namespace PKI.CertificateServices {
         /// </summary>
         public String Type { get; private set; }
         /// <summary>
+        /// Indicates whether the Certification Authority is Enterprise CA (<strong>True</strong>) or Standalone CA (<strong>True</strong>).
+        /// </summary>
+        public Boolean IsEnterprise { get; private set; }
+        /// <summary>
+        /// Indicates whether the Certification Authority is root (<strong>True</strong>) or subordinate CA (<strong>True</strong>).
+        /// </summary>
+        public Boolean IsRoot { get; private set; }
+        /// <summary>
         /// Gets operating system of the server which runs Certification Authority role.
         /// </summary>
         public String OperatingSystem { get; private set; }
         /// <summary>
         /// Gets accessibility status for Certification Authority. Returns <strong>True</strong> if Certification Authority is online and management
-        /// interfaces are accessbile, otherwise <strong>False</strong>.
+        /// interfaces are accessible, otherwise <strong>False</strong>.
         /// <para>This property does not indicate whether remote registry is available or not. Refer to <see cref="RegistryOnline"/>
         /// property to determine remote registry availability.</para>
         /// </summary>
@@ -125,7 +148,7 @@ namespace PKI.CertificateServices {
         /// <para>This property does not indicate whether management interfaces are available or not. Refer to <see cref="IsAccessible"/>
         /// property to determine management interface availability.</para>
         /// </summary>
-        public Boolean RegistryOnline { get; private set; }
+        public Boolean RegistryOnline => _regReader.RegistryOnline;
         /// <summary>
         /// Gets the status of the <strong>CertSvc</strong> service.
         /// </summary>
@@ -142,143 +165,116 @@ namespace PKI.CertificateServices {
         /// <summary>
         /// Gets the most recent Base CRL object.
         /// </summary>
-        [Obsolete("Use 'GetBaseCRL()' method instead", true)]
+        [Obsolete("Use 'GetBaseCRL()' method instead.", true)]
         public X509CRL2 BaseCRL => null;
         /// <summary>
         /// Gets the most recent Delta CRL. If CA server is not configured to use Delta CRLs, the property is empty.
         /// </summary>
-        [Obsolete("Use 'GetDeltaCRL()' method instead", true)]
+        [Obsolete("Use 'GetDeltaCRL()' method instead.", true)]
         public X509CRL2 DeltaCRL => null;
         /// <summary>
         /// Gets or sets an array of Certification Authority's web services URI.
         /// </summary>
+        [Obsolete("Use 'EnrollmentEndpoints' property instead.")]
         public CESUri[] EnrollmentServiceURI { get; set; }
+        /// <summary>
+        /// Gets a collection of Certification Authority's web services enrollment endpoints.
+        /// </summary>
+        public PolicyEnrollEndpointUriCollection EnrollmentEndpoints { get; }
+            = new PolicyEnrollEndpointUriCollection();
         internal String Version { get; private set; }
         internal String Sku { get; private set; }
-        internal Boolean IsEnterprise { get; private set; }
-        String Active { get; set; }
 
-        void pingRegistry(String computerName) {
-            RegistryOnline = CryptoRegistry.Ping(computerName);
-            if (RegistryOnline) {
-                Active = (String)CryptoRegistry.GetRReg("Active", "", computerName);
-            }
-        }
         void lookInDs(String computerName) {
-            if (!DsUtils.Ping()) { return; }
-            if (!computerName.Contains(".")) { computerName = computerName + "." + DsUtils.GetCurrentDomainName(); }
-            _certConfig.Reset(0); //TODO
-            while (_certConfig.Next() >= 0) {
-                Int32 flags = Convert.ToInt32(_certConfig.GetField(CertConfigConstants.FieldFlags));
-                Boolean serverNameMatch = String.Equals(_certConfig.GetField(CertConfigConstants.FieldServer), computerName, StringComparison.InvariantCultureIgnoreCase);
-                if (serverNameMatch && (flags & 1) > 0) {
-                    foundInDs = true;
-                    return;
-                }
-            }
-        }
-        void initializeFromServerName(String computerName) {
-            getConfig(computerName);
-            initialize();
-        }
-        void initializeFromConfigString(String computerName, String name) {
-            if (!RegistryOnline && !IsAccessible) {
-                if (foundInDs) {
-                    buildFromCertConfigOnly();
-                } else {
-                    var e = new ServerUnavailableException(computerName);
-                    e.Data.Add(nameof(e.Source), (OfflineSource)3);
-                    throw e;
-                }
+            if (!DsUtils.Ping()) {
+                // we are in workgroup, so try to get DsEntry from whatever source we have using the name caller specified
+                dsEntry = new CertConfigD().FindConfigEntryByServerName(computerName);
             } else {
-                getConfig(computerName, name);
-                initialize();
+                // we are connected to AD.
+                // If name is passed in NetBIOS form, then translate to FQDN, because DS entries reference by FQDN only
+                if (!computerName.Contains(".")) {
+                    computerName = $"{computerName}.{DsUtils.GetCurrentDomainName()}";
+                }
+                // try to find by FQDN
+                dsEntry = new CertConfigD().FindConfigEntryByServerName(computerName);
             }
         }
         void initialize() {
+            if (!_regReader.RegistryOnline && !_regReader.DcomOnline) {
+                initialize();
+            }
+
             getType();
             getVersion();
             getWmiData();
-            getCaProperty();
+            getCaCertificate();
             buildKeyMap();
             getCertSvcServiceStatus();
-            getInfoFromDs();
-            releaseCom();
+            getDistinguishedName();
         }
-        void getConfig(String computerName, String caName = null) {
-            // if we found CA in DS, we are just fine, no need to touch CA server.
-            if (foundInDs) {
-                ComputerName = computerName;
-                Name = caName;
-                ConfigString = ConfigString = ComputerName + "\\" + Name;
-                return;
+        void readInfoFromDsEntry() {
+            ComputerName = dsEntry.ComputerName;
+            Name = dsEntry.CommonName;
+            DisplayName = dsEntry.DisplayName;
+            ConfigString = dsEntry.ConfigString;
+
+            if (dsEntry.WebEnrollmentServers != null) {
+                EnrollmentEndpoints.AddRange(dsEntry.WebEnrollmentServers.Select(x => new PolicyEnrollEndpointUri(x)));
             }
-            // otherwise:
-            // 1. if registry is accessible, read actual config string from registry
-            if (RegistryOnline) {
-                ComputerName = (String)CryptoRegistry.GetRReg("CAServerName", Active, computerName);
-                Name = (String)CryptoRegistry.GetRReg("CommonName", Active, computerName);
-            } else {
-                // 2. if registry is not accessible, we must have a CA name in order to read it from ICertAdmin::GetConfig
-                if (!String.IsNullOrEmpty(caName) && IsAccessible) {
-                    String configString = $@"{computerName}\{caName}";
-                    ComputerName = (String)CryptoRegistry.GetRegFallback(configString, String.Empty, "CAServerName");
-                    Name = (String)CryptoRegistry.GetRegFallback(configString, String.Empty, "CommonName");
-                } else {
-                    var e = new ServerUnavailableException(computerName);
-                    e.Data.Add(nameof(e.Source), OfflineSource.DCOM | OfflineSource.Registry);
-                    throw e;
-                }
-            }
+
+            // legacy, subject for removal
+            EnrollmentServiceURI = dsEntry.WebEnrollmentServers
+                ?.Select(x => new CESUri(x.DsEncode(), dsEntry.DisplayName))
+                .ToArray();
+        }
+        void readInfoFromServer() {
+            // at this point we can say that specified CA is not registered in AD or we are not connected there,
+            // so try to connect to CA and read info directly from server.
+            // Note: we do not read ComputerName from server. We are ok with supplied one if it works. If it doesn't, no one cares then.
+
+            Name = DisplayName = _regReader.GetStringEntry("CommonName");
             ConfigString = ComputerName + "\\" + Name;
         }
         void getType() {
-            Int32 type;
-            if (RegistryOnline) {
-                type = (Int32)CryptoRegistry.GetRReg("CAType", Active, ComputerName);
-            } else {
-                type = (Int32)CryptoRegistry.GetRegFallback(ConfigString, String.Empty, "CAType");
-            }
+            _regReader.SetRootNode(true);
+            Int32 type = _regReader.GetNumericEntry("CAType");
+            Console.WriteLine(type);
             switch (type) {
-                case 0: Type = "Enterprise Root CA"; IsEnterprise = true; break;
-                case 1: Type = "Enterprise Subordinate CA"; IsEnterprise = true; break;
-                case 3: Type = "Standalone Root CA"; break;
-                case 4: Type = "Standalone Subordinate CA"; break;
-                default: Type = "Undefined"; break;
+                case 0:
+                    Type = "Enterprise Root CA";
+                    IsEnterprise = true;
+                    IsRoot = true;
+                    break;
+                case 1:
+                    Type = "Enterprise Subordinate CA";
+                    IsEnterprise = true;
+                    break;
+                case 3:
+                    Type = "Standalone Root CA";
+                    IsRoot = true;
+                    break;
+                case 4:
+                    Type = "Standalone Subordinate CA";
+                    break;
+                default:
+                    Type = "Undefined";
+                    break;
             }
         }
         void getVersion() {
-            if (RegistryOnline) {
-                switch ((Int32)CryptoRegistry.GetRReg("Version", String.Empty, ComputerName)) {
-                    case 0x00010001: Version = "2000"; break;
-                    case 0x00020002: Version = "2003"; break;
-                    case 0x00030001: Version = "2008"; break;
-                    case 0x00040001: Version = "2008R2"; break;
-                    case 0x00050001: Version = "2012"; break;
-                    case 0x00060001: Version = "2012R2"; break;
-                    // there are no functional changes between 2016 and 2019, so treat them both as 2016
-                    case 0x00070001:
-                    case 0x00080001:  Version = "2016"; break;
-                }
-                SetupStatus = (SetupStatusEnum)CryptoRegistry.GetRReg("SetupStatus", String.Empty, ComputerName);
-            } else {
-                String ver = (String)_certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropProductversion, 0, 4, 0);
-                String[] vers = ver.Split(new [] { ":" }, StringSplitOptions.RemoveEmptyEntries);
-                switch (vers[0]) {
-                    case "5.0": Version = "2000"; break;
-                    case "5.2": Version = "2003"; break;
-                    case "6.0": Version = "2008"; break;
-                    case "6.1": Version = "2008R2"; break;
-                    case "6.2": Version = "2012"; break;
-                    case "6.3": Version = "2012R2"; break;
-                    default:
-                        Version = vers[0].StartsWith("10.0")
-                            ? "2016"
-                            : "Unknown";
-                        break;
-                }
-                SetupStatus = SetupStatusEnum.Unknown;
+            _regReader.SetRootNode(false);
+            switch (_regReader.GetNumericEntry("Version")) {
+                case 0x00010001: Version = "2000"; break;
+                case 0x00020002: Version = "2003"; break;
+                case 0x00030001: Version = "2008"; break;
+                case 0x00040001: Version = "2008R2"; break;
+                case 0x00050001: Version = "2012"; break;
+                case 0x00060001: Version = "2012R2"; break; // without [MSKB-3013769] can look like 2012 RTM
+                // there are no functional changes between 2016 and 2019, so treat them both as 2016
+                case 0x00070001:
+                case 0x00080001: Version = "2016"; break;
             }
+            SetupStatus = (SetupStatusEnum)_regReader.GetNumericEntry("SetupStatus");
         }
         void getWmiData() {
             try {
@@ -290,14 +286,12 @@ namespace PKI.CertificateServices {
                 }
             } catch { }
         }
-        void getCaProperty() {
-            if (!IsAccessible) { return; }
-            Int32 count = (Int32)_certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcertcount, 0, 1, 0);
-            Certificate = new X509Certificate2(
-                Convert.FromBase64String(
-                    (String)_certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcert, count - 1, 3, 1)
-                    )
-                );
+        void getCaCertificate() {
+            if (!IsAccessible) {
+                return;
+            }
+
+            Certificate = new X509Certificate2(_propReader.GetLatestCaCertificate());
         }
         void getCertSvcServiceStatus() {
             if (RegistryOnline || IsAccessible) {
@@ -309,58 +303,37 @@ namespace PKI.CertificateServices {
                 ServiceStatus = "Unknown";
             }
         }
-        void getInfoFromDs() {
-            if (IsEnterprise && DsUtils.Ping()) {
-                //Console.WriteLine($"DEBUG: user forest     : {DsUtils.GetUserForestName()}");
-                //Console.WriteLine($"DEBUG: computer forest : {DsUtils.GetComputerForestName()}");
-                //Console.WriteLine($"DEBUG: user domain     : {DsUtils.GetUserDomainName()}");
-                //Console.WriteLine($"DEBUG: computer domain : {DsUtils.GetComputerDomainName()}");
-                //Console.WriteLine($"DEBUG: domain path 1   : {String.Join(".", ComputerName.Split('.').Where((v, i) => i != 0))}");
-                //Console.WriteLine($"DEBUG: domain path     : {String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0))}");
-                //Console.WriteLine($"DEBUG: config context  : {DsUtils.ConfigContext}");
-                String domain = String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0));
-                String dn = $"CN={Name},CN=Enrollment Services,CN=Public Key Services,CN=Services,CN=Configuration,DC={domain}";
-                //Console.WriteLine($"DEBUG: full dn         : {dn}");
-                DistinguishedName = dn;
-                DisplayName = (String)DsUtils.GetEntryProperty(dn, "DisplayName");
-                try {
-                    String wes  = (String)DsUtils.GetEntryProperty(dn, "msPKI-Enrollment-Servers");
-                    if (!String.IsNullOrEmpty(wes)) {
-                        getCesUri(wes);
-                    }
-                } catch { }
-                
+        void getDistinguishedName() {
+            if (dsEntry == null || (dsEntry.Flags & CertConfigLocation.DsEntry) == 0) {
+                return;
             }
-            if (String.IsNullOrEmpty(DisplayName)) { DisplayName = Name; }
-        }
-        void getCesUri(String ldapUri) {
-            EnrollmentServiceURI = ldapUri
-                .Split(new[] {"\n\n"}, StringSplitOptions.None)
-                .Select(str => new CESUri(str, DisplayName))
-                .ToArray();
-        }
-        void buildFromCertConfigOnly() {
-            IsEnterprise = true;
-            Name = _certConfig.GetField(CertConfigConstants.FieldSanitizedName);
-            DisplayName = _certConfig.GetField(CertConfigConstants.FieldCommonName);
-            ComputerName = _certConfig.GetField(CertConfigConstants.FieldServer);
-            ConfigString = _certConfig.GetField(CertConfigConstants.FieldConfig);
-            getInfoFromDs();
-        }
-        void releaseCom() {
-            CryptographyUtils.ReleaseCom(_certRequest, _certConfig);
+            // at this point we know that we are connected to AD and can try to lookup for DistinguishedName attribute.
+            //Console.WriteLine($"DEBUG: user forest     : {DsUtils.GetUserForestName()}");
+            //Console.WriteLine($"DEBUG: computer forest : {DsUtils.GetComputerForestName()}");
+            //Console.WriteLine($"DEBUG: user domain     : {DsUtils.GetUserDomainName()}");
+            //Console.WriteLine($"DEBUG: computer domain : {DsUtils.GetComputerDomainName()}");
+            //Console.WriteLine($"DEBUG: domain path 1   : {String.Join(".", ComputerName.Split('.').Where((v, i) => i != 0))}");
+            //Console.WriteLine($"DEBUG: domain path     : {String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0))}");
+            //Console.WriteLine($"DEBUG: config context  : {DsUtils.ConfigContext}");
+            //String domain = String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0));
+            var dsEnroll = ((DsCertEnrollContainer)DsPkiContainer.GetAdPkiContainer(DsContainerType.EnrollmentServices));
+            DistinguishedName = dsEnroll.EnrollmentServers
+                .FirstOrDefault(x => x.ComputerName.Equals(ComputerName, StringComparison.OrdinalIgnoreCase))
+                ?.DistinguishedName;
+            //Console.WriteLine($"DEBUG: full dn         : {dn}");
         }
         void buildKeyMap() {
-            if (!IsAccessible) { return; }
-            Int32 count = (Int32)_certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcertcount, 0, 1, 0);
+            if (!IsAccessible) {
+                return;
+            }
+
+            Int32 count = _propReader.GetCaCertificateCount();
+            if (count < 0) {
+                return;
+            }
             keyMap = new Boolean[count];
-            for (Int32 index = count - 1; index >= 0; index--) {
-                try {
-                    _certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropBaseCrl, index, CertAdmConstants.ProptypeBinary, 0);
-                    keyMap[index] = true;
-                } catch {
-                    keyMap[index] = false;
-                }
+            for (Int32 index = 0; index < count; index++) {
+                keyMap[index] = _propReader.GetCrlState(index) == AdcsPropCrlState.Valid;
             }
         }
 
@@ -373,29 +346,14 @@ namespace PKI.CertificateServices {
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
             }
-            Int32 propID = delta
-                ? CertAdmConstants.CrPropDeltaCrl
-                : CertAdmConstants.CrPropBaseCrl;
 
-            var certRequest = new CCertRequest();
-            Int32 count = (Int32)certRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcertcount, 0, 1, 0);
-            try {
-                while (count >= 0) {
-                    try {
-                        String crl = (String)certRequest.GetCAProperty(ConfigString, propID, count, 3, 1);
-                        if (!String.IsNullOrEmpty(crl)) {
-                            return new X509CRL2(Convert.FromBase64String(crl));
-                        }
-                    } catch {
+            Byte[] rawData = delta
+                ? _propReader.GetLatestCertDeltaCrl()
+                : _propReader.GetLatestCertBaseCrl();
 
-                    } finally {
-                        count--;
-                    }
-                }
-            } finally {
-                CryptographyUtils.ReleaseCom(certRequest);
-            }
-            return null;
+            return rawData == null
+                ? null
+                : new X509CRL2(rawData);
         }
 
         internal Boolean[] GetKeyMap() {
@@ -420,13 +378,14 @@ namespace PKI.CertificateServices {
         /// <returns><strong>True</strong> if management interfaces are available and accessible, otherwise <strong>False</strong>.</returns>
         /// <remarks>
         /// The caller must have at least <strong>Read</strong> permissions on the CA server to ping management interfaces.
-        /// Otherwise the method always returns <strong>False</strong>, regardles of actual interface state.
+        /// Otherwise the method always returns <strong>False</strong>, regardless of actual interface state.
         /// </remarks>
         public Boolean Ping() {
-            if (String.IsNullOrEmpty(ComputerName)) {throw new UninitializedObjectException();}
-            Boolean online = false;
-            CertAdm.CertSrvIsServerOnline(ComputerName, ref online);
-            return online;
+            if (String.IsNullOrEmpty(ComputerName)) {
+                throw new UninitializedObjectException();
+            }
+
+            return Ping(ComputerName);
         }
         /// <summary>
         /// Returns an instance of ADCS database reader.
@@ -457,13 +416,12 @@ namespace PKI.CertificateServices {
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
             }
-            var CertRequest = new CCertRequest();
+
             var certs = new X509Certificate2Collection();
-            Int32 count = (Int32)CertRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcertcount, 0, 1, 0);
+            Int32 count = _propReader.GetCaCertificateCount();
             for (Int32 index = 0; index < count; index++) {
-                certs.Add(new X509Certificate(Convert.FromBase64String((String)CertRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCasigcert, index, 3, 1))));
+                certs.Add(new X509Certificate(_propReader.GetCaCertificate(index)));
             }
-            CryptographyUtils.ReleaseCom(CertRequest);
             return certs;
         }
         /// <summary>
@@ -481,19 +439,8 @@ namespace PKI.CertificateServices {
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
             }
-            var CertRequest = new CCertRequest();
-            try {
-                Int32 index = (Int32)CertRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCaxchgcertcount, 0, 1, 0) - 1;
-                if (index >= 0) {
-                    String Base64 = (String)CertRequest.GetCAProperty(ConfigString, CertAdmConstants.CrPropCaxchgcert, index, 3, 1);
-                    return new X509Certificate2(Convert.FromBase64String(Base64));
-                }
-                throw new Exception(String.Format(Error.E_XCHGUNAVAILABLE, DisplayName));
-            } catch (Exception e) {
-                throw Error.ComExceptionHandler(e);
-            } finally {
-                CryptographyUtils.ReleaseCom(CertRequest);
-            }
+
+            return new X509Certificate2(_propReader.GetExchangeCertificate());
         }
         /// <summary>
         /// Returns the most recent version of Base CRL.
@@ -619,21 +566,13 @@ namespace PKI.CertificateServices {
         /// <summary>
         /// Updates Enrollment Services URLs in the Active Directory.
         /// </summary>
+        /// <exception cref="NotSupportedException">Enrollment Service URLs are not supported in workgroups.</exception>
         public void UpdateEnrollmentServiceUri() {
             if (String.IsNullOrEmpty(DistinguishedName)) {
-                throw new NotSupportedException("Enrollment Service URLs are not supported for Standalone CAs.");
+                throw new NotSupportedException("Enrollment Service URLs are not supported in workgroups.");
             }
-            Object value = null;
-            if (EnrollmentServiceURI != null && EnrollmentServiceURI.Length > 0) {
-                List<String> uris = new List<String>();
-                foreach (CESUri uri in EnrollmentServiceURI) {
-                    uri.DisplayName = DisplayName;
-                    uris.Add(uri.Priority + "\n" + (Int32) uri.Authentication + "\n" + Convert.ToInt32(uri.RenewalOnly) + "\n" +
-                             uri.Uri.AbsoluteUri);
-                }
-                value = uris.ToArray();
-            }
-            DsUtils.SetEntryProperty(DistinguishedName, DsUtils.PropPkiEnrollmentServers, value);
+
+            DsUtils.SetEntryProperty(DistinguishedName, DsUtils.PropPkiEnrollmentServers, EnrollmentEndpoints.DsEncode());
         }
         /// <summary>
         /// Gets the access control list (<strong>ACL</strong>) for the current Certification Authority.
@@ -650,7 +589,7 @@ namespace PKI.CertificateServices {
                     sdBinary = (Byte[])CryptoRegistry.GetRegFallback(ConfigString, String.Empty, "Security");
                 } else {
                     ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-                    e.Data.Add(nameof(e.Source), (OfflineSource)3);
+                    e.Data.Add(nameof(e.Source), OfflineSource.Registry | OfflineSource.DCOM);
                     throw e;
                 }
             }
@@ -665,9 +604,11 @@ namespace PKI.CertificateServices {
         /// <exception cref="ArgumentNullException">If the <strong>computerName</strong> parameter is null or empty.</exception>
         /// <returns><strong>True</strong> if management interfaces are available and accessible, otherwise <strong>False</strong>.</returns>
         public static Boolean Ping(String computerName) {
-            if (String.IsNullOrEmpty(computerName)) { throw new ArgumentNullException(nameof(computerName)); }
-            Boolean online = false;
-            CertAdm.CertSrvIsServerOnline(computerName, ref online);
+            if (String.IsNullOrEmpty(computerName)) {
+                throw new ArgumentNullException(nameof(computerName));
+            }
+
+            CertAdm.CertSrvIsServerOnline(computerName, out Boolean online);
             return online;
         }
         /// <summary>
@@ -676,12 +617,12 @@ namespace PKI.CertificateServices {
         /// <param name="computerName">CA's computer host name. Can be either short (NetBIOS) or fully qualified (FQDN) name.</param>
         /// <exception cref="InvalidOperationException">The service is already stopped.</exception>
         public static void Stop(String computerName) {
-            ServiceController sc = new ServiceController("CertSvc", computerName);
-            if (sc.Status == ServiceControllerStatus.Running) {
-                sc.Stop();
-                sc.WaitForStatus(ServiceControllerStatus.Stopped);
-                sc.Close();
-            } else { throw new InvalidOperationException(); }
+            using (var sc = new ServiceController("CertSvc", computerName)) {
+                if (sc.Status == ServiceControllerStatus.Running) {
+                    sc.Stop();
+                    sc.WaitForStatus(ServiceControllerStatus.Stopped);
+                } else { throw new InvalidOperationException(); }
+            }
         }
         /// <summary>
         /// Starts Certification Authority service on a specified server.
@@ -689,20 +630,19 @@ namespace PKI.CertificateServices {
         /// <param name="computerName">CA's computer host name. Can be either short (NetBIOS) or fully qualified (FQDN) name.</param>
         /// <exception cref="InvalidOperationException">The service is already running.</exception>
         public static void Start(String computerName) {
-            ServiceController sc = new ServiceController("CertSvc", computerName);
-            if (sc.Status == ServiceControllerStatus.Stopped) {
-                sc.Start();
-                sc.WaitForStatus(ServiceControllerStatus.Running);
-                sc.Close();
-            } else { throw new InvalidOperationException(); }
+            using (var sc = new ServiceController("CertSvc", computerName)) {
+                if (sc.Status == ServiceControllerStatus.Stopped) {
+                    sc.Start();
+                    sc.WaitForStatus(ServiceControllerStatus.Running);
+                } else { throw new InvalidOperationException(); }
+            }
         }
         /// <summary>
         /// Restarts a specified Certification Authority service. This method restarts 'certsvc' service.
         /// </summary>
         /// <param name="computerName">CA's computer host name. Can be either short (NetBIOS) or fully qualified (FQDN) name.</param>
         public static void Restart(String computerName) {
-            ServiceController sc = new ServiceController("CertSvc", computerName);
-            try {
+            using (var sc = new ServiceController("CertSvc", computerName)) {
                 if (sc.Status == ServiceControllerStatus.Running) {
                     sc.Stop();
                     sc.WaitForStatus(ServiceControllerStatus.Stopped);
@@ -712,7 +652,7 @@ namespace PKI.CertificateServices {
                     sc.Start();
                     sc.WaitForStatus(ServiceControllerStatus.Running);
                 }
-            } finally { sc.Close(); }
+            }
         }
         /// <summary>
         /// Connects to a specified Certification Authority server. This method allows you to connect to either
@@ -722,7 +662,10 @@ namespace PKI.CertificateServices {
         /// <returns>A CertificationAuthority object.</returns>
         /// <exception cref="ArgumentNullException">If the <strong>computerName</strong> parameter is <strong>null</strong> or <strong>empty</strong>.</exception>
         public static CertificateAuthority Connect(String computerName) {
-            if (String.IsNullOrEmpty(computerName)) {throw new ArgumentNullException(nameof(computerName));}
+            if (String.IsNullOrEmpty(computerName)) {
+                throw new ArgumentNullException(nameof(computerName));
+            }
+
             return new CertificateAuthority(computerName);
         }
         /// <summary>
@@ -734,27 +677,35 @@ namespace PKI.CertificateServices {
         /// Wildcard characters: * and ? are accepted.</param>
         /// <returns>Enterprise Certification Authority collection.</returns>
         public static CertificateAuthority[] EnumEnterpriseCAs(String findType, String findValue) {
-            if (!DsUtils.Ping()) { throw new Exception("Non-domain environments are not supported."); }
+            if (!DsUtils.Ping()) {
+                throw new Exception("Non-domain environments are not supported.");
+            }
             List<CertificateAuthority> CAs = new List<CertificateAuthority>();
-            CCertConfig certConfig = new CCertConfig();
 
-            while (certConfig.Next() >= 0) {
-                Int32 flags = Convert.ToInt32(certConfig.GetField("Flags"));
-                if ((flags & 1) == 0) { continue; }
+            var certConfig = new CertConfigD();
+            
+            foreach (ICertConfigEntryD entry in certConfig.EnumConfigEntries()) {
+                if (!entry.Flags.HasFlag(CertConfigLocation.DsEntry)) {
+                    continue;
+                }
+
                 Wildcard wildcard = new Wildcard(findValue, RegexOptions.IgnoreCase);
                 switch (findType.ToLower()) {
                     case "name":
-                        if (!wildcard.IsMatch(certConfig.GetField("CommonName"))) { continue; }
+                        if (!wildcard.IsMatch(entry.CommonName)) {
+                            continue;
+                        }
                         break;
                     case "server":
-                        if (!wildcard.IsMatch(certConfig.GetField("Server"))) { continue; }
+                        if (!wildcard.IsMatch(entry.ComputerName)) {
+                            continue;
+                        }
                         break;
                     default:
                         throw new ArgumentException("The value for 'findType' must be either 'Name' or 'Server'.");
                 }
-                CAs.Add(new CertificateAuthority(certConfig.GetField("Server"), certConfig.GetField("SanitizedName")));
+                CAs.Add(new CertificateAuthority(entry));
             }
-            CryptographyUtils.ReleaseCom(certConfig);
             return CAs.ToArray();
         }
     }
