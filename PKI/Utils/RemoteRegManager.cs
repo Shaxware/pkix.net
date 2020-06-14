@@ -55,7 +55,7 @@ namespace PKI.Utils {
 
             using (RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, ComputerName, RegistryView.Default)) {
                 RegistryKey root = key.OpenSubKey(runtimePath, false);
-                Object value = (String)root?.GetValue("Avtive", FAKE_VALUE);
+                Object value = (String)root?.GetValue("Active", FAKE_VALUE);
                 root?.Close();
                 if (value == null || FAKE_VALUE.Equals(value)) {
                     return null;
@@ -74,7 +74,7 @@ namespace PKI.Utils {
 
             using (RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, ComputerName, RegistryView.Default)) {
                 RegistryKey root = key.OpenSubKey(runtimePath, false);
-                Object value = (String)root?.GetValue("Avtive", FAKE_VALUE);
+                Object value = (String)root?.GetValue("Active", FAKE_VALUE);
                 root?.Close();
                 if (value == null || FAKE_VALUE.Equals(value)) {
                     throw new FileNotFoundException();
