@@ -662,14 +662,14 @@ namespace PKI.CertificateServices {
             return new CertificateAuthority(computerName);
         }
         /// <summary>
-        /// Enumerates registered Enterprise Certification Authorities from the current Active Directory forest.
+        /// Enumerates registered in Certification Authorities from the current Active Directory forest.
         /// </summary>
         /// <param name="findType">Specifies CA object search type. The search type can be either: <strong>Name</strong>
         /// or <strong>Server</strong>.</param>
         /// <param name="findValue">Specifies search pattern for a type specified in <strong>findType</strong> argument.
         /// Wildcard characters: * and ? are accepted.</param>
-        /// <returns>Enterprise Certification Authority collection.</returns>
-        public static CertificateAuthority[] EnumEnterpriseCAs(String findType, String findValue) {
+        /// <returns>An array of Certification Authorities.</returns>
+        public static CertificateAuthority[] EnumEnterpriseCAs(String findType = "Server", String findValue = "*") {
             if (!DsUtils.Ping()) {
                 throw new Exception("Non-domain environments are not supported.");
             }
