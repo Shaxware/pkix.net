@@ -42,6 +42,7 @@ namespace PKI.CertificateServices {
             // temporary. Can be overwritten later from more trustworthy source (readInfoFromDsEntry)
             ComputerName = computerName;
 
+            IsAccessible = Ping(computerName);
             _regReader = new CertSrvConfigUtil(computerName);
             // try to find in AD if possible
             lookInDs(computerName);
@@ -57,6 +58,7 @@ namespace PKI.CertificateServices {
         }
         CertificateAuthority(ICertConfigEntryD entry) {
             dsEntry = entry;
+            IsAccessible = Ping(dsEntry.ComputerName);
             // write basic info from ICertConfig without contacting the server.
             readInfoFromDsEntry();
             
@@ -137,7 +139,7 @@ namespace PKI.CertificateServices {
         /// <para>This property does not indicate whether remote registry is available or not. Refer to <see cref="RegistryOnline"/>
         /// property to determine remote registry availability.</para>
         /// </summary>
-        public Boolean IsAccessible => _regReader.DcomOnline;
+        public Boolean IsAccessible { get; private set; }
         /// <summary>
         /// Gets remote registry accessibility status for Certification Authority. Returns <strong>True</strong> if Certification Authority
         /// if remote registry is accessible, otherwise <strong>False</strong>.
@@ -218,11 +220,6 @@ namespace PKI.CertificateServices {
             if (dsEntry.WebEnrollmentServers != null) {
                 EnrollmentEndpoints.AddRange(dsEntry.WebEnrollmentServers.Select(x => new PolicyEnrollEndpointUri(x)));
             }
-
-            // legacy, subject for removal
-            EnrollmentServiceURI = dsEntry.WebEnrollmentServers
-                ?.Select(x => new CESUri(x.DsEncode(), dsEntry.DisplayName))
-                .ToArray();
         }
         void readInfoFromServer() {
             // at this point we can say that specified CA is not registered in AD or we are not connected there,
@@ -334,10 +331,7 @@ namespace PKI.CertificateServices {
         }
 
         X509CRL2 getCRL(Boolean delta) {
-            if (String.IsNullOrEmpty(Name)) {
-                throw new UninitializedObjectException();
-            }
-            if (!Ping()) {
+            if (!IsAccessible) {
                 var e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
@@ -474,6 +468,7 @@ namespace PKI.CertificateServices {
                 sc.Stop();
                 sc.WaitForStatus(ServiceControllerStatus.Stopped);
                 sc.Close();
+                IsAccessible = false;
             } else { throw new InvalidOperationException(); }
         }
         /// <summary>
@@ -486,6 +481,7 @@ namespace PKI.CertificateServices {
                 sc.Start();
                 sc.WaitForStatus(ServiceControllerStatus.Running);
                 sc.Close();
+                IsAccessible = true;
             } else { throw new InvalidOperationException(); }
         }
         /// <summary>
@@ -503,6 +499,7 @@ namespace PKI.CertificateServices {
                     sc.Start();
                     sc.WaitForStatus(ServiceControllerStatus.Running);
                 }
+                IsAccessible = true;
             } finally { sc.Close(); }
         }
         /// <summary>
