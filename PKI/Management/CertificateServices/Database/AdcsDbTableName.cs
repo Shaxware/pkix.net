@@ -12,7 +12,7 @@
         /// </summary>
         Extension	= 0x3000,	// 12288
         /// <summary>
-        /// Contains certificate attributes passed among wth particulat request.
+        /// Contains certificate attributes passed among wth particular request.
         /// </summary>
         Attribute	= 0x4000,	// 16384
         /// <summary>
