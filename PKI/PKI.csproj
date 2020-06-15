@@ -124,6 +124,8 @@
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntry.cs" />
     <Compile Include="Dcom\AdcsBinaryFormat.cs" />
     <Compile Include="Dcom\AdcsCAPropertyName.cs" />
+    <Compile Include="Dcom\AdcsCrlReason.cs" />
+    <Compile Include="Dcom\AdcsCVRCTable.cs" />
     <Compile Include="Dcom\AdcsEnrollAuthenticationType.cs" />
     <Compile Include="Dcom\AdcsPropCaType.cs" />
     <Compile Include="Dcom\AdcsPropCertState.cs" />
@@ -134,6 +136,8 @@
     <Compile Include="Dcom\AdcsOfficerRole.cs" />
     <Compile Include="Dcom\AdcsCAPropertyValueType.cs" />
     <Compile Include="Dcom\AdcsRequestStatus.cs" />
+    <Compile Include="Dcom\ICertCrlAdmin.cs" />
+    <Compile Include="Dcom\ICertDbAdminD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigEnrollEndpointD.cs" />
     <Compile Include="Dcom\CertConfigOption.cs" />
     <Compile Include="Dcom\CertConfigLocation.cs" />
