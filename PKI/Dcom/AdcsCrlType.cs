@@ -2,7 +2,7 @@
 
 namespace SysadminsLV.PKI.Dcom {
     /// <summary>
-    /// Contains enumeration of CRL types to publish by Certification Authority (CA). This enumeration is used by <see cref="ICertCrlAdmin"/> interface.
+    /// Contains enumeration of CRL types to publish by Certification Authority (CA). This enumeration is used by <see cref="ICertCrlAdminD"/> interface.
     /// <para>This enumeration has a <see cref="FlagsAttribute"/> attribute that allows a bitwise combination of its member values.</para>
     /// </summary>
     [Flags]

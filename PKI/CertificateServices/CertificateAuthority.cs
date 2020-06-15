@@ -543,7 +543,7 @@ namespace PKI.CertificateServices {
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
             }
-            ICertCrlAdmin crlAdmin = new CertCrlAdmin(ConfigString);
+            ICertCrlAdminD crlAdmin = new CertCrlAdminD(ConfigString);
             if (updateFilesOnly) {
                 crlAdmin.RepublishDistributionPoints();
             } else {

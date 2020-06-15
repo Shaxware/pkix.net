@@ -4,16 +4,16 @@ using PKI.Utils;
 
 namespace SysadminsLV.PKI.Dcom.Implementations {
     /// <summary>
-    /// Represents a managed implementation of <see cref="ICertCrlAdmin"/> interface.
+    /// Represents a managed implementation of <see cref="ICertCrlAdminD"/> interface.
     /// </summary>
-    public class CertCrlAdmin : ICertCrlAdmin {
+    public class CertCrlAdminD : ICertCrlAdminD {
         readonly String _configString;
 
         /// <summary>
         /// Initializes a new instance of <strong>CertCrlAdmin</strong> class from Certification Authority configuration string.
         /// </summary>
         /// <param name="configString">Certification Authority configuration string.</param>
-        public CertCrlAdmin(String configString) {
+        public CertCrlAdminD(String configString) {
             _configString = configString;
         }
 

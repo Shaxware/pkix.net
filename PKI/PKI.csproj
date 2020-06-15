@@ -136,7 +136,7 @@
     <Compile Include="Dcom\AdcsOfficerRole.cs" />
     <Compile Include="Dcom\AdcsCAPropertyValueType.cs" />
     <Compile Include="Dcom\AdcsRequestStatus.cs" />
-    <Compile Include="Dcom\ICertCrlAdmin.cs" />
+    <Compile Include="Dcom\ICertCrlAdminD.cs" />
     <Compile Include="Dcom\ICertDbAdminD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigEnrollEndpointD.cs" />
     <Compile Include="Dcom\CertConfigOption.cs" />
@@ -146,7 +146,7 @@
     <Compile Include="Dcom\ICertConfigD.cs" />
     <Compile Include="Dcom\ICertConfigEntryD.cs" />
     <Compile Include="Dcom\ICertRegManagerD.cs" />
-    <Compile Include="Dcom\Implementations\CertCrlAdmin.cs" />
+    <Compile Include="Dcom\Implementations\CertCrlAdminD.cs" />
     <Compile Include="Dcom\Implementations\CertPropReaderD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigEntry.cs" />

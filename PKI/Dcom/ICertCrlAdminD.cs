@@ -5,7 +5,7 @@ namespace SysadminsLV.PKI.Dcom {
     /// Represents a wrapper interface for Microsoft
     /// <see href="https://docs.microsoft.com/en-us/windows/win32/api/certadm/nn-certadm-icertadmin2">ICertAdmin2</see> COM interface.
     /// </summary>
-    public interface ICertCrlAdmin {
+    public interface ICertCrlAdminD {
         /// <summary>
         /// Publishes a new base CRL.
         /// </summary>
