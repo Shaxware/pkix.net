@@ -138,6 +138,7 @@
     <Compile Include="Dcom\AdcsRequestStatus.cs" />
     <Compile Include="Dcom\ICertCrlAdminD.cs" />
     <Compile Include="Dcom\ICertDbAdminD.cs" />
+    <Compile Include="Dcom\Implementations\BulkRowRemovalOption.cs" />
     <Compile Include="Dcom\Implementations\CertConfigEnrollEndpointD.cs" />
     <Compile Include="Dcom\CertConfigOption.cs" />
     <Compile Include="Dcom\CertConfigLocation.cs" />
@@ -147,10 +148,12 @@
     <Compile Include="Dcom\ICertConfigEntryD.cs" />
     <Compile Include="Dcom\ICertRegManagerD.cs" />
     <Compile Include="Dcom\Implementations\CertCrlAdminD.cs" />
+    <Compile Include="Dcom\Implementations\CertDbAdminD.cs" />
     <Compile Include="Dcom\Implementations\CertPropReaderD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigEntryD.cs" />
     <Compile Include="Dcom\Implementations\CertRegManagerD.cs" />
+    <Compile Include="Dcom\Implementations\ImportForeignOption.cs" />
     <Compile Include="Management\ActiveDirectory\DsCertEnrollServer.cs" />
     <Compile Include="Management\ActiveDirectory\DsEnrollServerFlag.cs" />
     <Compile Include="Management\CertificateServices\AdcsAiaUrlEntry.cs" />
