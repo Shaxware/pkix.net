@@ -7,7 +7,7 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
     /// <summary>
     /// Represents a Windows implementation of <see cref="ICertConfigEntryD"/> interface.
     /// </summary>
-    public class CertConfigEntry : ICertConfigEntryD {
+    public class CertConfigEntryD : ICertConfigEntryD {
         readonly List<ICertConfigEnrollEndpointD> _webUriList = new List<ICertConfigEnrollEndpointD>();
 
         const String CONFIG_COMMONNAME           = "CommonName";
@@ -29,8 +29,8 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
         const String CONFIG_FLAGS                = "Flags";
         const String CONFIG_WEBENROLLMENTSERVERS = "WebEnrollmentServers";
 
-        internal CertConfigEntry(ICertConfig2 certConfig) {
-            foreach (FieldInfo fi in typeof(CertConfigEntry).GetFields(BindingFlags.NonPublic | BindingFlags.Static)) {
+        internal CertConfigEntryD(ICertConfig2 certConfig) {
+            foreach (FieldInfo fi in typeof(CertConfigEntryD).GetFields(BindingFlags.NonPublic | BindingFlags.Static)) {
                 if (!fi.IsLiteral || fi.IsInitOnly) {
                     continue;
                 }

@@ -49,7 +49,7 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
             var list = new List<ICertConfigEntryD>();
             var certConfig = new CCertConfigClass();
             while (certConfig.Next() >= 0) {
-                list.Add(new CertConfigEntry(certConfig));
+                list.Add(new CertConfigEntryD(certConfig));
             }
             Marshal.FinalReleaseComObject(certConfig);
             return list.ToArray();
@@ -61,7 +61,7 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
             while (certConfig.Next() >= 0) {
                 try {
                     if (certConfig.GetField("CommonName").Equals(caName, StringComparison.CurrentCultureIgnoreCase)) {
-                        var entry = new CertConfigEntry(certConfig);
+                        var entry = new CertConfigEntryD(certConfig);
                         Marshal.FinalReleaseComObject(certConfig);
                         return entry;
                     }
@@ -76,7 +76,7 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
             while (certConfig.Next() >= 0) {
                 try {
                     if (certConfig.GetField("Server").Equals(computerName, StringComparison.OrdinalIgnoreCase)) {
-                        var entry = new CertConfigEntry(certConfig);
+                        var entry = new CertConfigEntryD(certConfig);
                         Marshal.FinalReleaseComObject(certConfig);
                         return entry;
                     }
