@@ -543,18 +543,16 @@ namespace PKI.CertificateServices {
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
             }
-            var CertAdmin = new CCertAdmin();
-            try {
+            ICertCrlAdmin crlAdmin = new CertCrlAdmin(ConfigString);
+            if (updateFilesOnly) {
+                crlAdmin.RepublishDistributionPoints();
+            } else {
                 if (deltaOnly) {
-                    CertAdmin.PublishCRLs(ConfigString, new DateTime(0), 0x2);
-                } else if (updateFilesOnly) {
-                    CertAdmin.PublishCRLs(ConfigString, new DateTime(0), 0x11);
+                    crlAdmin.PublishDeltaCrl();
                 } else {
-                    CertAdmin.PublishCRLs(ConfigString, new DateTime(0), 0x1);
+                    crlAdmin.PublishAllCrl();
                 }
-            } catch (Exception e) {
-                throw Error.ComExceptionHandler(e);
-            } finally { CryptographyUtils.ReleaseCom(CertAdmin); }
+            }
         }
         /// <summary>
         /// Updates Enrollment Services URLs in the Active Directory.

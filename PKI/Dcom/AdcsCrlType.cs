@@ -1,8 +1,12 @@
-﻿namespace SysadminsLV.PKI.Dcom {
+﻿using System;
+
+namespace SysadminsLV.PKI.Dcom {
     /// <summary>
-    /// Contains enumeration of CRL types to publish by Certification Authority (CA). This enumeration is used by <see cref="ICertPropReaderD.PublishCRL"/>.
+    /// Contains enumeration of CRL types to publish by Certification Authority (CA). This enumeration is used by <see cref="ICertCrlAdmin"/> interface.
+    /// <para>This enumeration has a <see cref="FlagsAttribute"/> attribute that allows a bitwise combination of its member values.</para>
     /// </summary>
-    public enum AdcsCrlPublishType {
+    [Flags]
+    enum AdcsCrlPublishType {
         /// <summary>
         /// A base CRL is published, or the most recent base CRL is republished if <strong>RePublish</strong> is set.
         /// </summary>

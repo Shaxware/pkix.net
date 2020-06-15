@@ -146,6 +146,7 @@
     <Compile Include="Dcom\ICertConfigD.cs" />
     <Compile Include="Dcom\ICertConfigEntryD.cs" />
     <Compile Include="Dcom\ICertRegManagerD.cs" />
+    <Compile Include="Dcom\Implementations\CertCrlAdmin.cs" />
     <Compile Include="Dcom\Implementations\CertPropReaderD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigEntry.cs" />
