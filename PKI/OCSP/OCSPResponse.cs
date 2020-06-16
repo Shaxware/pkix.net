@@ -5,11 +5,11 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
 using SysadminsLV.PKI.Cryptography;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Tools.MessageOperations;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
@@ -255,7 +255,7 @@ namespace PKI.OCSP {
                     extensions.Decode(tbsResponseData.GetPayload());
                     foreach (X509Extension item in extensions) {
                         _listExtensions.Add(CryptographyUtils.ConvertExtension(item));
-                        if (_listExtensions[_listExtensions.Count - 1].Oid.Value == X509CertExtensions.X509OcspNonce) {
+                        if (_listExtensions[_listExtensions.Count - 1].Oid.Value == X509ExtensionOid.X509OcspNonce) {
                             NonceReceived = true;
                             NonceValue = _listExtensions[_listExtensions.Count - 1].Format(false);
                         }
@@ -337,12 +337,12 @@ namespace PKI.OCSP {
                 SignerCertificateIsValid = false;
             }
             if (explicitCert) {
-                X509Extension ocspRevNoCheck = cert.Extensions[X509CertExtensions.X509OcspRevNoCheck];
+                X509Extension ocspRevNoCheck = cert.Extensions[X509ExtensionOid.X509OcspRevNoCheck];
                 if (ocspRevNoCheck == null) {
                     ResponseErrorInformation |= OCSPResponseComplianceError.MissingOCSPRevNoCheck;
                     SignerCertificateIsValid = false;
                 }
-                X509Extension eku = cert.Extensions[X509CertExtensions.X509EnhancedKeyUsage];
+                X509Extension eku = cert.Extensions[X509ExtensionOid.X509EnhancedKeyUsage];
                 if (eku == null) {
                     ResponseErrorInformation |= OCSPResponseComplianceError.MissingOCSPSigningEKU;
                     SignerCertificateIsValid = false;

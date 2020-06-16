@@ -5,8 +5,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI.Structs;
 using PKI.Utils;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace SysadminsLV.PKI.Management.ActiveDirectory {
@@ -214,7 +214,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             // use issuer name (first attribute), if subject is CA, use subject name (first attrbiute).
             if (fromCert.Version == 3) {
                 // attempt to retrieve Basic Constraints extension
-                X509Extension ext = fromCert.Extensions[X509CertExtensions.X509BasicConstraints];
+                X509Extension ext = fromCert.Extensions[X509ExtensionOid.X509BasicConstraints];
                 // if Basic Constraints is absent, pick issuer name
                 if (ext == null) {
                     fullSubject = fromCert.IssuerName;

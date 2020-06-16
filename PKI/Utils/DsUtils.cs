@@ -61,16 +61,23 @@ namespace PKI.Utils {
                 return null;
             }
         }
-        public static String GetForestName() {
+        public static String GetCurrentForestName() {
+            return GetComputerForestName();
+        }
+        public static String GetComputerForestName() {
             return Ping()
                 ? Domain.GetComputerDomain().Forest.Name
                 : String.Empty;
         }
-        /// <summary>
-        /// Gets the current computer domain name
-        /// </summary>
-        /// <returns></returns>
         public static String GetCurrentDomainName() {
+            return Ping()
+                ? Domain.GetComputerDomain().Name
+                : String.Empty;
+        }
+        public static String GetComputerDomainName() {
+            return GetCurrentDomainName();
+        }
+        public static String GetUserDomainName() {
             return Ping()
                 ? Domain.GetComputerDomain().Name
                 : String.Empty;

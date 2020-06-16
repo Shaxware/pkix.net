@@ -3,15 +3,16 @@ using System.Linq;
 using Microsoft.Win32;
 using PKI.Exceptions;
 using PKI.Utils;
+using SysadminsLV.PKI.Management.CertificateServices;
 
 namespace PKI.CertificateServices.PolicyModule {
 	/// <summary>
 	/// Represents Certification Authority's policy module processing settings.
 	/// </summary>
 	public class EditFlag {
-		String Version;
-		String ConfigString, ActivePolicyModule;
-		Boolean IsEnterprise;
+		CertSrvPlatformVersion version;
+		String configString, activePolicyModule;
+		Boolean isEnterprise;
 
 		/// <param name="certificateAuthority">Specifies an existing <see cref="CertificateAuthority"/> object.</param>
 		/// <exception cref="UninitializedObjectException">An object in the <strong>certificateAuthority</strong> parameter is not initialized.</exception>
@@ -39,7 +40,7 @@ namespace PKI.CertificateServices.PolicyModule {
 		/// </summary>
 		public PolicyModuleFlagEnum EditFlags { get; private set; }
 		/// <summary>
-		/// Indiciates whether the object was modified after it was instantiated.
+		/// Indicates whether the object was modified after it was instantiated.
 		/// </summary>
 		public Boolean IsModified { get; private set; }
 
@@ -47,16 +48,16 @@ namespace PKI.CertificateServices.PolicyModule {
 			Name = certificateAuthority.Name;
 			DisplayName = certificateAuthority.DisplayName;
 			ComputerName = certificateAuthority.ComputerName;
-			ConfigString = certificateAuthority.ConfigString;
-			Version = certificateAuthority.Version;
-			IsEnterprise = certificateAuthority.IsEnterprise;
+			configString = certificateAuthority.ConfigString;
+			version = certificateAuthority.Version;
+			isEnterprise = certificateAuthority.IsEnterprise;
 			if (CryptoRegistry.Ping(ComputerName)) {
-				ActivePolicyModule = (String)CryptoRegistry.GetRReg("Active", $@"{Name}\PolicyModules", ComputerName);
-				EditFlags = (PolicyModuleFlagEnum)CryptoRegistry.GetRReg("EditFlags", $@"{Name}\PolicyModules\{ActivePolicyModule}", ComputerName);
+				activePolicyModule = (String)CryptoRegistry.GetRReg("Active", $@"{Name}\PolicyModules", ComputerName);
+				EditFlags = (PolicyModuleFlagEnum)CryptoRegistry.GetRReg("EditFlags", $@"{Name}\PolicyModules\{activePolicyModule}", ComputerName);
 			} else {
 				if (CertificateAuthority.Ping(ComputerName)) {
-					ActivePolicyModule = (String)CryptoRegistry.GetRegFallback(ConfigString, "PolicyModules", "EditFlags");
-					EditFlags = (PolicyModuleFlagEnum)CryptoRegistry.GetRegFallback(ConfigString, $@"PolicyModules\{ActivePolicyModule}", "EditFlags");
+					activePolicyModule = (String)CryptoRegistry.GetRegFallback(configString, "PolicyModules", "EditFlags");
+					EditFlags = (PolicyModuleFlagEnum)CryptoRegistry.GetRegFallback(configString, $@"PolicyModules\{activePolicyModule}", "EditFlags");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
 					e.Data.Add(nameof(e.Source), (OfflineSource)3);
@@ -76,13 +77,13 @@ namespace PKI.CertificateServices.PolicyModule {
 		public void Add(PolicyModuleFlagEnum flags) {
 			Int32[] existing = EnumFlags.GetEnabled(typeof(PolicyModuleFlagEnum),(Int32)EditFlags);
 			Int32[] newf = EnumFlags.GetEnabled(typeof(PolicyModuleFlagEnum), (Int32)flags);
-			if (Version == "2003" &&
+			if (version == CertSrvPlatformVersion.Win2003 &&
 				((Int32)flags & (Int32)PolicyModuleFlagEnum.EnableOCSPRevNoCheck) != 0 ||
 				((Int32)flags & (Int32)PolicyModuleFlagEnum.EnableRenewOnBehalfOf) != 0
 			) {
 				throw new ArgumentException("This certification authority version do not support specified flag or flags.");
 			}
-			if (Version == "2008" && ((Int32)flags & (Int32)PolicyModuleFlagEnum.EnableRenewOnBehalfOf) != 0) {
+			if (version == CertSrvPlatformVersion.Win2008 && ((Int32)flags & (Int32)PolicyModuleFlagEnum.EnableRenewOnBehalfOf) != 0) {
 				throw new ArgumentException();
 			}
 			foreach (Int32 item in newf.Where(item => !EnumFlags.Contains(existing, item))) {
@@ -147,7 +148,7 @@ namespace PKI.CertificateServices.PolicyModule {
 		/// </list>
 		/// </remarks>
 		public void Restore() {
-			if (IsEnterprise) {
+			if (isEnterprise) {
 				EditFlags = PolicyModuleFlagEnum.RequestExtensionList |
 				            PolicyModuleFlagEnum.DisableExtensionList |
 				            PolicyModuleFlagEnum.AddOldKeyUsage |
@@ -173,7 +174,7 @@ namespace PKI.CertificateServices.PolicyModule {
 		/// Updates policy module flags by writing them to Certification Authority.
 		/// </summary>
 		/// <param name="restart">
-		/// Indiciates whether to restart certificate services to immediately apply changes. Updated settings has no effect
+		/// Indicates whether to restart certificate services to immediately apply changes. Updated settings has no effect
 		/// until CA service is restarted.
 		/// </param>
 		/// <exception cref="UnauthorizedAccessException">
@@ -190,13 +191,13 @@ namespace PKI.CertificateServices.PolicyModule {
 		public Boolean SetInfo(Boolean restart) {
 			if (IsModified) {
 				if (CryptoRegistry.Ping(ComputerName)) {
-					CryptoRegistry.SetRReg((Int32)EditFlags, "EditFlags", RegistryValueKind.DWord, $@"{Name}\PolicyModules\{ActivePolicyModule}", ComputerName);
+					CryptoRegistry.SetRReg((Int32)EditFlags, "EditFlags", RegistryValueKind.DWord, $@"{Name}\PolicyModules\{activePolicyModule}", ComputerName);
 					if (restart) { CertificateAuthority.Restart(ComputerName); }
 					IsModified = false;
 					return true;
 				}
 				if (CertificateAuthority.Ping(ComputerName)) {
-					CryptoRegistry.SetRegFallback(ConfigString, $@"PolicyModules\{ActivePolicyModule}", "EditFlags", (Int32)EditFlags);
+					CryptoRegistry.SetRegFallback(configString, $@"PolicyModules\{activePolicyModule}", "EditFlags", (Int32)EditFlags);
 					if (restart) { CertificateAuthority.Restart(ComputerName); }
 					IsModified = false;
 					return true;

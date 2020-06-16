@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using PKI.Exceptions;
-using PKI.Structs;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace System.Security.Cryptography.X509Certificates {
@@ -150,7 +150,7 @@ namespace System.Security.Cryptography.X509Certificates {
             if (asn.MoveNext()) {
                 var extensions = new X509ExtensionCollection();
                 extensions.Decode(asn.GetTagRawData());
-                X509Extension crlReason = extensions[X509CertExtensions.X509CRLReasonCode];
+                X509Extension crlReason = extensions[X509ExtensionOid.X509CRLReasonCode];
                 if (crlReason != null) {
                     ReasonCode = crlReason.RawData[2];
                 }

@@ -49,6 +49,28 @@
   <PropertyGroup>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>bin\Release\SysadminsLV.PKI.xml</DocumentationFile>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Interop.CERTADMINLib">
       <HintPath>..\Interop\Interop.CERTADMINLib.dll</HintPath>
@@ -78,10 +100,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cryptography\AlgorithmIdentifierCollection.cs" />
+    <Compile Include="Cryptography\CspAlgorithmOperation.cs" />
+    <Compile Include="Cryptography\CspAlgorithmType.cs" />
     <Compile Include="Cryptography\NonceStatus.cs" />
     <Compile Include="Cryptography\Pkcs\PkcsSignerInfoBuilder.cs" />
     <Compile Include="Cryptography\Pkcs\PkcsSignerInfoCollection.cs" />
     <Compile Include="Cryptography\Pkcs\SignedCmsBuilder.cs" />
+    <Compile Include="Cryptography\CspProviderType.cs" />
     <Compile Include="Cryptography\TspAuthenticodeRequest.cs" />
     <Compile Include="Cryptography\TspFailureStatus.cs" />
     <Compile Include="Cryptography\TspMessageImprint.cs" />
@@ -91,22 +116,51 @@
     <Compile Include="Cryptography\TspRfc3161Request.cs" />
     <Compile Include="Cryptography\TspStatusInfo.cs" />
     <Compile Include="Cryptography\TspValidationStatus.cs" />
+    <Compile Include="Cryptography\X509Certificates\X509ExtensionOid.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustList.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CRL2Collection.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntryCollection.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListBuilder.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CertificateTrustListEntry.cs" />
+    <Compile Include="Dcom\AdcsBinaryFormat.cs" />
+    <Compile Include="Dcom\AdcsCAPropertyName.cs" />
+    <Compile Include="Dcom\AdcsCrlReason.cs" />
+    <Compile Include="Dcom\AdcsCVRCTable.cs" />
+    <Compile Include="Dcom\AdcsEnrollAuthenticationType.cs" />
+    <Compile Include="Dcom\AdcsPropCaType.cs" />
+    <Compile Include="Dcom\AdcsPropCertState.cs" />
+    <Compile Include="Dcom\AdcsPropCrlPublishState.cs" />
+    <Compile Include="Dcom\AdcsPropCrlState.cs" />
+    <Compile Include="Dcom\AdcsCrlType.cs" />
+    <Compile Include="Dcom\AdcsPropKraCertStatus.cs" />
+    <Compile Include="Dcom\AdcsOfficerRole.cs" />
+    <Compile Include="Dcom\AdcsCAPropertyValueType.cs" />
+    <Compile Include="Dcom\AdcsRequestStatus.cs" />
+    <Compile Include="Dcom\ICertCrlAdminD.cs" />
+    <Compile Include="Dcom\ICertDbAdminD.cs" />
+    <Compile Include="Dcom\Implementations\BulkRowRemovalOption.cs" />
+    <Compile Include="Dcom\Implementations\CertConfigEnrollEndpointD.cs" />
+    <Compile Include="Dcom\CertConfigOption.cs" />
+    <Compile Include="Dcom\CertConfigLocation.cs" />
+    <Compile Include="Dcom\ICertConfigEnrollEndpointD.cs" />
+    <Compile Include="Dcom\ICertPropReaderD.cs" />
+    <Compile Include="Dcom\ICertConfigD.cs" />
+    <Compile Include="Dcom\ICertConfigEntryD.cs" />
+    <Compile Include="Dcom\ICertRegManagerD.cs" />
+    <Compile Include="Dcom\Implementations\CertCrlAdminD.cs" />
+    <Compile Include="Dcom\Implementations\CertDbAdminD.cs" />
+    <Compile Include="Dcom\Implementations\CertPropReaderD.cs" />
+    <Compile Include="Dcom\Implementations\CertConfigD.cs" />
+    <Compile Include="Dcom\Implementations\CertConfigEntryD.cs" />
+    <Compile Include="Dcom\Implementations\CertRegManagerD.cs" />
+    <Compile Include="Dcom\Implementations\ImportForeignOption.cs" />
+    <Compile Include="Management\ActiveDirectory\DsCertEnrollServer.cs" />
+    <Compile Include="Management\ActiveDirectory\DsEnrollServerFlag.cs" />
     <Compile Include="Management\CertificateServices\AdcsAiaUrlEntry.cs" />
     <Compile Include="Management\CertificateServices\AdcsAiaUrlFlag.cs" />
     <Compile Include="Management\CertificateServices\AdcsCdpUrlFlag.cs" />
     <Compile Include="Management\CertificateServices\AdcsCdpUrlEntry.cs" />
     <Compile Include="Management\CertificateServices\AdcsCertSrvAudits.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderClientRole.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderLogLevel.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderMemberInfo.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderMemberInfoCollection.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderRequestFlag.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderRevocationConfigurationCollection.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbColumnSchema.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbQueryFilter.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbReader.cs" />
@@ -133,20 +187,10 @@
     <Compile Include="Management\ActiveDirectory\DsKraContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsPkiContainer.cs" />
     <Compile Include="Management\ActiveDirectory\DsNTAuthContainer.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponder.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderCollection.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderAuditFilter.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderRevocationConfiguration.cs" />
-    <Compile Include="Management\CertificateServices\OcspSigningFlag.cs" />
     <Compile Include="Management\CertificateServices\UrlProtocolSchemes.cs" />
-    <Compile Include="Security\AccessControl\OcspResponderSecurityDescriptor.cs" />
-    <Compile Include="Security\AccessControl\OcspResponderAccessRule.cs" />
-    <Compile Include="Security\AccessControl\OcspResponderAuditRule.cs" />
-    <Compile Include="Security\AccessControl\OcspResponderRights.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbPropertyCollection.cs" />
-    <Compile Include="CertificateServices\DB\AdcsDbValue.cs" />
     <Compile Include="CertificateServices\UrlProtocolSchemes.cs" />
     <Compile Include="CertificateTemplates\CertTemplateSubjectType.cs" />
     <Compile Include="Cryptography\AlgorithmIdentifier.cs" />
@@ -182,8 +226,7 @@
     <Compile Include="Cryptography\CspProviderInfoCollection.cs" />
     <Compile Include="Cryptography\CspProviderInfo.cs" />
     <Compile Include="Structs\CertConfigConstants.cs" />
-    <Compile Include="Structs\AlgorithmOids.cs" />
-    <Compile Include="Structs\X509CertExtensions.cs" />
+    <Compile Include="Cryptography\AlgorithmOid.cs" />
     <Compile Include="Utils\CLRExtensions\PublicKeyExtensions.cs" />
     <Compile Include="Tools\MessageOperations\MessageSigner.cs" />
     <Compile Include="Utils\ServiceOperationResult.cs" />
@@ -220,10 +263,6 @@
     <Compile Include="CertificateServices\CRLValiditySetting.cs" />
     <Compile Include="CertificateServices\CRLDistributionPoint.cs" />
     <Compile Include="CertificateServices\KRA.cs" />
-    <Compile Include="CertificateServices\DB\RequestRow.cs" />
-    <Compile Include="CertificateServices\DB\DataTypeEnum.cs" />
-    <Compile Include="CertificateServices\DB\Schema.cs" />
-    <Compile Include="CertificateServices\DB\TableList.cs" />
     <Compile Include="CertificateServices\Flags\InterfaceFlag.cs" />
     <Compile Include="CertificateServices\Flags\KRAFlag.cs" />
     <Compile Include="CertificateServices\Flags\CRLFlag.cs" />
@@ -295,20 +334,6 @@
     <Compile Include="Security\CARoleEnum.cs" />
     <Compile Include="Security\TemplateRight.cs" />
     <Compile Include="Security\SecurityDescriptor2.cs" />
-    <Compile Include="ServiceProviders\AlgorithmOperationsEnum.cs" />
-    <Compile Include="ServiceProviders\ALG_ID.cs" />
-    <Compile Include="ServiceProviders\ALG_IDCollection.cs" />
-    <Compile Include="ServiceProviders\ALG_ID_CNGCollection.cs" />
-    <Compile Include="ServiceProviders\ALG_ID_CNG.cs" />
-    <Compile Include="ServiceProviders\AlgorithmTypeEnum.cs" />
-    <Compile Include="ServiceProviders\ProviderAlgorithm.cs" />
-    <Compile Include="ServiceProviders\ProviderTypeEnum.cs" />
-    <Compile Include="ServiceProviders\CspCNGCollection.cs" />
-    <Compile Include="ServiceProviders\CspCNG.cs" />
-    <Compile Include="ServiceProviders\CspCollection.cs" />
-    <Compile Include="ServiceProviders\CspLegacy.cs" />
-    <Compile Include="ServiceProviders\Csp.cs" />
-    <Compile Include="ServiceProviders\CspObject.cs" />
     <Compile Include="Structs\CertAdmConstants.cs" />
     <Compile Include="Structs\Certbcli.cs" />
     <Compile Include="Structs\nCrypt2.cs" />

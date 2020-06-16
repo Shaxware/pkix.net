@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using PKI.Structs;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 
 namespace System.Security.Cryptography.X509Certificates {
     // https://msdn.microsoft.com/en-us/library/cc249813.aspx
@@ -29,7 +29,7 @@ namespace System.Security.Cryptography.X509Certificates {
     /// </remarks>
     public sealed class X509CAVersionExtension : X509Extension {
         internal X509CAVersionExtension(Byte[] rawData, Boolean critical)
-            : base(X509CertExtensions.X509CAVersion, rawData, critical) {
+            : base(X509ExtensionOid.X509CAVersion, rawData, critical) {
             if (rawData == null) { throw new ArgumentNullException(nameof(rawData)); }
             m_decode();
         }
@@ -69,7 +69,7 @@ namespace System.Security.Cryptography.X509Certificates {
 
         // here we use reduced encoding, that is, use minimum required bytes to encode extension value.
         void m_initialize(UInt16 caVersion, UInt16 keyVersion) {
-            Oid = new Oid(X509CertExtensions.X509CAVersion);
+            Oid = new Oid(X509ExtensionOid.X509CAVersion);
             CACertificateVersion = caVersion;
             CAKeyVersion = keyVersion;
             // max 2 bytes

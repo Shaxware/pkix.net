@@ -1,6 +1,5 @@
 ﻿using System;
 using Interop.CERTENROLLLib;
-using PKI.ServiceProviders;
 using PKI.Utils;
 
 namespace SysadminsLV.PKI.Cryptography {
@@ -16,8 +15,8 @@ namespace SysadminsLV.PKI.Cryptography {
         internal CspProviderAlgorithmInfo(ICspAlgorithm alg) {
             Name = alg.Name;
             LongName = alg.LongName;
-            AlgorithmType = (AlgorithmTypeEnum)alg.Type;
-            AlgorithmOperations = (AlgorithmOperationsEnum)alg.Operations;
+            AlgorithmType = (CspAlgorithmType)alg.Type;
+            AlgorithmOperations = (CspAlgorithmOperation)alg.Operations;
             DefaultLength = alg.DefaultLength;
             MinLength = alg.MinLength;
             MaxLength = alg.MaxLength;
@@ -37,11 +36,11 @@ namespace SysadminsLV.PKI.Cryptography {
         /// <summary>
         /// Gets the algorithm type.
         /// </summary>
-        public AlgorithmTypeEnum AlgorithmType { get; }
+        public CspAlgorithmType AlgorithmType { get; }
         /// <summary>
         /// Gets the operations that can be performed by the algorithm.
         /// </summary>
-        public AlgorithmOperationsEnum AlgorithmOperations { get; }
+        public CspAlgorithmOperation AlgorithmOperations { get; }
         /// <summary>
         /// Gets the default length of a key.
         /// </summary>

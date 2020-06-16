@@ -177,34 +177,33 @@ namespace SysadminsLV.PKI.Win32 {
         public static extern Boolean CryptMsgClose(
             [In] IntPtr hCryptMsg
         );
-        // ????????????????????????????????????????????????????????????????????
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern Boolean CryptMsgClose(
+        public static extern Boolean CertCloseStore(
             [In] IntPtr hCertStore,
-            [In] UInt32 dwFlags
+            [In] Int32 dwFlags
         );
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern Boolean CryptMsgGetParam(
-            [In]            IntPtr hCryptMsg,
-            [In]            UInt32 dwParamType,
-            [In]            UInt32 dwIndex,
-            [Out]           Byte[] pvData,
-            [In, Out]ref UInt32 pcbData
+            [In]     IntPtr hCryptMsg,
+            [In]     Int32 dwParamType,
+            [In]     Int32 dwIndex,
+            [Out]    Byte[] pvData,
+            [Out]out Int32 pcbData
         );
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern Boolean CryptQueryObject(
-            [In]        UInt32 dwObjectType,
+            [In]     Int32 dwObjectType,
             [MarshalAs(UnmanagedType.LPWStr)]
-            [In]            String pvObject,
-            [In]            UInt32 dwExpectedContentTypeFlags,
-            [In]            UInt32 dwExpectedFormatTypeFlags,
-            [In]            UInt32 dwFlags,
-            [In, Out]ref UInt32 pdwMsgAndCertEncodingType,
-            [In, Out]ref UInt32 pdwContentType,
-            [In, Out]ref UInt32 pdwFormatType,
-            [In, Out]ref IntPtr phCertStore,
-            [In, Out]ref IntPtr phMsg,
-            [In, Out]ref IntPtr ppvContext
+            [In]     String pvObject,
+            [In]     Int32 dwExpectedContentTypeFlags,
+            [In]     Int32 dwExpectedFormatTypeFlags,
+            [In]     Int32 dwFlags,
+            [Out]out Int32 pdwMsgAndCertEncodingType,
+            [Out]out Int32 pdwContentType,
+            [Out]out Int32 pdwFormatType,
+            [Out]out IntPtr phCertStore,
+            [Out]out IntPtr phMsg,
+            [Out]out IntPtr ppvContext
         );
         #region OID functions
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
