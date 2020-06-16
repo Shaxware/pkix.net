@@ -3,6 +3,7 @@
 namespace SysadminsLV.PKI.Management.CertificateServices {
     [Flags]
     enum CertSrvPlatformVersion {
+        Unknown     = 0,
         Win2000     = 0x00010001,
         Win2003     = 0x00020002,
         Win2008     = 0x00030001,

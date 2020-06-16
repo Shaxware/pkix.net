@@ -309,7 +309,7 @@ namespace PKI.CertificateServices {
             //Console.WriteLine($"DEBUG: domain path     : {String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0))}");
             //Console.WriteLine($"DEBUG: config context  : {DsUtils.ConfigContext}");
             //String domain = String.Join(",DC=", ComputerName.Split('.').Where((v, i) => i != 0));
-            var dsEnroll = ((DsCertEnrollContainer)DsPkiContainer.GetAdPkiContainer(DsContainerType.EnrollmentServices));
+            var dsEnroll = (DsCertEnrollContainer)DsPkiContainer.GetAdPkiContainer(DsContainerType.EnrollmentServices);
             DistinguishedName = dsEnroll.EnrollmentServers
                 .FirstOrDefault(x => x.ComputerName.Equals(ComputerName, StringComparison.OrdinalIgnoreCase))
                 ?.DistinguishedName;
