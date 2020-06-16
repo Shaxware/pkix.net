@@ -351,11 +351,17 @@ namespace PKI.CertificateServices {
         }
         internal String GetConfigEntry(String entry) {
             switch (entry) {
-                case "CAServerName": return ComputerName;
-                case "ServerShortName": return ComputerName.Split('.')[0];
-                case "CommonName": return Name;
-                case "CATruncatedName": return DsUtils.GetSanitizedName(Name);
-                case "ConfigurationContainer": return (String)CryptoRegistry.GetRReg("DSConfigDN", Name, ComputerName);
+                case "CAServerName":
+                    return ComputerName;
+                case "ServerShortName":
+                    return ComputerName.Split('.')[0];
+                case "CommonName":
+                    return Name;
+                case "CATruncatedName":
+                    return DsUtils.GetSanitizedName(Name);
+                case "ConfigurationContainer":
+                    _regReader.SetRootNode(true);
+                    return _regReader.GetStringEntry("DSConfigDN");
                 default: return String.Empty;
             }
         }
@@ -510,12 +516,15 @@ namespace PKI.CertificateServices {
         /// <exception cref="UnauthorizedAccessException">The caller do not have at least <strong>Read</strong> permissions.</exception>
         /// <returns>Granted roles.</returns>
         public CARoleEnum GetMyRoles() {
-            if (String.IsNullOrEmpty(ConfigString)) {throw new UninitializedObjectException();}
+            if (String.IsNullOrEmpty(ConfigString)) {
+                throw new UninitializedObjectException();
+            }
             if (!IsAccessible) {
                 ServerUnavailableException e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
             }
+
             var CertAdmin = new CCertAdmin();
             return (CARoleEnum)CertAdmin.GetMyRoles(ConfigString);
         }
@@ -571,20 +580,15 @@ namespace PKI.CertificateServices {
         /// <returns>An ACL object.</returns>
         /// <remarks>Returned object inherits from <see cref="CommonObjectSecurity"/> and implements common methods.</remarks>
         public CASecurityDescriptor GetSecurityDescriptor() {
-            var sd = new CASecurityDescriptor(this);
-            Byte[] sdBinary;
-            if (CryptoRegistry.Ping(ComputerName)) {
-                sdBinary = (Byte[])CryptoRegistry.GetRReg("Security", Name, ComputerName);
-            } else {
-                if (Ping(ComputerName)) {
-                    sdBinary = (Byte[])CryptoRegistry.GetRegFallback(ConfigString, String.Empty, "Security");
-                } else {
-                    ServerUnavailableException e = new ServerUnavailableException(DisplayName);
-                    e.Data.Add(nameof(e.Source), OfflineSource.Registry | OfflineSource.DCOM);
-                    throw e;
-                }
+            _regReader.SetRootNode(true);
+            if (!_regReader.RegistryOnline && _regReader.RegistryOnline) {
+                ServerUnavailableException e = new ServerUnavailableException(DisplayName);
+                e.Data.Add(nameof(e.Source), OfflineSource.Registry | OfflineSource.DCOM);
+                throw e;
             }
-            sd.SetSecurityDescriptorBinaryForm(sdBinary);
+
+            var sd = new CASecurityDescriptor(this);
+            sd.SetSecurityDescriptorBinaryForm(_regReader.GetBinaryEntry("Security"));
             return sd;
         }
 
