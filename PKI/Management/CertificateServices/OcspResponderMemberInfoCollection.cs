@@ -3,7 +3,9 @@ using SysadminsLV.PKI;
 using SysadminsLV.PKI.Management.CertificateServices;
 
 namespace PKI.Management.CertificateServices {
-    // Represents a collection of Online Responder Array members.
+    /// <summary>
+    /// Represents a collection of Online Responder Array members.
+    /// </summary>
     public class OcspResponderMemberInfoCollection : BasicCollection<OcspResponderMemberInfo> {
         /// <inheritdoc />
         public OcspResponderMemberInfoCollection() { }

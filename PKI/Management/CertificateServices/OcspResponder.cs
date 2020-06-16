@@ -47,7 +47,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <summary>
         /// Gets the host name of Online Responder.
         /// </summary>
-        public String ComputerName { get; private set; }
+        public String ComputerName { get; }
         /// <summary>
         /// Indicates whether the OCSP service is running.
         /// </summary>
@@ -337,6 +337,10 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 CryptographyUtils.ReleaseCom(ocspAdmin);
             }
         }
+        /// <summary>
+        /// Gets revocation configurations assigned to this Online Responder.
+        /// </summary>
+        /// <returns>Collection of revocation configurations.</returns>
         public OcspResponderRevocationConfigurationCollection GetRevocationConfigurations() {
             var revConfigList = new OcspResponderRevocationConfigurationCollection();
             foreach (IOCSPCAConfiguration revConfig in _ocspAdmin.OCSPCAConfigurationCollection) {
@@ -391,6 +395,12 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
             saveConfig();
             return new OcspResponderRevocationConfiguration(ComputerName, comConfig);
         }
+        /// <summary>
+        /// Adds new revocation configuration to Online Responder to work with specified certification authority.
+        /// </summary>
+        /// <param name="name">Revocation configuration display name.</param>
+        /// <param name="certificateAuthority">Certification Authority object associated with revocation configuration.</param>
+        /// <returns>Created revocation configuration. Use this return value to configure the revocation configuration.</returns>
         public OcspResponderRevocationConfiguration AddRevocationConfiguration(String name, CertificateAuthority certificateAuthority) {
             if (String.IsNullOrEmpty(name)) {
                 throw new ArgumentNullException(nameof(name));
@@ -458,6 +468,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
             }
             RemoveRevocationConfiguration(revConfig.Name);
         }
+        /// <summary>
+        /// Removes all revocation configurations on a current Online Responder server.
+        /// </summary>
         public void ClearRevocationConfigurations() {
             var ocspAdmin = new OCSPAdminClass();
             try {

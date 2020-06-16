@@ -61,9 +61,21 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
             CryptographyUtils.ReleaseCom(config);
         }
 
+        /// <summary>
+        /// Gets the display name of revocation configuration.
+        /// </summary>
         public String Name { get; }
+        /// <summary>
+        /// Gets the configuration string for online certification authority.
+        /// </summary>
         public String ConfigString { get; }
+        /// <summary>
+        /// Gets the certification authority certificate.
+        /// </summary>
         public X509Certificate2 CACertificate { get; }
+        /// <summary>
+        /// Gets or sets signing certificate used to sign OCSP responses for current CA.
+        /// </summary>
         public X509Certificate2 SigningCertificate {
             get => signingCertificate;
             set {
@@ -71,6 +83,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 _updateList.Add(MSFT_CONF_SIGNINGCERTIFICATE);
             }
         }
+        /// <summary>
+        /// Gets or sets the certificate template common name Online Responder will use to enroll for signing certificate.
+        /// </summary>
         public String SigningCertificateTemplate {
             get => certTemplate;
             set {
@@ -80,6 +95,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 }
             }
         }
+        /// <summary>
+        /// Gets or sets the hashing algorithm used to sign OCSP responses.
+        /// </summary>
         public Oid2 HashAlgorithm {
             get => hashAlgorithm;
             set {
@@ -99,6 +117,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// Gets the cryptographic provider name used to store OCSP response signing keys.
         /// </summary>
         public String CryptoProviderName { get; }
+        /// <summary>
+        /// Gets or sets the signing certificate handling options.
+        /// </summary>
         public OcspSigningFlag SigningFlags {
             get => signingFlags;
             set {
@@ -125,6 +146,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 }
             }
         }
+        /// <summary>
+        /// Gets the local revocation information.
+        /// </summary>
         public X509CRLEntryCollection LocalRevocationInformation => new X509CRLEntryCollection(_crlEntries);
         /// <summary>
         /// Gets or sets an array of URLs that point to Base CRL locations. Every URL must be either HTTP or LDAP.
@@ -182,7 +206,13 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 _updateList.Add(MSFT_PROV_SERIALNUMBERSDIRS);
             }
         }
+        /// <summary>
+        /// Gets the revocation information status code.
+        /// </summary>
         public Int32 RevocationStatusCode { get; private set; }
+        /// <summary>
+        /// Gets the current configuration status code.
+        /// </summary>
         public Int32 ConfigurationStatusCode { get; private set; }
 
         void readProperties(IOCSPCAConfiguration config) {
@@ -273,6 +303,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 CryptographyUtils.ReleaseCom(ocspConfig);
             }
         }
+        /// <summary>
+        /// Commits changes to Online Responder.
+        /// </summary>
         public void Commit() {
             if (!_updateList.Any()) {
                 return;

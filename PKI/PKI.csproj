@@ -192,7 +192,6 @@
     <Compile Include="Management\CertificateServices\OcspResponder.cs" />
     <Compile Include="Management\CertificateServices\OcspResponderAuditFilter.cs" />
     <Compile Include="Management\CertificateServices\OcspResponderClientRole.cs" />
-    <Compile Include="Management\CertificateServices\OcspResponderCollection.cs" />
     <Compile Include="Management\CertificateServices\OcspResponderLogLevel.cs" />
     <Compile Include="Management\CertificateServices\OcspResponderMemberInfo.cs" />
     <Compile Include="Management\CertificateServices\OcspResponderMemberInfoCollection.cs" />
