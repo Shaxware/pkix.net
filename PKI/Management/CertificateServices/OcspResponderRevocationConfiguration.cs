@@ -47,7 +47,6 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         String[] baseCrlUrls, deltaCrlUrls, serialDirs;
         Oid2 hashAlgorithm;
         OcspSigningFlag signingFlags;
-        X509CRL2 localCrl;
         X509Certificate2 signingCertificate;
 
         internal OcspResponderRevocationConfiguration(String computerName, IOCSPCAConfiguration config) {
