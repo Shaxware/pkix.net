@@ -5,7 +5,9 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using CERTADMINLib;
 using PKI.Utils;
+using SysadminsLV.PKI.Cryptography;
 using SysadminsLV.PKI.Cryptography.Pkcs;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 
 namespace SysadminsLV.PKI.Management.CertificateServices {
     /// <summary>
@@ -149,7 +151,16 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <summary>
         /// Gets the local revocation information.
         /// </summary>
-        public X509CRLEntryCollection LocalRevocationInformation => new X509CRLEntryCollection(_crlEntries);
+        public X509CRLEntryCollection LocalRevocationInformation {
+            get => new X509CRLEntryCollection(_crlEntries);
+            set {
+                _crlEntries.Clear();
+                if (value != null && value.Any()) {
+                    _crlEntries.AddRange(value);
+                }
+                _updateList.Add(MSFT_CONF_LOCALREVOCATIONINFORMATION);
+            }
+        }
         /// <summary>
         /// Gets or sets an array of URLs that point to Base CRL locations. Every URL must be either HTTP or LDAP.
         /// </summary>
@@ -227,6 +238,11 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
             try { ConfigurationStatusCode = unchecked((Int32)config.ErrorCode); } catch { }
             try { SigningCertificateTemplate = config.SigningCertificateTemplate; } catch { }
 
+            try {
+                _crlEntries.Clear();
+                _crlEntries.AddRange(new X509CRL2((Byte[])config.LocalRevocationInformation).RevokedCertificates);
+            } catch { }
+
             // read properties
             Object[,] props = (Object[,])config.ProviderProperties;
             for (Int32 i = 0; i < props.GetUpperBound(0); i++) {
@@ -249,6 +265,16 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 }
             }
         }
+        Byte[] buildLocalRevInfo() {
+            X509Certificate2 cert = CACertificate;
+            var crlBuilder = new X509CrlBuilder {
+                ThisUpdate = cert.NotBefore,
+                NextUpdate = cert.NotAfter
+            };
+            crlBuilder.RevokedCertificates.AddRange(_crlEntries);
+            crlBuilder.HashingAlgorithm = new Oid(AlgorithmOid.SHA1);
+            return crlBuilder.BuildAndHash(cert).RawData;
+        }
 
         static Object[,] writeProvProperties(Object[,] source, String propName, Object value) {
             for (Int32 i = 0; i < source.GetUpperBound(0); i++) {
@@ -257,7 +283,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                     return source;
                 }
             }
-            
+
             // if we reach this far, then requested property is not found in provider properties
             var list = new List<Object[]>();
             // copy current properties to jagged list
@@ -348,6 +374,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                             break;
                         case MSFT_PROV_SERIALNUMBERSDIRS:
                             revConfig.ProviderProperties = writeProvProperties((Object[,])revConfig.ProviderProperties, updateProperty, serialDirs);
+                            break;
+                        case MSFT_CONF_LOCALREVOCATIONINFORMATION:
+                            revConfig.LocalRevocationInformation = buildLocalRevInfo();
                             break;
                     }
                 }
