@@ -357,7 +357,14 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// </summary>
         /// <returns></returns>
         public OcspResponderSecurityDescriptor GetSecurityDescriptor() {
-            return new OcspResponderSecurityDescriptor(this);
+            var ocspAdmin = new OCSPAdminClass();
+            try {
+                var sd = new OcspResponderSecurityDescriptor(this);
+                sd.SetSecurityDescriptorSddlForm(ocspAdmin.GetSecurity(ComputerName));
+                return sd;
+            } finally {
+                CryptographyUtils.ReleaseCom(ocspAdmin);
+            }
         }
         /// <summary>
         /// Adds new revocation configuration to Online Responder.
