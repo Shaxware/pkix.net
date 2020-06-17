@@ -40,6 +40,10 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         readonly IOCSPAdmin _ocspAdmin = new OCSPAdminClass();
 
         OcspResponder(String serverName) {
+            if (String.IsNullOrEmpty(serverName) || "localhost".Equals(serverName, StringComparison.OrdinalIgnoreCase) || ".".Equals(serverName)) {
+                serverName = Environment.MachineName;
+            }
+
             _ocspAdmin.GetConfiguration(serverName, true);
             ComputerName = getComputerName(_ocspAdmin, serverName);
         }
