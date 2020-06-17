@@ -38,7 +38,6 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         const String MSFT_PROV_ERRORCODE                  = "RevocationErrorCode";
         const String MSFT_PROV_SERIALNUMBERSDIRS          = "IssuedSerialNumbersDirectories";
         #endregion
-        readonly String _computerName;
         readonly X509CRLEntryCollection _crlEntries = new X509CRLEntryCollection();
         readonly ISet<String> _updateList = new HashSet<String>();
 
@@ -50,7 +49,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         X509Certificate2 signingCertificate;
 
         internal OcspResponderRevocationConfiguration(String computerName, IOCSPCAConfiguration config) {
-            _computerName = computerName;
+            ComputerName = computerName;
             Name = config.Identifier;
             ConfigString = config.CAConfig;
             CACertificate = new X509Certificate2((Byte[])config.CACertificate);
@@ -62,6 +61,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
             CryptographyUtils.ReleaseCom(config);
         }
 
+        public String ComputerName { get; }
         /// <summary>
         /// Gets the display name of revocation configuration.
         /// </summary>
@@ -320,7 +320,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         public X509Certificate2Collection GetSigningCertificateCandidates() {
             var ocspConfig = new OCSPAdminClass();
             try {
-                var cms = new DefaultSignedPkcs7((Byte[])ocspConfig.GetSigningCertificates(_computerName, CACertificate.RawData));
+                var cms = new DefaultSignedPkcs7((Byte[])ocspConfig.GetSigningCertificates(ComputerName, CACertificate.RawData));
                 return cms.Certificates;
             } catch {
                 return new X509Certificate2Collection();
@@ -339,7 +339,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
             var ocspAdmin = new OCSPAdminClass();
             IOCSPCAConfiguration revConfig = null;
             try {
-                ocspAdmin.GetConfiguration(_computerName, true);
+                ocspAdmin.GetConfiguration(ComputerName, true);
                 revConfig = (IOCSPCAConfiguration)ocspAdmin.OCSPCAConfigurationCollection.ItemByName[Name];
 
                 foreach (String updateProperty in _updateList) {
@@ -380,7 +380,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                     }
                 }
 
-                ocspAdmin.SetConfiguration(_computerName, true);
+                ocspAdmin.SetConfiguration(ComputerName, true);
                 _updateList.Clear();
             } finally {
                 CryptographyUtils.ReleaseCom(ocspAdmin);
