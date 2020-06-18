@@ -260,9 +260,9 @@
     <Compile Include="Cryptography\X509Certificates\X509CRLNumberExtension.cs" />
     <Compile Include="Cryptography\X509Certificates\X509FreshestCRLExtension.cs" />
     <Compile Include="Enrollment\ClientIdEnum.cs" />
-    <Compile Include="Security\AccessControl\CASecurityDescriptor.cs" />
-    <Compile Include="Security\AccessControl\CertificationAuthorityAuditRule.cs" />
-    <Compile Include="Security\AccessControl\CertificationAuthorityRights.cs" />
+    <Compile Include="Security\AccessControl\CertSrvSecurityDescriptor.cs" />
+    <Compile Include="Security\AccessControl\CertSrvAuditRule.cs" />
+    <Compile Include="Security\AccessControl\CertSrvRights.cs" />
     <Compile Include="CertificateServices\CACryptography.cs" />
     <Compile Include="CertificateServices\CDP.cs" />
     <Compile Include="CertificateServices\AIA.cs" />
@@ -349,7 +349,7 @@
     <Compile Include="OCSP\OCSPResponse.cs" />
     <Compile Include="OCSP\OCSPRequest.cs" />
     <Compile Include="Security\AccessControlEntry2.cs" />
-    <Compile Include="Security\AccessControl\CertificationAuthorityAccessRule.cs" />
+    <Compile Include="Security\AccessControl\CertSrvAccessRule.cs" />
     <Compile Include="Security\AccessControl\CertificateTemplateRights.cs" />
     <Compile Include="Security\CARoleEnum.cs" />
     <Compile Include="Security\TemplateRight.cs" />

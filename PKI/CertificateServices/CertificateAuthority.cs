@@ -9,13 +9,13 @@ using System.Text.RegularExpressions;
 using CERTADMINLib;
 using PKI.Exceptions;
 using PKI.Security;
-using PKI.Security.AccessControl;
 using PKI.Utils;
 using SysadminsLV.PKI.Dcom;
 using SysadminsLV.PKI.Dcom.Implementations;
 using SysadminsLV.PKI.Management.ActiveDirectory;
 using SysadminsLV.PKI.Management.CertificateServices;
 using SysadminsLV.PKI.Management.CertificateServices.Database;
+using SysadminsLV.PKI.Security.AccessControl;
 using SysadminsLV.PKI.Win32;
 
 namespace PKI.CertificateServices {
@@ -579,7 +579,7 @@ namespace PKI.CertificateServices {
         /// </summary>
         /// <returns>An ACL object.</returns>
         /// <remarks>Returned object inherits from <see cref="CommonObjectSecurity"/> and implements common methods.</remarks>
-        public CASecurityDescriptor GetSecurityDescriptor() {
+        public CertSrvSecurityDescriptor GetSecurityDescriptor() {
             _regReader.SetRootNode(true);
             if (!_regReader.RegistryOnline && _regReader.RegistryOnline) {
                 ServerUnavailableException e = new ServerUnavailableException(DisplayName);
@@ -587,7 +587,7 @@ namespace PKI.CertificateServices {
                 throw e;
             }
 
-            var sd = new CASecurityDescriptor(this);
+            var sd = new CertSrvSecurityDescriptor(this);
             sd.SetSecurityDescriptorBinaryForm(_regReader.GetBinaryEntry("Security"));
             return sd;
         }

@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace PKI.Security.AccessControl {
+namespace SysadminsLV.PKI.Security.AccessControl {
 	/// <summary>
 	/// Defines possible permissions which are used by Certification Authority.
 	/// <para>This enumeration has a <see cref="FlagsAttribute"/> attribute that allows a bitwise combination of its member values.</para>
 	/// </summary>
 	[Flags]
-	public enum CertificationAuthorityRights {
+	public enum CertSrvRights {
 		/// <summary>
 		/// Identity can manage CA.
 		/// </summary>
