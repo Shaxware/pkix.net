@@ -158,7 +158,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
             var ocspAdmin = new OCSPAdminClass();
             try {
                 ocspAdmin.SetSecurity(ComputerName, GetSecurityDescriptorSddlForm(AccessControlSections.All));
-            } catch(COMException cex) {
+            } catch (COMException cex) {
                 if (cex.ErrorCode == Error.RpcUnavailableException) {
                     var e = new ServerUnavailableException(ComputerName);
                     e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
