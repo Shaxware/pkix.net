@@ -8,6 +8,7 @@ using System.ServiceProcess;
 using System.Text.RegularExpressions;
 using CERTADMINLib;
 using PKI.Exceptions;
+using PKI.Management.CertificateServices;
 using PKI.Security;
 using PKI.Utils;
 using SysadminsLV.PKI.Dcom;
@@ -515,7 +516,7 @@ namespace PKI.CertificateServices {
         /// <exception cref="ServerUnavailableException">CA server is not accessible via RPC/DCOM.</exception>
         /// <exception cref="UnauthorizedAccessException">The caller do not have at least <strong>Read</strong> permissions.</exception>
         /// <returns>Granted roles.</returns>
-        public CARoleEnum GetMyRoles() {
+        public CertSrvClientRole GetMyRoles() {
             if (String.IsNullOrEmpty(ConfigString)) {
                 throw new UninitializedObjectException();
             }
@@ -526,7 +527,7 @@ namespace PKI.CertificateServices {
             }
 
             var CertAdmin = new CCertAdmin();
-            return (CARoleEnum)CertAdmin.GetMyRoles(ConfigString);
+            return (CertSrvClientRole)CertAdmin.GetMyRoles(ConfigString);
         }
         ///  <summary>
         ///  This method publishes certificate revocation lists (CRLs) for a certification authority (CA).

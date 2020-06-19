@@ -161,6 +161,7 @@
     <Compile Include="Management\CertificateServices\AdcsCdpUrlFlag.cs" />
     <Compile Include="Management\CertificateServices\AdcsCdpUrlEntry.cs" />
     <Compile Include="Management\CertificateServices\AdcsCertSrvAudits.cs" />
+    <Compile Include="Management\CertificateServices\CertSrvClientRole.cs" />
     <Compile Include="Management\CertificateServices\CertSrvConfigUtil.cs" />
     <Compile Include="Management\CertificateServices\CertSrvPlatformVersion.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbColumnSchema.cs" />
@@ -355,7 +356,6 @@
     <Compile Include="Security\AccessControlEntry2.cs" />
     <Compile Include="Security\AccessControl\CertSrvAccessRule.cs" />
     <Compile Include="Security\AccessControl\CertificateTemplateRights.cs" />
-    <Compile Include="Security\CARoleEnum.cs" />
     <Compile Include="Security\TemplateRight.cs" />
     <Compile Include="Security\SecurityDescriptor2.cs" />
     <Compile Include="Structs\CertAdmConstants.cs" />

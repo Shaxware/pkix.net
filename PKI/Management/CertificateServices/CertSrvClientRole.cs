@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace PKI.Security {
+namespace SysadminsLV.PKI.Management.CertificateServices {
 	/// <summary>
 	/// Defines possible roles which are used by Certification Authority.
 	/// <para>This enumeration has a <see cref="FlagsAttribute"/> attribute that allows a bitwise combination of its member values.</para>
 	/// </summary>
 	[Flags]
-	public enum CARoleEnum {
+	public enum CertSrvClientRole {
 		/// <summary>
 		/// Caller has CA administrator capability.
 		/// </summary>
