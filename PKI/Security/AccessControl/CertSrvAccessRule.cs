@@ -23,19 +23,12 @@ namespace SysadminsLV.PKI.Security.AccessControl {
             IdentityReference identity,
             CertSrvRights accessMask,
             AccessControlType type)
-            : base(identity, AccessMaskFromRights(accessMask), false, InheritanceFlags.None, PropagationFlags.None, type) { }
+            : base(identity, (Int32)accessMask, false, InheritanceFlags.None, PropagationFlags.None, type) { }
 
         /// <summary>
         /// Gets the <see cref="CertificationAuthorityRights"/> flags associated with the current
         /// <see cref="CertSrvAccessRule"/> object.
         /// </summary>
-        public CertSrvRights CertificationAuthorityRights => RightsFromAccessMask(AccessMask);
-
-        static CertSrvRights RightsFromAccessMask(Int32 accessMask) {
-            return (CertSrvRights)accessMask;
-        }
-        static Int32 AccessMaskFromRights(CertSrvRights rights) {
-            return (Int32)rights;
-        }
+        public CertSrvRights CertificationAuthorityRights => (CertSrvRights)AccessMask;
     }
 }
