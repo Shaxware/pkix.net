@@ -276,6 +276,10 @@ namespace PKI.CertificateTemplates {
         public override Int32 GetHashCode() {
             unchecked { return (Name.GetHashCode() * 397) ^ OID.GetHashCode2(); }
         }
+        /// <summary>
+        /// Gets access control list (security descriptor) of the current certificate template.
+        /// </summary>
+        /// <returns>Security descriptor.</returns>
         public CertTemplateSecurityDescriptor GetSecurityDescriptor() {
             return new CertTemplateSecurityDescriptor(this);
         }
