@@ -203,6 +203,10 @@
     <Compile Include="Management\CertificateServices\PolicyEnrollEndpointUri.cs" />
     <Compile Include="Management\CertificateServices\PolicyEnrollEndpointUriCollection.cs" />
     <Compile Include="Management\CertificateServices\UrlProtocolScheme.cs" />
+    <Compile Include="Security\AccessControl\CertTemplateAccessRule.cs" />
+    <Compile Include="Security\AccessControl\CertTemplateAuditRule.cs" />
+    <Compile Include="Security\AccessControl\CertTemplateRights.cs" />
+    <Compile Include="Security\AccessControl\CertTemplateSecurityDescriptor.cs" />
     <Compile Include="Security\AccessControl\OcspResponderAccessRule.cs" />
     <Compile Include="Security\AccessControl\OcspResponderAuditRule.cs" />
     <Compile Include="Security\AccessControl\OcspResponderRights.cs" />
