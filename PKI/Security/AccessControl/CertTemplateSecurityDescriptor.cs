@@ -99,8 +99,17 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         /// </remarks>
         public Boolean AddAccessRule(CertTemplateAccessRule rule) {
             AuthorizationRuleCollection rules = GetAccessRules(true, false, typeof(NTAccount));
-            if (rules.Cast<AuthorizationRule>().Any(x => x.IdentityReference.Value == rule.IdentityReference.Value)) {
-                return false;
+            var existingRule = rules
+                .Cast<CertTemplateAccessRule>()
+                .FirstOrDefault(x => x.IdentityReference.Value == rule.IdentityReference.Value && x.AccessControlType == rule.AccessControlType);
+            if (existingRule != null) {
+                RemoveAccessRule(existingRule);
+                var ace = new CertTemplateAccessRule(
+                    rule.IdentityReference,
+                    rule.CertificateTemplateRights | existingRule.CertificateTemplateRights,
+                    rule.AccessControlType);
+                base.AddAccessRule(ace);
+                return true;
             }
             base.AddAccessRule(rule);
             return true;
@@ -111,6 +120,20 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         public override Boolean ModifyAuditRule(AccessControlModification modification, AuditRule rule, out Boolean modified) {
             modified = false;
             return modified;
+        }
+        /// <summary>
+        /// Removes access rules that contain the same security identifier and access type as the specified access rule from the
+        /// Discretionary Access Control List (DACL).
+        /// </summary>
+        /// <param name="identity">The identity to which the access rule applies.</param>
+        /// <param name="accessType">The valid access control type.</param>
+        /// <returns><strong>True</strong> if matching ACE was found and removed, otherwise <strong>False</strong>.</returns>
+        public Boolean RemoveAccessRule(IdentityReference identity, AccessControlType accessType) {
+            AuthorizationRuleCollection rules = GetAccessRules(true, false, typeof(NTAccount));
+            var existingRule = rules
+                .Cast<CertTemplateAccessRule>()
+                .FirstOrDefault(x => x.IdentityReference.Value == identity.Value && x.AccessControlType == accessType);
+            return existingRule != null && RemoveAccessRule(existingRule);
         }
         /// <summary>
         /// This member is not implemented.
@@ -202,7 +225,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         /// <summary>
         /// Writes this object to a securable object's Access Control List.
         /// </summary>
-        public void SetSecurityDescriptor() {
+        public void SetObjectSecurity() {
             using (var entry = new DirectoryEntry("LDAP://" + _x500Name)) {
                 entry.ObjectSecurity = ToActiveDirectorySecurity();
                 entry.CommitChanges();

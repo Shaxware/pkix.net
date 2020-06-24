@@ -108,8 +108,15 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         /// </remarks>
         public Boolean AddAccessRule(CertSrvAccessRule rule) {
             AuthorizationRuleCollection rules = GetAccessRules(true, false, typeof(NTAccount));
-            if (rules.Cast<AuthorizationRule>().Any(x => x.IdentityReference.Value == rule.IdentityReference.Value)) {
-                return false;
+            var existingRule = rules.Cast<CertSrvAccessRule>().FirstOrDefault(x => x.IdentityReference.Value == rule.IdentityReference.Value);
+            if (existingRule != null) {
+                RemoveAccessRule(existingRule);
+                var ace = new CertSrvAccessRule(
+                    rule.IdentityReference,
+                    rule.CertificationAuthorityRights | existingRule.CertificationAuthorityRights,
+                    rule.AccessControlType);
+                base.AddAccessRule(ace);
+                return true;
             }
             base.AddAccessRule(rule);
             return true;
@@ -133,6 +140,20 @@ namespace SysadminsLV.PKI.Security.AccessControl {
             throw new NotSupportedException("Audit rules are not supported for this object");
         }
         /// <summary>
+        /// Removes access rules that contain the same security identifier and access type as the specified access rule from the
+        /// Discretionary Access Control List (DACL).
+        /// </summary>
+        /// <param name="identity">The identity to which the access rule applies.</param>
+        /// <param name="accessType">The valid access control type.</param>
+        /// <returns><strong>True</strong> if matching ACE was found and removed, otherwise <strong>False</strong>.</returns>
+        public Boolean RemoveAccessRule(IdentityReference identity, AccessControlType accessType) {
+            AuthorizationRuleCollection rules = GetAccessRules(true, false, typeof(NTAccount));
+            var existingRule = rules
+                .Cast<CertTemplateAccessRule>()
+                .FirstOrDefault(x => x.IdentityReference.Value == identity.Value && x.AccessControlType == accessType);
+            return existingRule != null && RemoveAccessRule(existingRule);
+        }
+        /// <summary>
         /// This member is not implemented.
         /// </summary>
         /// <param name="identity">
@@ -142,21 +163,13 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         public override void PurgeAuditRules(IdentityReference identity) {
             throw new NotSupportedException("Audit rules are not supported for this object");
         }
-        /// <summary>
-        /// Gets the <see cref="Type"/> of the securable object associated with this <see cref="ObjectSecurity"/> object.
-        /// </summary>
+        /// <inheritdoc />
         public override Type AccessRightType => typeof(CertSrvRights);
-
-        /// <summary>
-        /// Gets the <see cref="Type"/> of the object associated with the access rules of this <see cref="ObjectSecurity"/>
-        /// object. The <see cref="Type"/> object must be an object that can be cast as a <see cref="SecurityIdentifier"/> object
-        /// </summary>
+        /// <inheritdoc />
         public override Type AccessRuleType => typeof(CertSrvAccessRule);
+        /// <inheritdoc />
+        public override Type AuditRuleType => typeof(CertSrvAuditRule);
 
-        /// <summary>
-        /// This member is not implemented.
-        /// </summary>
-        public override Type AuditRuleType => throw new NotSupportedException(Error.E_AUDITNOTSUPPOERTED);
         /// <summary>
         /// Writes this object to a securable object's Access Control List.
         /// </summary>

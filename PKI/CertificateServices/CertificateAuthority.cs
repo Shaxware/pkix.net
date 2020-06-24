@@ -8,8 +8,6 @@ using System.ServiceProcess;
 using System.Text.RegularExpressions;
 using CERTADMINLib;
 using PKI.Exceptions;
-using PKI.Management.CertificateServices;
-using PKI.Security;
 using PKI.Utils;
 using SysadminsLV.PKI.Dcom;
 using SysadminsLV.PKI.Dcom.Implementations;

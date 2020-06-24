@@ -1,19 +1,21 @@
-﻿using System;
-using System.Security.AccessControl;
+﻿using System.Security.AccessControl;
 using System.Security.Principal;
 
 namespace SysadminsLV.PKI.Security.AccessControl {
     /// <summary>
-    /// Reserved.
+    /// Represents certification authority audit rule object.
     /// </summary>
-    sealed class CertSrvAuditRule : AuditRule {
+    public sealed class CertSrvAuditRule : AuditRule<CertSrvRights> {
 
         public CertSrvAuditRule(
             IdentityReference identity,
             CertSrvRights accessMask,
             AuditFlags flags)
-            : base(identity, (Int32)accessMask, false, InheritanceFlags.None, PropagationFlags.None, flags) { }
+            : base(identity, accessMask, InheritanceFlags.None, PropagationFlags.None, flags) { }
 
+        /// <summary>
+        /// Gets the access mask enabled for audit in the current audit control entry.
+        /// </summary>
         public CertSrvRights CertificationAuthorityRights => (CertSrvRights)AccessMask;
     }
 }
