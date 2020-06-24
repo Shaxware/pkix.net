@@ -1,5 +1,6 @@
 ﻿using System;
 using System.DirectoryServices;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using SysadminsLV.PKI.Dcom.Implementations;
 using SysadminsLV.PKI.Management.CertificateServices;
@@ -15,7 +16,7 @@ namespace SysadminsLV.PKI.Management.ActiveDirectory {
             Name = entry.Properties["cn"].Value?.ToString();
             DisplayName = entry.Properties["displayName"].Value?.ToString();
             ComputerName = entry.Properties["dNSHostName"].Value?.ToString();
-            CertificateTemplates = entry.Properties["certificateTemplates"].Value as String[];
+            CertificateTemplates = (entry.Properties["certificateTemplates"].Value as Object[])?.Select(x => x.ToString()).ToArray();
             Byte[] certProp = entry.Properties["cACertificate"].Value as Byte[];
             if (certProp?.Length > 1) {
                 Certificate = new X509Certificate2(certProp);
