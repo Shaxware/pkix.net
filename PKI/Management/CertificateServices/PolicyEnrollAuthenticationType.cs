@@ -1,4 +1,7 @@
 ﻿namespace SysadminsLV.PKI.Management.CertificateServices {
+    /// <summary>
+    /// Contains enumeration values for possible authentication types for Certificate Enrollment Web Services.
+    /// </summary>
     public enum PolicyEnrollAuthenticationType {
         /// <summary>
         /// Not used.
