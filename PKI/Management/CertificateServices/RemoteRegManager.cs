@@ -5,14 +5,23 @@ using System.Linq;
 using Microsoft.Win32;
 using SysadminsLV.PKI.Dcom;
 
-namespace PKI.Utils {
-    public class RemoteRegManager : ICertRegManagerD {
+namespace SysadminsLV.PKI.Management.CertificateServices {
+    /// <summary>
+    /// Represents a Windows Registry-based Certification Authority configuration implementation of <see cref="ICertRegManagerD"/> interface.
+    /// This class uses direct Windows Registry access to read and write configuration values. For remote access, this class requires
+    /// 'Remote Registry' to be running on remote server. Caller must have appropriate permissions to connect to remote registry.
+    /// </summary>
+    public class CertSrvRegManager : ICertRegManagerD {
         const String CERTSRV_CONFIG = @"System\CurrentControlSet\Services\CertSvc\Configuration\";
         const String CERTSRV_ACTIVE = "Active";
         const String FAKE_VALUE = "FAKE_VALUE";
         String runtimePath;
 
-        public RemoteRegManager(String serverName) {
+        /// <summary>
+        /// Initializes a new instance of <strong>CertSrvRegManager</strong> from server name where Certification Authority is installed.
+        /// </summary>
+        /// <param name="serverName">Certification Authority host name.</param>
+        public CertSrvRegManager(String serverName) {
             ComputerName = serverName ?? throw new ArgumentNullException(nameof(serverName));
             ActiveConfig = readActiveConfig();
             runtimePath = CERTSRV_CONFIG;

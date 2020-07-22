@@ -5,7 +5,7 @@ using CERTCLILib;
 
 namespace SysadminsLV.PKI.Dcom.Implementations {
     /// <summary>
-    /// Represents a Windows implementation of <see cref="ICertConfigEntryD"/> interface.
+    /// Represents a Windows implementation of <see cref="ICertConfigEntryD"/> interface.
     /// </summary>
     public class CertConfigEntryD : ICertConfigEntryD {
         readonly List<ICertConfigEnrollEndpointD> _webUriList = new List<ICertConfigEnrollEndpointD>();

@@ -6,6 +6,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
     /// Represents certificate template audit access rule object.
     /// </summary>
     public sealed class CertTemplateAuditRule : AuditRule<CertTemplateRights> {
+        /// <inheritdoc />
         public CertTemplateAuditRule(
             IdentityReference identity,
             CertTemplateRights accessMask,

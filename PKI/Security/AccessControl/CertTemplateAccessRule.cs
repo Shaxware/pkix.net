@@ -7,6 +7,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
     /// This class cannot be inherited.
     /// </summary>
     public sealed class CertTemplateAccessRule : AccessRule<CertTemplateRights> {
+        /// <inheritdoc />
         public CertTemplateAccessRule(
             IdentityReference identity,
             CertTemplateRights accessMask,

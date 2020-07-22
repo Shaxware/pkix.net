@@ -8,18 +8,19 @@ using PKI.Utils;
 namespace SysadminsLV.PKI.Dcom.Implementations {
     /// <summary>
     /// Represents a managed implementation of <see cref="ICertRegManagerD"/> interface and used to manage ADCS Certification Authority configuration.
+    /// This class uses RPC/DCOM transport to manage Certification Authority configuration.
     /// </summary>
-    public class CertRegManagerD : ICertRegManagerD {
+    public class CertSrvRegManagerD : ICertRegManagerD {
         Boolean useActive;
 
         /// <summary>
-        /// Initializes a new instance of <strong>CertRegManagerD</strong> class from a Certification Authority configuration string.
+        /// Initializes a new instance of <strong>CertSrvRegManagerD</strong> class from a Certification Authority configuration string.
         /// </summary>
         /// <param name="serverName"></param>
         /// <exception cref="ArgumentNullException">
         /// <strong>configString</strong> parameter is null.
         /// </exception>
-        public CertRegManagerD(String serverName) {
+        public CertSrvRegManagerD(String serverName) {
             ComputerName = serverName ?? throw new ArgumentNullException(nameof(serverName));
             ActiveConfig = readActiveConfig();
         }

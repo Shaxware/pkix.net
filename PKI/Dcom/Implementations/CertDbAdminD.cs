@@ -4,6 +4,10 @@ using CERTADMINLib;
 using PKI.Utils;
 
 namespace SysadminsLV.PKI.Dcom.Implementations {
+    /// <summary>
+    /// Represents a managed implementation of <see cref="ICertDbAdminD"/> interface that includes Certification Authority database management
+    /// operations.
+    /// </summary>
     public class CertDbAdminD : ICertDbAdminD {
         readonly String _configString;
 

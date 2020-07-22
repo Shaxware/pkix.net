@@ -152,7 +152,7 @@
     <Compile Include="Dcom\Implementations\CertPropReaderD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigD.cs" />
     <Compile Include="Dcom\Implementations\CertConfigEntryD.cs" />
-    <Compile Include="Dcom\Implementations\CertRegManagerD.cs" />
+    <Compile Include="Dcom\Implementations\CertSrvRegManagerD.cs" />
     <Compile Include="Dcom\Implementations\ImportForeignOption.cs" />
     <Compile Include="Management\ActiveDirectory\DsCertEnrollServer.cs" />
     <Compile Include="Management\ActiveDirectory\DsEnrollServerFlag.cs" />
@@ -203,6 +203,7 @@
     <Compile Include="Management\CertificateServices\PolicyEnrollAuthenticationType.cs" />
     <Compile Include="Management\CertificateServices\PolicyEnrollEndpointUri.cs" />
     <Compile Include="Management\CertificateServices\PolicyEnrollEndpointUriCollection.cs" />
+    <Compile Include="Management\CertificateServices\RemoteRegManager.cs" />
     <Compile Include="Management\CertificateServices\UrlProtocolScheme.cs" />
     <Compile Include="Security\AccessControl\CertTemplateAccessRule.cs" />
     <Compile Include="Security\AccessControl\CertTemplateAuditRule.cs" />
@@ -212,7 +213,6 @@
     <Compile Include="Security\AccessControl\OcspResponderAuditRule.cs" />
     <Compile Include="Security\AccessControl\OcspResponderRights.cs" />
     <Compile Include="Security\AccessControl\OcspResponderSecurityDescriptor.cs" />
-    <Compile Include="Utils\RemoteRegManager.cs" />
     <Compile Include="Win32\AdvAPI.cs" />
     <Compile Include="Base\BasicCollection.cs" />
     <Compile Include="Management\CertificateServices\Database\AdcsDbPropertyCollection.cs" />
@@ -377,10 +377,7 @@
     <Compile Include="Utils\Shift.cs" />
     <Compile Include="Utils\MessageSignature.cs" />
     <Compile Include="Utils\GenericArray.cs" />
-    <Compile Include="Web\CertProcessor.cs" />
     <Compile Include="Web\ServerCertificateValidationObject.cs" />
-    <Compile Include="Web\X509ChainStatusFlags2.cs" />
-    <Compile Include="Web\SslTransaction.cs" />
     <Compile Include="Web\WebSSL.cs" />
     <Compile Include="Cryptography\X509Certificates\X509CNGKeyUsages.cs" />
     <Compile Include="Cryptography\X509Certificates\X509KeySpecFlags.cs" />
@@ -402,7 +399,6 @@
     <Compile Include="Win32\Cryptnet.cs" />
     <Compile Include="Win32\Crypt32.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Web\WebSSL2.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="_ExternalReferences\Interop.CERTADMINLib.dll" />

@@ -62,9 +62,9 @@ namespace SysadminsLV.PKI.Dcom {
         /// </summary>
         /// <param name="caName">CA certificate name.</param>
         /// <returns>Configuration entry if CA config entry is found that matches search criteria. Otherwise returns NULL.</returns>
-        ICertConfigEntryD FindConfigEntryByName(String caName);
+        ICertConfigEntryD FindConfigEntryByCertificateName(String caName);
         /// <summary>
-        /// Finds Certification Authority configuration entry by CA certificate name (common name).
+        /// Finds Certification Authority configuration entry by CA host name.
         /// </summary>
         /// <param name="computerName">CA host name FQDN.</param>
         /// <returns>Configuration entry if CA config entry is found that matches search criteria. Otherwise returns NULL.</returns>

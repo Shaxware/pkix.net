@@ -61,6 +61,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
             CryptographyUtils.ReleaseCom(config);
         }
 
+        /// <summary>
+        /// Gets the Online Responder host name.
+        /// </summary>
         public String ComputerName { get; }
         /// <summary>
         /// Gets the display name of revocation configuration.

@@ -55,7 +55,7 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
             return list.ToArray();
         }
         /// <inheritdoc />
-        public ICertConfigEntryD FindConfigEntryByName(String caName) {
+        public ICertConfigEntryD FindConfigEntryByCertificateName(String caName) {
             var certConfig = new CCertConfigClass();
 
             while (certConfig.Next() >= 0) {

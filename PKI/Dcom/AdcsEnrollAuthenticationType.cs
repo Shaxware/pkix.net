@@ -1,4 +1,7 @@
 ﻿namespace SysadminsLV.PKI.Dcom {
+    /// <summary>
+    /// Contains enumeration values for possible authentication types for Certificate Enrollment Web Services.
+    /// </summary>
     public enum AdcsEnrollAuthenticationType {
         /// <summary>
         /// Not used.

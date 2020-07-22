@@ -22,7 +22,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// <remarks>
         /// Use this property to retrieve an <see cref="X509CertificateTrustListEntry"/> object from an <see cref="X509CertificateTrustListEntryCollection"/>
         /// object if you know the <see cref="X509CertificateTrustListEntry.Thumbprint">Thumbprint</see> value of the <see cref="X509CertificateTrustListEntry"/>
-        /// object. You can use the <see cref="this[int]"/> property to retrieve an <see cref="X509CertificateTrustListEntry"/> object if you know
+        /// object. You can use the <see cref="this[Int32]"/> property to retrieve an <see cref="X509CertificateTrustListEntry"/> object if you know
         /// its location in the collection.
         /// </remarks>
         /// <returns>An <see cref="X509CertificateTrustListEntry"/> object if found, or <strong>null</strong> if specified item was not found.</returns>

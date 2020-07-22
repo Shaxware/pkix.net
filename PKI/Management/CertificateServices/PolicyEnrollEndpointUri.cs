@@ -6,6 +6,14 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
     /// Represents Certificate Enrollment Web Services (CES) URL object.
     /// </summary>
     public class PolicyEnrollEndpointUri {
+
+        /// <summary>
+        /// Initializes a new instance of <strong>PolicyEnrollEndpointUri</strong> from a string URI and remote endpoint settings.
+        /// </summary>
+        /// <param name="uri">Specifies an URI that points to Certificate Enrollment server.</param>
+        /// <param name="authentication">Specifies the authentication type associated with specified enrollment server endpoint.</param>
+        /// <param name="priority">Specifies the priority of the specified enrollment server endpoint.</param>
+        /// <param name="renewalOnly">Indicates whether the specified enrollment supports only renewal requests.</param>
         public PolicyEnrollEndpointUri(String uri, PolicyEnrollAuthenticationType authentication, Int32 priority, Boolean renewalOnly) {
             if (String.IsNullOrEmpty(uri)) {
                 throw new ArgumentNullException(nameof(uri));
