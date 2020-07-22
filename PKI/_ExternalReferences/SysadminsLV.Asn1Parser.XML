@@ -21,7 +21,7 @@
             <param name="value">
                 Value to encode.
             </param>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddInteger(System.Numerics.BigInteger)">
             <summary>
@@ -33,7 +33,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddBitString(System.Byte[],System.Byte)">
             <summary>
@@ -45,7 +45,7 @@
             <param name="unusedBits">
                 Unused bits in bit string. This value must fall in range between 0 and 7.
             </param>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddBitString(System.Byte[],System.Boolean)">
             <summary>
@@ -57,7 +57,7 @@
             <param name="calculateUnusedBits">
                 Indicates whether unused bits should be calculated. If set to <strong>false</strong>, unused bits value is set to zero.
             </param>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddOctetString(System.Byte[])">
             <summary>
@@ -69,13 +69,13 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddNull">
             <summary>
                 Adds ASN.1 NULL value.
             </summary>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddObjectIdentifier(System.Security.Cryptography.Oid)">
             <summary>
@@ -87,7 +87,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddEnumerated(System.UInt64)">
             <summary>
@@ -96,7 +96,7 @@
             <param name="value">
                 Value to encode.
             </param>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddUTF8String(System.String)">
             <summary>
@@ -108,7 +108,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddSequence(System.Byte[])">
             <summary>
@@ -120,9 +120,9 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
             <remarks>
-                In the current implementation, SEQUENCE is encoded using constructed form.
+                In the current implementation, SEQUENCE is encoded using constructed form only.
             </remarks>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddSet(System.Byte[])">
@@ -135,9 +135,9 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
             <remarks>
-                In the current implementation, SET is encoded using constructed form.
+                In the current implementation, SET is encoded using constructed form only.
             </remarks>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddNumericString(System.String)">
@@ -150,7 +150,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddPrintableString(System.String)">
             <summary>
@@ -162,7 +162,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddTeletexString(System.String)">
             <summary>
@@ -174,7 +174,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddVideotexString(System.String)">
             <summary>
@@ -186,7 +186,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddIA5String(System.String)">
             <summary>
@@ -198,7 +198,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddUtcTime(System.DateTime)">
             <summary>
@@ -210,7 +210,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddGeneralizedTime(System.DateTime)">
             <summary>
@@ -222,7 +222,23 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddRfcDateTime(System.DateTime)">
+            <summary>
+                Adds date time value using <see href="https://tools.ietf.org/html/rfc5280#section-4.1.2.5">RFC 5280 §4.1.2.5</see> encoding type.
+            </summary>
+            <param name="value">
+                Value to encode.
+            </param>
+            <exception cref="T:System.ArgumentNullException">
+                <strong>value</strong> parameter is null.
+            </exception>
+            <returns>Current instance with added value.</returns>
+            <remarks>
+                Dates prior to 2050 year are encoded using <strong>UTC Time</strong> and dates beginning with 2050 year are encoded using
+                <strong>Generalized Time</strong>.
+            </remarks>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddVisibleString(System.String)">
             <summary>
@@ -234,7 +250,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddUniversalString(System.String)">
             <summary>
@@ -246,7 +262,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddBMPString(System.String)">
             <summary>
@@ -258,7 +274,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddDerData(System.Byte[])">
             <summary>
@@ -270,7 +286,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddDerData(System.Byte[],System.Byte)">
             <summary>
@@ -285,7 +301,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>value</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddImplicit(System.Byte,System.Byte[],System.Boolean)">
             <summary>
@@ -306,7 +322,7 @@
             <exception cref="T:System.IO.InvalidDataException">
                 <strong>value</strong> is not encoded.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
             <remarks>
                 If <strong>mustEncode</strong> parameter is set to <strong>true</strong>, then data in <strong>value</strong> parameter
                 is untagged. If <strong>mustEncode</strong> parameter is set to <strong>false</strong>, then data in <strong>value</strong>
@@ -317,7 +333,7 @@
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddExplicit(System.Byte,System.Byte[],System.Boolean)">
             <summary>
-            Adds explicitly tagged type. Implicit (EXPLICIT OPTIONAL) must have at least one primitive or constructed nested type.
+            Adds explicitly tagged type. Explicit (EXPLICIT OPTIONAL) must have at least one primitive or constructed nested type.
             </summary>
             <param name="explicitTag">
                 Explicit tag number. This number equals to tag number in square brackets in ASN module definition of EXPLICIT.
@@ -334,7 +350,7 @@
             <exception cref="T:System.IO.InvalidDataException">
                 <strong>value</strong> is not encoded.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
             <remarks>
                 If <strong>mustEncode</strong> parameter is set to <strong>true</strong>, then data in <strong>value</strong> parameter
                 is untagged. If <strong>mustEncode</strong> parameter is set to <strong>false</strong>, then data in <strong>value</strong>
@@ -351,7 +367,10 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>selector</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
+            <remarks>
+                In the current implementation, constructed BIT_STRING is encoded using primitive form.
+            </remarks>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddOctetString(System.Func{SysadminsLV.Asn1Parser.Asn1Builder,SysadminsLV.Asn1Parser.Asn1Builder})">
             <summary>
@@ -361,7 +380,10 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>selector</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
+            <remarks>
+                In the current implementation, constructed OCTET_STRING is encoded using primitive form.
+            </remarks>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddSequence(System.Func{SysadminsLV.Asn1Parser.Asn1Builder,SysadminsLV.Asn1Parser.Asn1Builder})">
             <summary>
@@ -371,7 +393,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>selector</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddSet(System.Func{SysadminsLV.Asn1Parser.Asn1Builder,SysadminsLV.Asn1Parser.Asn1Builder})">
             <summary>
@@ -381,11 +403,11 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>selector</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.AddExplicit(System.Byte,System.Func{SysadminsLV.Asn1Parser.Asn1Builder,SysadminsLV.Asn1Parser.Asn1Builder})">
             <summary>
-            Adds constructed octet string.
+            Adds explicitly tagged type. Explicit (EXPLICIT OPTIONAL) must have at least one primitive or constructed nested type.
             </summary>
             <param name="explicitTag">
                 Explicit tag number. This number equals to tag number in square brackets in ASN module definition of EXPLICIT.
@@ -394,7 +416,7 @@
             <exception cref="T:System.ArgumentNullException">
                 <strong>selector</strong> parameter is null.
             </exception>
-            <returns>Current instance.</returns>
+            <returns>Current instance with added value.</returns>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.Encode(System.Byte)">
             <summary>
@@ -428,6 +450,19 @@
             <returns>
             Raw data.
             </returns>
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.Create">
+            <summary>
+            Creates a default instance of <strong>Asn1Builder</strong> class.
+            </summary>
+            <returns>ASN.1 Builder.</returns>
+        </member>
+        <member name="M:SysadminsLV.Asn1Parser.Asn1Builder.Create(System.Byte[])">
+            <summary>
+            Creates a default instance of <strong>Asn1Builder</strong> class from existing ASN.1-encoded data.
+            </summary>
+            <param name="rawData">ASN.1-encoded data to initialize the builder from.</param>
+            <returns>ASN.1 Builder.</returns>
         </member>
         <member name="T:SysadminsLV.Asn1Parser.Asn1Class">
             <summary>
@@ -695,21 +730,6 @@
             Reader was able to move to next type at same level, but its identifier doesn't match any accepted type
             specified in the <strong>expectedTags</strong> parameter.
             </exception>
-        </member>
-        <member name="M:SysadminsLV.Asn1Parser.Asn1Reader.MoveToPoisition(System.Int32)">
-            <summary>
-            Moves to a specified start offset.
-            </summary>
-            <param name="newPosition">ASN structure start position (offset).</param>
-            <returns>
-            <strong>True</strong> if specified offset is valid and pointer was successfully set to specified position,
-            otherwise <strong>False</strong>.
-            </returns>
-            <remarks>
-            Specified position validity is determined based on internal map and <see cref="M:SysadminsLV.Asn1Parser.Asn1Reader.BuildOffsetMap"/>
-            method must be called prior to first call of this method. Subsequent <strong>BuildOffsetMap</strong>
-            method calls are not necessary.
-            </remarks>
         </member>
         <member name="M:SysadminsLV.Asn1Parser.Asn1Reader.MoveToPosition(System.Int32)">
             <summary>
