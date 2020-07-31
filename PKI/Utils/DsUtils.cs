@@ -103,6 +103,7 @@ namespace PKI.Utils {
         public static String AddEntry(String ldapPath, String name, String schemaClass) {
             using (DirectoryEntry entry = new DirectoryEntry($"LDAP://{ldapPath}")) {
                 using (DirectoryEntry newEntry = entry.Children.Add(name, schemaClass)) {
+                    newEntry.CommitChanges();
                     return (String) newEntry.Properties[PropDN].Value;
                 }
             }
