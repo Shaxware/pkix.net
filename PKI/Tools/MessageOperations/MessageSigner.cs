@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Win32.SafeHandles;
+using PKI.Cryptography;
 using PKI.Exceptions;
 using PKI.Structs;
 using PKI.Utils;
@@ -58,7 +59,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         /// <strong>signer</strong> parameter is null.
         /// </exception>
         public MessageSigner(X509Certificate2 signer)
-            : this(signer, new Oid2(AlgorithmOids.SHA256, OidGroupEnum.HashAlgorithm, false)) {
+            : this(signer, new Oid2(AlgorithmOid.SHA256, OidGroupEnum.HashAlgorithm, false)) {
 
         }
         /// <summary>
@@ -155,28 +156,28 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
                 hashAlgorithm = hashAlg;
             }
             switch (PublicKeyAlgorithm.Value) {
-                case AlgorithmOids.RSA:
+                case AlgorithmOid.RSA:
                     switch (hashAlgorithm.Value) {
-                        case AlgorithmOids.MD5: // md5
+                        case AlgorithmOid.MD5: // md5
                             PssSaltByteCount = 16;
                             break;
-                        case AlgorithmOids.SHA1: // sha1
+                        case AlgorithmOid.SHA1: // sha1
                             PssSaltByteCount = 20;
                             break;
-                        case AlgorithmOids.SHA256: // sha256
+                        case AlgorithmOid.SHA256: // sha256
                             PssSaltByteCount = 32;
                             break;
-                        case AlgorithmOids.SHA384: // sha384
+                        case AlgorithmOid.SHA384: // sha384
                             PssSaltByteCount = 48;
                             break;
-                        case AlgorithmOids.SHA512: // sha512
+                        case AlgorithmOid.SHA512: // sha512
                             PssSaltByteCount = 64;
                             break;
                     }
                     break;
-                case AlgorithmOids.DSA:
+                case AlgorithmOid.DSA:
                     // force SHA1 for DSA keys
-                    hashAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
+                    hashAlgorithm = new Oid2(AlgorithmOid.SHA1, false);
                     break;
             }
         }
@@ -187,66 +188,66 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
                     break;
                 case KeyType.Rsa:
                     SignatureAlgorithm = PaddingScheme == SignaturePadding.PSS
-                        ? new Oid(AlgorithmOids.RSA_PSS)                              // RSASSA-PSS
+                        ? new Oid(AlgorithmOid.RSA_PSS)                              // RSASSA-PSS
                         : new Oid($"{HashingAlgorithm.FriendlyName}RSA"); // RSA
                     break;
                 case KeyType.Dsa:
                     // DSA doesn't support PSS padding and hashing algorithm other than SHA1
-                    SignatureAlgorithm = new Oid(AlgorithmOids.SHA1_DSA); // sha1DSA
+                    SignatureAlgorithm = new Oid(AlgorithmOid.SHA1_DSA); // sha1DSA
                     break;
             }
         }
         void mapSignatureAlgorithmToHashAlgorithm(String signatureOid, Asn1Reader asn) {
             switch (signatureOid) {
                 // md5
-                case AlgorithmOids.MD5:
+                case AlgorithmOid.MD5:
                     nullSigned = true;
                     hashAlgorithm = new Oid2(signatureOid, false);
                     break;
-                case AlgorithmOids.MD5_RSA:
-                    hashAlgorithm = new Oid2(AlgorithmOids.MD5, false);
+                case AlgorithmOid.MD5_RSA:
+                    hashAlgorithm = new Oid2(AlgorithmOid.MD5, false);
                     break;
                 // sha1
-                case AlgorithmOids.SHA1:
+                case AlgorithmOid.SHA1:
                     nullSigned = true;
                     hashAlgorithm = new Oid2(signatureOid, false);
                     break;
-                case AlgorithmOids.SHA1_ECDSA:
-                case AlgorithmOids.SHA1_RSA:
-                case AlgorithmOids.SHA1_DSA:
-                    hashAlgorithm = new Oid2(AlgorithmOids.SHA1, false);
+                case AlgorithmOid.SHA1_ECDSA:
+                case AlgorithmOid.SHA1_RSA:
+                case AlgorithmOid.SHA1_DSA:
+                    hashAlgorithm = new Oid2(AlgorithmOid.SHA1, false);
                     break;
                 // sha256
-                case AlgorithmOids.SHA256:
+                case AlgorithmOid.SHA256:
                     nullSigned = true;
                     hashAlgorithm = new Oid2(signatureOid, false);
                     break;
-                case AlgorithmOids.SHA256_ECDSA:
-                case AlgorithmOids.SHA256_RSA:
-                    hashAlgorithm = new Oid2(AlgorithmOids.SHA256, false);
+                case AlgorithmOid.SHA256_ECDSA:
+                case AlgorithmOid.SHA256_RSA:
+                    hashAlgorithm = new Oid2(AlgorithmOid.SHA256, false);
                     break;
                 // sha384
-                case AlgorithmOids.SHA384:
+                case AlgorithmOid.SHA384:
                     nullSigned = true;
                     hashAlgorithm = new Oid2(signatureOid, false);
                     break;
-                case AlgorithmOids.SHA384_ECDSA:
-                case AlgorithmOids.SHA384_RSA:
-                    hashAlgorithm = new Oid2(AlgorithmOids.SHA384, false);
+                case AlgorithmOid.SHA384_ECDSA:
+                case AlgorithmOid.SHA384_RSA:
+                    hashAlgorithm = new Oid2(AlgorithmOid.SHA384, false);
                     break;
                 // sha512
-                case AlgorithmOids.SHA512:
+                case AlgorithmOid.SHA512:
                     nullSigned = true;
                     hashAlgorithm = new Oid2(signatureOid, false);
                     break;
-                case AlgorithmOids.SHA512_ECDSA:
-                case AlgorithmOids.SHA512_RSA:
-                    hashAlgorithm = new Oid2(AlgorithmOids.SHA512, false);
+                case AlgorithmOid.SHA512_ECDSA:
+                case AlgorithmOid.SHA512_RSA:
+                    hashAlgorithm = new Oid2(AlgorithmOid.SHA512, false);
                     break;
-                case AlgorithmOids.ECDSA_SPECIFIED:
+                case AlgorithmOid.ECDSA_SPECIFIED:
                     decodeEcdsaSpecified(asn);
                     break;
-                case AlgorithmOids.RSA_PSS:
+                case AlgorithmOid.RSA_PSS:
                     decodeRsaPss(asn);
                     break;
                 default:
@@ -268,7 +269,7 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             asn.MoveNext();
             hashAlgorithm = asn.Tag == 0xa0
                 ? new Oid2(new AlgorithmIdentifier(asn.GetPayload()).AlgorithmId, false)
-                : new Oid2(AlgorithmOids.SHA1, false);
+                : new Oid2(AlgorithmOid.SHA1, false);
             // feed asn reader to salt identifier
             while (asn.MoveNextCurrentLevel() && asn.Tag != 0xa2) { }
             PssSaltByteCount = asn.Tag == 0xa2
@@ -322,13 +323,13 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
         void openLegacyPrivateKey() {
             var cspParams = new CspParameters(_keyInfo.ProviderType, _keyInfo.ProviderName, _keyInfo.KeyContainerName);
             switch (_keyInfo.PublicKeyAlgorithm.Value) {
-                case AlgorithmOids.RSA:
+                case AlgorithmOid.RSA:
                     legacyKey = new RSACryptoServiceProvider(cspParams);
                     if (((RSACryptoServiceProvider)legacyKey).PublicOnly) {
                         throw new CryptographicException("Private key cannot be found.");
                     }
                     break;
-                case AlgorithmOids.DSA:
+                case AlgorithmOid.DSA:
                     legacyKey = new DSACryptoServiceProvider(cspParams);
                     if (((DSACryptoServiceProvider)legacyKey).PublicOnly) {
                         throw new CryptographicException("Private key was not found");
@@ -361,13 +362,13 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             // do not load public key again if it is already loaded
             if (checkPublicKeyIsLoaded()) { return; }
             switch (publicKey.Oid.Value) {
-                case AlgorithmOids.ECC:
+                case AlgorithmOid.ECC:
                     keyType = KeyType.EcDsa;
                     break;
-                case AlgorithmOids.RSA:
+                case AlgorithmOid.RSA:
                     keyType = KeyType.Rsa;
                     break;
-                case AlgorithmOids.DSA:
+                case AlgorithmOid.DSA:
                     keyType = KeyType.Dsa;
                     break;
                 default:
@@ -713,17 +714,17 @@ namespace SysadminsLV.PKI.Tools.MessageOperations {
             Oid algId = SignatureAlgorithm;
             List<Byte> parameters = new List<Byte>();
             switch (PublicKeyAlgorithm.Value) {
-                case AlgorithmOids.ECC: // ECDSA
+                case AlgorithmOid.ECC: // ECDSA
                     if (alternate) {
                         // specifiedECDSA
-                        algId = new Oid(AlgorithmOids.ECDSA_SPECIFIED); // only here we override algorithm OID
+                        algId = new Oid(AlgorithmOid.ECDSA_SPECIFIED); // only here we override algorithm OID
                         parameters
                             .AddRange(
                                 new AlgorithmIdentifier(HashingAlgorithm.ToOid(), Asn1Utils.EncodeNull()).RawData
                             );
                     }
                     break;
-                case AlgorithmOids.RSA: // RSA
+                case AlgorithmOid.RSA: // RSA
                     // only RSA supports parameters. For PKCS1 padding: NULL, for PSS padding: 
                     // RSASSA-PSS-params ::= SEQUENCE {
                     //     hashAlgorithm      [0] HashAlgorithm    DEFAULT sha1,

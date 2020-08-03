@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using PKI.Cryptography;
+using PKI.Cryptography.X509Certificates;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
@@ -33,7 +35,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
                 existingCrl.Extensions
                     .Cast<X509Extension>()
                     // we do not add NextCrlPublish extension.
-                    .Where(x => x.Oid.Value != X509CertExtensions.X509NextCRLPublish));
+                    .Where(x => x.Oid.Value != X509ExtensionOid.X509NextCRLPublish));
             RevokedCertificates.AddRange(existingCrl.RevokedCertificates);
         }
 
@@ -79,7 +81,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// <summary>
         /// Gets or sets hashing algorithm to use during encoding. If not set, default value 'SHA256' is set.
         /// </summary>
-        public Oid HashingAlgorithm { get; set; } = new Oid(AlgorithmOids.SHA256);
+        public Oid HashingAlgorithm { get; set; } = new Oid(AlgorithmOid.SHA256);
 
         void generateExtensions(X509Certificate2 issuer) {
             processAkiExtension(issuer);
@@ -89,14 +91,14 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         }
         void processAkiExtension(X509Certificate2 issuer) {
             // remove AKI extension from existing extensions
-            GenericArray.RemoveExtension(_extensions, X509CertExtensions.X509AuthorityKeyIdentifier);
+            GenericArray.RemoveExtension(_extensions, X509ExtensionOid.X509AuthorityKeyIdentifier);
             // generate AKI from issuer certificate
             _extensions.Add(new X509AuthorityKeyIdentifierExtension(issuer, AuthorityKeyIdentifierFlags.KeyIdentifier, false));
         }
         void processCAVersionExtension(X509Certificate2 issuer) {
             // remove CA Version extension from existing extensions
-            GenericArray.RemoveExtension(_extensions, X509CertExtensions.X509CAVersion);
-            X509Extension e = issuer.Extensions[X509CertExtensions.X509CAVersion];
+            GenericArray.RemoveExtension(_extensions, X509ExtensionOid.X509CAVersion);
+            X509Extension e = issuer.Extensions[X509ExtensionOid.X509CAVersion];
             // if CA Version in issuer certificate is presented, copy it to CRL
             // otherwise, skip CA Version.
             if (e != null) {
@@ -112,12 +114,12 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             5. if CrlNumberIncrement is zero or negative, no CRL Number extension is added.
             */
             BigInteger newCrlVersion = 0;
-            X509Extension crlNumberExt = _extensions.FirstOrDefault(x => x.Oid.Value == X509CertExtensions.X509CRLNumber);
+            X509Extension crlNumberExt = _extensions.FirstOrDefault(x => x.Oid.Value == X509ExtensionOid.X509CRLNumber);
             if (crlNumberExt != null) {
                 newCrlVersion = ((X509CRLNumberExtension)crlNumberExt).CRLNumber + CrlNumberIncrement;
             }
             if (CrlNumberIncrement > 0) {
-                GenericArray.RemoveExtension(_extensions, X509CertExtensions.X509CRLNumber);
+                GenericArray.RemoveExtension(_extensions, X509ExtensionOid.X509CRLNumber);
                 crlNumberExt = new X509CRLNumberExtension(newCrlVersion, false);
                 _extensions.Add(crlNumberExt);
             }
@@ -139,7 +141,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
             }
             // coerce hashing algorithm
             if (HashingAlgorithm == null) {
-                HashingAlgorithm = new Oid(AlgorithmOids.SHA256);
+                HashingAlgorithm = new Oid(AlgorithmOid.SHA256);
             }
             // coerce version
             if (_extensions.Count > 0) {

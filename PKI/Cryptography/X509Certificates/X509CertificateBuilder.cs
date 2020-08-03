@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using PKI.Cryptography;
+using PKI.Cryptography.X509Certificates;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
@@ -26,8 +28,8 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         readonly Byte[] _versionBytes = { 0xa0, 03, 02, 01, 02 };
         readonly HashSet<String> _excludedExtensions = new HashSet<String>(
             new[] {
-                X509CertExtensions.X509SubjectKeyIdentifier,
-                X509CertExtensions.X509AuthorityKeyIdentifier
+                X509ExtensionOid.X509SubjectKeyIdentifier,
+                X509ExtensionOid.X509AuthorityKeyIdentifier
             }
         );
         readonly List<X509Extension> _extensions = new List<X509Extension>();
@@ -70,7 +72,7 @@ namespace SysadminsLV.PKI.Cryptography.X509Certificates {
         /// <summary>
         /// Gets or sets hashing algorithm used to sign the certificate. Default value is SHA256.
         /// </summary>
-        public Oid2 HashingAlgorithm { get; set; } = new Oid2(AlgorithmOids.SHA256, false);
+        public Oid2 HashingAlgorithm { get; set; } = new Oid2(AlgorithmOid.SHA256, false);
         /// <summary>
         /// Gets or sets a value that indicates whether PKCS#1 v2.1 is used.
         /// </summary>

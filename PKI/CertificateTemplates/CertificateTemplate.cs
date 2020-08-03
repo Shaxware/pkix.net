@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Interop.CERTENROLLLib;
 using PKI.Utils;
+using SysadminsLV.PKI.Security.AccessControl;
 using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace PKI.CertificateTemplates {
@@ -274,6 +275,13 @@ namespace PKI.CertificateTemplates {
         /// <returns>The hash code for the certificate template as an integer.</returns>
         public override Int32 GetHashCode() {
             unchecked { return (Name.GetHashCode() * 397) ^ OID.GetHashCode2(); }
+        }
+        /// <summary>
+        /// Gets access control list (security descriptor) of the current certificate template.
+        /// </summary>
+        /// <returns>Security descriptor.</returns>
+        public CertTemplateSecurityDescriptor GetSecurityDescriptor() {
+            return new CertTemplateSecurityDescriptor(this);
         }
         /// <summary>
         /// Gets certificate template textual representation.

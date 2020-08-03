@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Interop.CERTENROLLLib;
+using PKI.Cryptography;
 using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser.Universal;
@@ -116,7 +117,7 @@ namespace SysadminsLV.PKI.Cryptography {
         /// <returns>An instance of <see cref="PublicKey"/> class with public key.</returns>
         public PublicKey GetPublicKey() {
             Oid algorithm = PublicKeyAlgorithm.FriendlyName.StartsWith("EC", StringComparison.OrdinalIgnoreCase)
-                ? new Oid(AlgorithmOids.ECC)
+                ? new Oid(AlgorithmOid.ECC)
                 : PublicKeyAlgorithm;
             CX509PublicKey pubKey = _keyGen.ExportPublicKey();
             var key = new AsnEncodedData(algorithm, Convert.FromBase64String(pubKey.EncodedKey));

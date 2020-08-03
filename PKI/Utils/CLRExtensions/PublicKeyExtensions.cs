@@ -5,10 +5,10 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.Asn1Parser;
 using SysadminsLV.Asn1Parser.Universal;
+using SysadminsLV.PKI.Cryptography;
 
 namespace SysadminsLV.PKI.Utils.CLRExtensions {
     static class PublicKeyExtensions {
@@ -55,13 +55,13 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             StringBuilder sb = new StringBuilder();
             String keyParamsString = "";
             switch (publicKey.Oid.Value) {
-                case AlgorithmOids.ECC:
+                case AlgorithmOid.ECC:
                     keyParamsString = AsnFormatter
                         .BinaryToString(publicKey.EncodedParameters.RawData, EncodingType.HexAddress)
                         .TrimEnd();
                     keyParamsString += $"\r\n        {new Asn1ObjectIdentifier(publicKey.EncodedParameters.RawData).Value.Format(true)}";
                     break;
-                case AlgorithmOids.RSA:
+                case AlgorithmOid.RSA:
                     keyParamsString = AsnFormatter.BinaryToString(Asn1Utils.EncodeNull(), EncodingType.Hex);
                     break;
                 default:
@@ -90,10 +90,10 @@ Public Key: UnusedBits = 0
             if (publicKey == null) { throw new ArgumentNullException(nameof(publicKey)); }
 
             switch (publicKey.Oid.Value) {
-                case AlgorithmOids.RSA:
-                case AlgorithmOids.DSA:
+                case AlgorithmOid.RSA:
+                case AlgorithmOid.DSA:
                     return publicKey.Key.KeySize;
-                case AlgorithmOids.ECC:
+                case AlgorithmOid.ECC:
                     var cryptBlob = publicKey.GetCryptBlob();
                     using (CngKey cngKey = CngKey.Import(cryptBlob, CngKeyBlobFormat.EccPublicBlob)) {
                         return cngKey.KeySize;
@@ -107,11 +107,11 @@ Public Key: UnusedBits = 0
             List<Byte> blob = new List<Byte>();
             switch (publicKey.Oid.Value) {
                 // RSA
-                case "1.2.840.113549.1.1.1":
+                case AlgorithmOid.RSA:
                     readRsaHeader(blob, publicKey);
                     break;
                 // DSA
-                case "1.2.840.10040.4.1":
+                case AlgorithmOid.DSA:
                     // DSA has two formats, legacy and new. Legacy DSA keys are up to 1024 bit and support
                     // SHA1 hash algorithm only. Larger keys support up to 2048? bit keys and new hashing algorithms,
                     // SHA1, SHA256 and SHA512. SHA384 somehow is missing, see bcrypt.h file for
@@ -126,7 +126,7 @@ Public Key: UnusedBits = 0
                     }
                     break;
                 // ECC/ECDSA
-                case "1.2.840.10045.2.1":
+                case AlgorithmOid.ECC:
                     readEcdsaHeader(blob, publicKey);
                     break;
                 default:
@@ -284,17 +284,17 @@ Public Key: UnusedBits = 0
             // headers from bcrypt.h
             switch (Asn1Utils.DecodeObjectIdentifier(publicKey.EncodedParameters.RawData).Value) {
                 // P256
-                case "1.2.840.10045.3.1.7":
+                case AlgorithmOid.ECDSA_P256:
                     blob.AddRange(BitConverter.GetBytes(ECDSA_P256_MAGIC));
                     blob.AddRange(BitConverter.GetBytes(256 / 8));
                     break;
                 // P384
-                case "1.3.132.0.34":
+                case AlgorithmOid.ECDSA_P384:
                     blob.AddRange(BitConverter.GetBytes(ECDSA_P384_MAGIC));
                     blob.AddRange(BitConverter.GetBytes(384 / 8));
                     break;
                 // P521
-                case "1.3.132.0.35":
+                case AlgorithmOid.ECDSA_P521:
                     blob.AddRange(BitConverter.GetBytes(ECDSA_P521_MAGIC));
                     blob.AddRange(BitConverter.GetBytes(528 / 8));
                     break;

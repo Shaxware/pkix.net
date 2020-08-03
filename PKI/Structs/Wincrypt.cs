@@ -66,6 +66,72 @@ namespace PKI.Structs {
         internal const Int32 URL_OID_CERTIFICATE_CRL_DIST_POINT_AND_OCSP = 11;
         internal const Int32 URL_OID_CROSS_CERT_SUBJECT_INFO_ACCESS      = 12;
         internal const Int32 URL_OID_CERTIFICATE_ONLY_OCSP               = 13;
+
+        //dwObjectType for CryptQueryObject
+        //-------------------------------------------------------------------------
+        internal const Int32 CERT_QUERY_OBJECT_FILE = 0x00000001;
+        internal const Int32 CERT_QUERY_OBJECT_BLOB = 0x00000002;
+
+        // dwContentType types for CryptQueryObject
+        internal const Int32 CERT_QUERY_CONTENT_CERT               = 1;
+        internal const Int32 CERT_QUERY_CONTENT_CTL                = 2;
+        internal const Int32 CERT_QUERY_CONTENT_CRL                = 3;
+        internal const Int32 CERT_QUERY_CONTENT_SERIALIZED_STORE   = 4;
+        internal const Int32 CERT_QUERY_CONTENT_SERIALIZED_CERT    = 5;
+        internal const Int32 CERT_QUERY_CONTENT_SERIALIZED_CTL     = 6;
+        internal const Int32 CERT_QUERY_CONTENT_SERIALIZED_CRL     = 7;
+        internal const Int32 CERT_QUERY_CONTENT_PKCS7_SIGNED       = 8;
+        internal const Int32 CERT_QUERY_CONTENT_PKCS7_UNSIGNED     = 9;
+        internal const Int32 CERT_QUERY_CONTENT_PKCS7_SIGNED_EMBED = 10;
+        internal const Int32 CERT_QUERY_CONTENT_PKCS10             = 11;
+        internal const Int32 CERT_QUERY_CONTENT_PFX                = 12;
+        internal const Int32 CERT_QUERY_CONTENT_CERT_PAIR          = 13;
+        internal const Int32 CERT_QUERY_CONTENT_PFX_AND_LOAD       = 14;
+
+        // dwExpectedConentTypeFlags for CryptQueryObject
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_CERT = 1 << CERT_QUERY_CONTENT_CERT;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_CTL = 1 << CERT_QUERY_CONTENT_CTL;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_CRL = 1 << CERT_QUERY_CONTENT_CRL;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_SERIALIZED_STORE = 1 << CERT_QUERY_CONTENT_SERIALIZED_STORE;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_SERIALIZED_CERT = 1 << CERT_QUERY_CONTENT_SERIALIZED_CERT;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_SERIALIZED_CTL = 1 << CERT_QUERY_CONTENT_SERIALIZED_CTL;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_SERIALIZED_CRL = 1 << CERT_QUERY_CONTENT_SERIALIZED_CRL;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_PKCS7_SIGNED = 1 << CERT_QUERY_CONTENT_PKCS7_SIGNED;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_PKCS7_UNSIGNED = 1 << CERT_QUERY_CONTENT_PKCS7_UNSIGNED;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_PKCS7_SIGNED_EMBED = 1 << CERT_QUERY_CONTENT_PKCS7_SIGNED_EMBED;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_PKCS10 = 1 << CERT_QUERY_CONTENT_PKCS10;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_PFX = 1 << CERT_QUERY_CONTENT_PFX;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_CERT_PAIR = 1 << CERT_QUERY_CONTENT_CERT_PAIR;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_PFX_AND_LOAD = 1 << CERT_QUERY_CONTENT_PFX_AND_LOAD;
+        internal const Int32 CERT_QUERY_CONTENT_FLAG_ALL =
+            CERT_QUERY_CONTENT_CERT
+            | CERT_QUERY_CONTENT_CTL
+            | CERT_QUERY_CONTENT_CRL
+            | CERT_QUERY_CONTENT_SERIALIZED_STORE
+            | CERT_QUERY_CONTENT_SERIALIZED_CERT
+            | CERT_QUERY_CONTENT_SERIALIZED_CTL
+            | CERT_QUERY_CONTENT_SERIALIZED_CRL
+            | CERT_QUERY_CONTENT_PKCS7_SIGNED
+            | CERT_QUERY_CONTENT_PKCS7_UNSIGNED
+            | CERT_QUERY_CONTENT_PKCS7_SIGNED_EMBED
+            | CERT_QUERY_CONTENT_PKCS10
+            | CERT_QUERY_CONTENT_PFX
+            | CERT_QUERY_CONTENT_CERT_PAIR
+            | CERT_QUERY_CONTENT_PFX_AND_LOAD;
+
+        // dwFormatType for CryptQueryObject
+        internal const Int32 CERT_QUERY_FORMAT_BINARY                = 1;
+        internal const Int32 CERT_QUERY_FORMAT_BASE64_ENCODED        = 2;
+        internal const Int32 CERT_QUERY_FORMAT_ASN_ASCII_HEX_ENCODED = 3;
+
+        //dwExpectedFormatTypeFlags for CryptQueryObject
+        internal const Int32 CERT_QUERY_FORMAT_FLAG_BINARY = 1 << CERT_QUERY_FORMAT_BINARY;
+        internal const Int32 CERT_QUERY_FORMAT_FLAG_BASE64_ENCODED = 1 << CERT_QUERY_FORMAT_BASE64_ENCODED;
+        internal const Int32 CERT_QUERY_FORMAT_FLAG_ASN_ASCII_HEX_ENCODED = 1 << CERT_QUERY_FORMAT_ASN_ASCII_HEX_ENCODED;
+        internal const Int32 CERT_QUERY_FORMAT_FLAG_ALL =
+            CERT_QUERY_FORMAT_FLAG_BINARY
+            | CERT_QUERY_FORMAT_FLAG_BASE64_ENCODED
+            | CERT_QUERY_FORMAT_FLAG_ASN_ASCII_HEX_ENCODED;
         #endregion
 
         #region structs

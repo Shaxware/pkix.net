@@ -1,5 +1,5 @@
-﻿using PKI.Structs;
-using SysadminsLV.Asn1Parser;
+﻿using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Cryptography.X509Certificates;
 
 namespace System.Security.Cryptography.X509Certificates {
 	/// <summary>
@@ -11,7 +11,7 @@ namespace System.Security.Cryptography.X509Certificates {
 	/// </para>
 	/// </summary>
 	public sealed class X509NextCRLPublishExtension : X509Extension {
-		readonly Oid _oid = new Oid(X509CertExtensions.X509NextCRLPublish);
+		readonly Oid _oid = new Oid(X509ExtensionOid.X509NextCRLPublish);
 
 		/// <summary>
 		/// Initializes a new instance of the <strong>X509CRLReferenceExtension</strong> class using an

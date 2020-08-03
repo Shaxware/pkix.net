@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.Win32;
 using PKI.Exceptions;
 using PKI.Utils;
+using SysadminsLV.PKI.Management.CertificateServices;
 
 namespace PKI.CertificateServices.Flags {
 	/// <summary>
@@ -10,7 +11,8 @@ namespace PKI.CertificateServices.Flags {
 	/// and enrollment (<strong>ICertRequest</strong>) interfaces.
 	/// </summary>
 	public class InterfaceFlag {
-		String Version, ConfigString;
+		String configString;
+		CertSrvPlatformVersion version;
 
 		/// <param name="certificateAuthority">Specifies an existing <see cref="CertificateAuthority"/> object.</param>
 		/// <exception cref="UninitializedObjectException">An object in the <strong>certificateAuthority</strong> parameter is not initialized.</exception>
@@ -37,7 +39,7 @@ namespace PKI.CertificateServices.Flags {
 		/// </summary>
 		public InterfaceFlagEnum InterfaceFlags { get; private set; }
 		/// <summary>
-		/// Indiciates whether the object was modified after it was instantiated.
+		/// Indicates whether the object was modified after it was instantiated.
 		/// </summary>
 		public Boolean IsModified { get; private set; }
 
@@ -45,13 +47,13 @@ namespace PKI.CertificateServices.Flags {
 			Name = certificateAuthority.Name;
 			DisplayName = certificateAuthority.DisplayName;
 			ComputerName = certificateAuthority.ComputerName;
-			ConfigString = certificateAuthority.ConfigString;
-			Version = certificateAuthority.Version;
+			configString = certificateAuthority.ConfigString;
+			version = certificateAuthority.Version;
 			if (CryptoRegistry.Ping(ComputerName)) {
 				InterfaceFlags = (InterfaceFlagEnum)CryptoRegistry.GetRReg("InterfaceFlags", Name, ComputerName);
 			} else {
 				if (CertificateAuthority.Ping(ComputerName)) {
-					InterfaceFlags = (InterfaceFlagEnum)CryptoRegistry.GetRegFallback(ConfigString, "", "InterfaceFlags");
+					InterfaceFlags = (InterfaceFlagEnum)CryptoRegistry.GetRegFallback(configString, "", "InterfaceFlags");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
 					e.Data.Add(nameof(e.Source), (OfflineSource)3);
@@ -126,13 +128,15 @@ namespace PKI.CertificateServices.Flags {
 		/// </list>
 		/// </remarks>
 		public void Restore() {
-			switch (Version) {
-				case "2000": InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup; break;
-				case "2003": InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup; break;
-				case "2008": InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup; break;
-				case "2008R2": InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup; break;
-				case "2012":
-				case "2016":
+			switch (version) {
+				case CertSrvPlatformVersion.Win2000:
+				case CertSrvPlatformVersion.Win2003:
+				case CertSrvPlatformVersion.Win2008:
+				case CertSrvPlatformVersion.Win2008R2: InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup; break;
+				case CertSrvPlatformVersion.Win2012:
+				case CertSrvPlatformVersion.Win2012R2:
+				case CertSrvPlatformVersion.Win2016:
+				case CertSrvPlatformVersion.Win2019:
 					InterfaceFlags = InterfaceFlagEnum.NoRemoteICertAdminBackup |
 					                 InterfaceFlagEnum.EnforceEncryptICertAdmin |
 					                 InterfaceFlagEnum.EnforceEncryptICertRequest |
@@ -147,7 +151,7 @@ namespace PKI.CertificateServices.Flags {
 		/// Updates management interface flags by writing them to Certification Authority.
 		/// </summary>
 		/// <param name="restart">
-		/// Indiciates whether to restart certificate services to immediately apply changes. Updated settings has no effect
+		/// Indicates whether to restart certificate services to immediately apply changes. Updated settings has no effect
 		/// until CA service is restarted.
 		/// </param>
 		/// <exception cref="UnauthorizedAccessException">
@@ -170,7 +174,7 @@ namespace PKI.CertificateServices.Flags {
 					return true;
 				}
 				if (CertificateAuthority.Ping(ComputerName)) {
-					CryptoRegistry.SetRegFallback(ConfigString, String.Empty, "InterfaceFlags", (Int32)InterfaceFlags);
+					CryptoRegistry.SetRegFallback(configString, String.Empty, "InterfaceFlags", (Int32)InterfaceFlags);
 					if (restart) { CertificateAuthority.Restart(ComputerName); }
 					IsModified = false;
 					return true;

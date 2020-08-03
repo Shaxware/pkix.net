@@ -3,13 +3,15 @@ using System.Linq;
 using Microsoft.Win32;
 using PKI.Exceptions;
 using PKI.Utils;
+using SysadminsLV.PKI.Management.CertificateServices;
 
 namespace PKI.CertificateServices.Flags {
 	/// <summary>
 	/// Contains information about CRL flags enabled on CA server.
 	/// </summary>
 	public class CRLFlag {
-		String Version, ConfigString;
+		String configString;
+		CertSrvPlatformVersion version;
 
 		/// <param name="certificateAuthority">Specifies an existing <see cref="CertificateAuthority"/> object.</param>
 		/// <exception cref="UninitializedObjectException">An object in the <strong>certificateAuthority</strong> parameter is not initialized.</exception>
@@ -44,13 +46,13 @@ namespace PKI.CertificateServices.Flags {
 			Name = certificateAuthority.Name;
 			DisplayName = certificateAuthority.DisplayName;
 			ComputerName = certificateAuthority.ComputerName;
-			ConfigString = certificateAuthority.ConfigString;
-			Version = certificateAuthority.Version;
+			configString = certificateAuthority.ConfigString;
+			version = certificateAuthority.Version;
 			if (CryptoRegistry.Ping(ComputerName)) {
 				CRLFlags = (CRLFlagEnum)CryptoRegistry.GetRReg("CRLFlags", Name, ComputerName);
 			} else {
 				if (CertificateAuthority.Ping(ComputerName)) {
-					CRLFlags = (CRLFlagEnum)CryptoRegistry.GetRegFallback(ConfigString, "", "CRLFlags");
+					CRLFlags = (CRLFlagEnum)CryptoRegistry.GetRegFallback(configString, "", "CRLFlags");
 				} else {
 					ServerUnavailableException e = new ServerUnavailableException(DisplayName);
 					e.Data.Add(nameof(e.Source), (OfflineSource)3);
@@ -70,9 +72,9 @@ namespace PKI.CertificateServices.Flags {
 			Int32[] existing = EnumFlags.GetEnabled(typeof(CRLFlagEnum),(Int32)CRLFlags);
 			Int32[] newf = EnumFlags.GetEnabled(typeof(CRLFlagEnum), (Int32)flags);
 			if (
-				Version == "2000" ||
-				Version == "2003" ||
-				Version == "2008" &&
+				version == CertSrvPlatformVersion.Win2000 ||
+				version == CertSrvPlatformVersion.Win2003 ||
+				version == CertSrvPlatformVersion.Win2008 &&
 				((Int32)flags & (Int32)CRLFlagEnum.DisableChainVerification) != 0 ||
 				((Int32)flags & (Int32)CRLFlagEnum.BuildRootCACRLEntriesBasedOnKey) != 0) 
 			{
@@ -160,7 +162,7 @@ namespace PKI.CertificateServices.Flags {
 					return true;
 				}
 				if (CertificateAuthority.Ping(ComputerName)) {
-					CryptoRegistry.SetRegFallback(ConfigString, String.Empty, "CRLFlags", (Int32)CRLFlags);
+					CryptoRegistry.SetRegFallback(configString, String.Empty, "CRLFlags", (Int32)CRLFlags);
 					if (restart) { CertificateAuthority.Restart(ComputerName); }
 					IsModified = false;
 					return true;

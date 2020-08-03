@@ -10,7 +10,7 @@ namespace SysadminsLV.PKI.Win32 {
         [DllImport("Certadm.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern Boolean CertSrvIsServerOnline(
             [In] String pwszServerName,
-            [In, Out] ref Boolean pfServerOnline
+            [Out] out Boolean pfServerOnline
         );
         [DllImport("Certadm.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern Int32 CertSrvBackupPrepare(

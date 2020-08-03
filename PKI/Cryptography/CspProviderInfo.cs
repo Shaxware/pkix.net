@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Interop.CERTENROLLLib;
-using PKI.ServiceProviders;
 using PKI.Utils;
 
 namespace SysadminsLV.PKI.Cryptography {
@@ -13,10 +12,11 @@ namespace SysadminsLV.PKI.Cryptography {
     ///		This class has no public constructors. Instead, use <see cref="CspProviderInfoCollection.GetProviderInfo()"/> method to access this object.
     /// </remarks>
     public class CspProviderInfo {
+        readonly CspProviderAlgorithmInfoCollection _algorithms = new CspProviderAlgorithmInfoCollection();
+
         internal CspProviderInfo(ICspInformation csp) {
             Name = csp.Name;
-            Type = (ProviderTypeEnum)csp.Type;
-            //Algorithms = new ProviderAlgorithm(csp.CspAlgorithms);
+            Type = (CspProviderType)csp.Type;
             IsHardware = csp.IsHardwareDevice;
             IsSoftware = csp.IsSoftwareDevice;
             IsRemovable = csp.IsRemovable;
@@ -27,8 +27,7 @@ namespace SysadminsLV.PKI.Cryptography {
             KeySpec = (X509KeySpecFlags)csp.KeySpec;
             Version = csp.Version;
             IsValid = csp.Valid;
-            Algorithms = new CspProviderAlgorithmInfoCollection();
-            Algorithms.AddRange(from ICspAlgorithm alg in csp.CspAlgorithms select new CspProviderAlgorithmInfo(alg));
+            _algorithms.AddRange(from ICspAlgorithm alg in csp.CspAlgorithms select new CspProviderAlgorithmInfo(alg));
             CryptographyUtils.ReleaseCom(csp);
         }
 
@@ -39,12 +38,12 @@ namespace SysadminsLV.PKI.Cryptography {
         /// <summary>
         /// Gets the type of the provider.
         /// </summary>
-        public ProviderTypeEnum Type { get; }
+        public CspProviderType Type { get; }
         /// <summary>
         /// Gets a collection of <see cref="CspProviderAlgorithmInfo"/> objects that contains information about the algorithms
         /// supported by the provider.
         /// </summary>
-        public CspProviderAlgorithmInfoCollection Algorithms { get; }
+        public CspProviderAlgorithmInfoCollection Algorithms => new CspProviderAlgorithmInfoCollection(_algorithms);
         /// <summary>
         /// Gets a Boolean value that determines whether the provider is implemented in a hardware device.
         /// </summary>

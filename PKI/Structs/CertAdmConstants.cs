@@ -19,8 +19,8 @@ namespace PKI.Structs {
         public const Int32 CrPropCaxchgcertcount            = 0x0000000E; // CA Exchange Certificate Count
         public const Int32 CrPropCaxchgcert                 = 0x0000000F; // CA Exchange Certificate
         public const Int32 CrPropCaxchgcertchain            = 0x00000010; // CA Exchange Certificate Chain
-        public const Int32 CrPropBasecrl                    = 0x00000011; // Base CRL
-        public const Int32 CrPropDeltacrl                   = 0x00000012; // Delta CRL
+        public const Int32 CrPropBaseCrl                    = 0x00000011; // Base CRL
+        public const Int32 CrPropDeltaCrl                   = 0x00000012; // Delta CRL
         public const Int32 CrPropCacertstate                = 0x00000013; // CA Signing Certificates State
         public const Int32 CrPropCrlstate                   = 0x00000014; // CA CRL State
         public const Int32 CrPropCapropidmax                = 0x00000015; // Maximum Property ID
