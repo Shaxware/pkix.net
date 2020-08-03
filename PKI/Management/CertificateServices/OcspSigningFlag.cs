@@ -31,7 +31,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <summary>
         /// Automatically discover a delegated signing certificate.
         /// </summary>
-        AutoDiscoverSigninCert    = 0x10,
+        AutoDiscoverSigningCert   = 0x10,
         /// <summary>
         /// Manually assign a signing certificate.
         /// </summary>

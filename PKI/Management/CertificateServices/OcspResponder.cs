@@ -402,8 +402,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                     throw new ServerUnavailableException(ComputerName);
                 }
             }
-            IOCSPCAConfiguration comConfig = _ocspAdmin.OCSPCAConfigurationCollection.CreateCAConfiguration(name, caCertificate.RawData);
-            saveConfig();
+            IOCSPCAConfiguration comConfig = ocspAdmin.OCSPCAConfigurationCollection.CreateCAConfiguration(name, caCertificate.RawData);
+            OcspResponderRevocationConfiguration.InitializeDefaults(comConfig);
+            ocspAdmin.SetConfiguration(ComputerName, true);
             return new OcspResponderRevocationConfiguration(ComputerName, comConfig);
         }
         /// <summary>
@@ -433,10 +434,10 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                     throw new ServerUnavailableException(ComputerName);
                 }
             }
-            IOCSPCAConfiguration confConfig = _ocspAdmin.OCSPCAConfigurationCollection.CreateCAConfiguration(name, certificateAuthority.Certificate.RawData);
-            confConfig.CAConfig = certificateAuthority.ConfigString;
-            saveConfig();
-            return new OcspResponderRevocationConfiguration(ComputerName, confConfig);
+            IOCSPCAConfiguration comConfig = ocspAdmin.OCSPCAConfigurationCollection.CreateCAConfiguration(name, certificateAuthority.Certificate.RawData);
+            OcspResponderRevocationConfiguration.InitializeDefaults(comConfig, certificateAuthority.ConfigString);
+            ocspAdmin.SetConfiguration(ComputerName, true);
+            return new OcspResponderRevocationConfiguration(ComputerName, comConfig);
         }
         /// <summary>
         /// Removes named revocation configuration from Online Responder.

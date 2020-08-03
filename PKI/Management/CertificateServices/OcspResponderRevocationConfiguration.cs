@@ -8,6 +8,7 @@ using PKI.Utils;
 using SysadminsLV.PKI.Cryptography;
 using SysadminsLV.PKI.Cryptography.Pkcs;
 using SysadminsLV.PKI.Cryptography.X509Certificates;
+using SysadminsLV.PKI.Dcom.Implementations;
 
 namespace SysadminsLV.PKI.Management.CertificateServices {
     /// <summary>
@@ -42,7 +43,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         readonly ISet<String> _updateList = new HashSet<String>();
 
         Int32 crlUrlTimeout, refreshTimeout, reminderDuration;
-        String certTemplate;
+        String certTemplate, caConfigString;
         String[] baseCrlUrls, deltaCrlUrls, serialDirs;
         Oid2 hashAlgorithm;
         OcspSigningFlag signingFlags;
@@ -51,12 +52,14 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         internal OcspResponderRevocationConfiguration(String computerName, IOCSPCAConfiguration config) {
             ComputerName = computerName;
             Name = config.Identifier;
-            ConfigString = config.CAConfig;
             CACertificate = new X509Certificate2((Byte[])config.CACertificate);
             try {
-                CryptoProviderName = config.CSPName;
-            } catch { }
-
+                String clsid = config.ProviderCLSID;
+            } catch {
+                config.ProviderCLSID = "{4956d17f-88fd-4198-b287-1e6e65883b19}";
+            }
+            try { ConfigString = config.CAConfig; } catch { }
+            try { CryptoProviderName = config.CSPName; } catch { }
             readProperties(config);
             CryptographyUtils.ReleaseCom(config);
         }
@@ -72,7 +75,21 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <summary>
         /// Gets the configuration string for online certification authority.
         /// </summary>
-        public String ConfigString { get; }
+        public String ConfigString {
+            get => caConfigString;
+            set {
+                if (value == null) {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                if (String.IsNullOrEmpty(value)) {
+                    throw new ArgumentException("Value cannot be empty string.");
+                }
+                if (value.Equals(caConfigString, StringComparison.OrdinalIgnoreCase)) {
+                    caConfigString = value;
+                    _updateList.Add(MSFT_CONF_CACONFIG);
+                }
+            }
+        }
         /// <summary>
         /// Gets the certification authority certificate.
         /// </summary>
@@ -93,7 +110,13 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         public String SigningCertificateTemplate {
             get => certTemplate;
             set {
-                if (value != certTemplate) {
+                if (value == null) {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                if (String.IsNullOrEmpty(value)) {
+                    throw new ArgumentException("Value cannot be empty string.");
+                }
+                if (value.Equals(certTemplate, StringComparison.OrdinalIgnoreCase)) {
                     certTemplate = value;
                     _updateList.Add(MSFT_CONF_SIGNINGCERTIFICATETEMPLATE);
                 }
@@ -102,6 +125,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <summary>
         /// Gets or sets the hashing algorithm used to sign OCSP responses.
         /// </summary>
+        /// <remarks>Windows Server 2008 and Windows Server 2008 R2 support only SHA1 algorithm.</remarks>
         public Oid2 HashAlgorithm {
             get => hashAlgorithm;
             set {
@@ -166,9 +190,18 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <summary>
         /// Gets or sets an array of URLs that point to Base CRL locations. Every URL must be either HTTP or LDAP.
         /// </summary>
+        /// <exception cref="ArgumentException">Setter value does not represent a valid array of URLs.</exception>
+        /// <exception cref="ArgumentNullException">Setter value is null reference.</exception>
+        /// <remarks>This property must not be null.</remarks>
         public String[] BaseCrlUrls {
             get => baseCrlUrls;
             set {
+                if (value == null) {
+                    throw new ArgumentNullException(nameof(BaseCrlUrls));
+                }
+                if (value.Length == 0 || !value.All(x => x.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || x.StartsWith("ldap://", StringComparison.OrdinalIgnoreCase))) {
+                    throw new ArgumentException("Value cannot be empty array and every element in array must represent a valid 'http' or 'ldap' URL.");
+                }
                 baseCrlUrls = value;
                 _updateList.Add(MSFT_PROV_BASECRLURLS);
             }
@@ -228,6 +261,30 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// </summary>
         public Int32 ConfigurationStatusCode { get; private set; }
 
+        internal static void InitializeDefaults(IOCSPCAConfiguration comConfig) {
+            comConfig.ProviderCLSID = "{4956d17f-88fd-4198-b287-1e6e65883b19}";
+            comConfig.HashAlgorithm = "sha1";
+            comConfig.SigningFlags = (UInt32)(OcspSigningFlag.Silent | OcspSigningFlag.ManualSigningCert | OcspSigningFlag.ResponderIdKeyHash);
+            comConfig.ReminderDuration = 90;
+            var props = new OCSPPropertyCollectionClass();
+            props.InitializeFromProperties(null);
+            props.CreateProperty(MSFT_PROV_BASECRLURLS, new[] { "http://dummyurl" });
+            comConfig.ProviderProperties = props.GetAllProperties();
+        }
+        internal static void InitializeDefaults(IOCSPCAConfiguration comConfig, String configString) {
+            InitializeDefaults(comConfig);
+            comConfig.CAConfig = configString;
+            var certAdmin = new CertPropReaderD(configString, false);
+            try {
+                Int32 index = certAdmin.GetCaCertificateCount() - 1;
+                String[] urls = certAdmin.GetCdpURLs(index);
+                var props = new OCSPPropertyCollectionClass();
+                props.InitializeFromProperties(null);
+                props.CreateProperty(MSFT_PROV_BASECRLURLS, urls);
+                comConfig.ProviderProperties = props.GetAllProperties();
+            } catch { }
+        }
+
         void readProperties(IOCSPCAConfiguration config) {
             try { hashAlgorithm = new Oid2(config.HashAlgorithm, OidGroupEnum.HashAlgorithm, false); } catch { }
             try { signingFlags = (OcspSigningFlag)config.SigningFlags; } catch { }
@@ -246,7 +303,12 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
             } catch { }
 
             // read properties
-            Object[,] props = (Object[,])config.ProviderProperties;
+            Object[,] props;
+            try {
+                props = (Object[,])config.ProviderProperties;
+            } catch {
+                return;
+            }
             for (Int32 i = 0; i < props.GetUpperBound(0); i++) {
                 switch (props[i, 0]) {
                     case MSFT_PROV_ERRORCODE:
@@ -279,30 +341,22 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         }
 
         static Object[,] writeProvProperties(Object[,] source, String propName, Object value) {
-            for (Int32 i = 0; i < source.GetUpperBound(0); i++) {
-                if (propName.Equals(source[i, 0])) {
-                    source[i, 1] = value;
-                    return source;
+            var props = new OCSPPropertyCollectionClass();
+            props.InitializeFromProperties(source);
+            try {
+                IOCSPProperty prop = (IOCSPProperty)props.ItemByName[propName];
+                if (value == null) {
+                    props.DeleteProperty(propName);
+                } else {
+                    prop.Value = value;
+                }
+            } catch {
+                if (value != null) {
+                    props.CreateProperty(propName, value);
                 }
             }
 
-            // if we reach this far, then requested property is not found in provider properties
-            var list = new List<Object[]>();
-            // copy current properties to jagged list
-            for (Int32 i = 0; i < source.GetUpperBound(0); i++) {
-                list.Add(new[] { source[i, 0], source[i, 1] });
-            }
-            // add new property
-            list.Add(new[] { propName, value });
-
-            // copy jagged list to normal two-dimensional array
-            var retValue = new Object[list.Count, 2];
-            for (Int32 i = 0; i < retValue.GetUpperBound(0); i++) {
-                retValue[i, 0] = list[i][0];
-                retValue[i, 1] = list[i][1];
-            }
-
-            return retValue;
+            return (Object[,])props.GetAllProperties();
         }
 
         /// <summary>
@@ -347,6 +401,9 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
 
                 foreach (String updateProperty in _updateList) {
                     switch (updateProperty) {
+                        case MSFT_CONF_PROVIDERCLSID:
+                            revConfig.ProviderCLSID = "{4956d17f-88fd-4198-b287-1e6e65883b19}";
+                            break;
                         case MSFT_CONF_HASHALGORITHMID:
                             revConfig.HashAlgorithm = hashAlgorithm.FriendlyName;
                             break;
