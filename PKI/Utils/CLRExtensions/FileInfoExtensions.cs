@@ -1,29 +1,28 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using PKI.Structs;
 using SysadminsLV.PKI.Cryptography.Pkcs;
 using SysadminsLV.PKI.Win32;
 
-namespace SysadminsLV.Utils.CLRExtensions {
-    /// <summary>
-    /// Contains extension methods for <see cref="FileInfo"/> class.
-    /// </summary>
+namespace SysadminsLV.PKI.Utils.CLRExtensions {
     public static class FileInfoExtensions {
         /// <summary>
-        /// Gets PKCS#7 signature object from authenticode-signed files. If file is not authenticode signed, method returns null.
+        /// Gets PKCS#7 signature object of signed file. If file is not signed using authenticode signature, the method return null.
         /// </summary>
-        /// <param name="fileInfo">Instance of <see cref="FileInfo"/> class.</param>
-        /// <returns>PKCS#7 signature object.</returns>
+        /// <param name="fileInfo">An instance of file object.</param>
+        /// <returns>Detached signature object.</returns>
         public static DefaultSignedPkcs7 GetSignatureObject(this FileInfo fileInfo) {
             if (!fileInfo.Exists) {
                 return null;
             }
+            const Int32 CMSG_ENCODED_MESSAGE = 29;
+            const Int32 dwExpectedContentTypeFlags = Wincrypt.CERT_QUERY_CONTENT_FLAG_PKCS7_SIGNED
+                                                     | Wincrypt.CERT_QUERY_CONTENT_FLAG_PKCS7_SIGNED_EMBED;
 
             if (!Crypt32.CryptQueryObject(
                 Wincrypt.CERT_QUERY_OBJECT_FILE,
                 fileInfo.FullName,
-                Wincrypt.CERT_QUERY_CONTENT_FLAG_ALL,
+                dwExpectedContentTypeFlags,
                 Wincrypt.CERT_QUERY_FORMAT_FLAG_ALL,
                 0,
                 out Int32 _,
@@ -34,59 +33,21 @@ namespace SysadminsLV.Utils.CLRExtensions {
                 out IntPtr ppvContext
             )) { return null; }
 
-            Byte[] pvData = null;
-
-            if (!IntPtr.Zero.Equals(phCertStore)) {
-                Crypt32.CertCloseStore(phCertStore, 0);
+            if (!Crypt32.CryptMsgGetParam(phMsg, CMSG_ENCODED_MESSAGE, 0, null, out Int32 pcbData)) {
+                return null;
             }
 
+            var pvData = new Byte[pcbData];
+            Crypt32.CryptMsgGetParam(phMsg, CMSG_ENCODED_MESSAGE, 0, pvData, out pcbData);
+            Crypt32.CryptMsgClose(phMsg);
+            Crypt32.CertCloseStore(phCertStore, 0);
             switch (pdwContentType) {
-                case Wincrypt.CERT_QUERY_CONTENT_PKCS7_SIGNED:
-                case Wincrypt.CERT_QUERY_CONTENT_PKCS7_SIGNED_EMBED:
-                case Wincrypt.CERT_QUERY_CONTENT_PKCS7_UNSIGNED:
-                    pvData = getMsgBytes(phMsg);
-                    break;
-                case Wincrypt.CERT_QUERY_CONTENT_CTL:
-                case Wincrypt.CERT_QUERY_CONTENT_SERIALIZED_CTL:
-                    pvData = getCtlBytes(ppvContext);
-                    break;
-                case Wincrypt.CERT_QUERY_CONTENT_CERT:
-                case Wincrypt.CERT_QUERY_CONTENT_SERIALIZED_CERT:
+                case Wincrypt.CERT_QUERY_CONTENT_FLAG_CERT:
+                case Wincrypt.CERT_QUERY_CONTENT_FLAG_SERIALIZED_CERT:
                     Crypt32.CertFreeCertificateContext(ppvContext);
-                    return null;
-                case Wincrypt.CERT_QUERY_CONTENT_CRL:
-                case Wincrypt.CERT_QUERY_CONTENT_SERIALIZED_CRL:
-                    Crypt32.CertFreeCRLContext(ppvContext);
-                    return null;
+                    break;
             }
-
-            return pvData == null
-                ? null
-                : new DefaultSignedPkcs7(pvData);
-        }
-
-        static Byte[] getMsgBytes(IntPtr phMsg) {
-            try {
-                if (!Crypt32.CryptMsgGetParam(phMsg, 29, 0, null, out Int32 pcbData)) {
-                    return null;
-                }
-                Byte[] pvData = new Byte[pcbData];
-                Crypt32.CryptMsgGetParam(phMsg, 29, 0, pvData, out _);
-                return pvData;
-            } finally {
-                Crypt32.CryptMsgClose(phMsg);
-            }
-        }
-        static Byte[] getCtlBytes(IntPtr ctlContext) {
-            try {
-                var ctl = (Wincrypt.CTL_CONTEXT)Marshal.PtrToStructure(ctlContext, typeof(Wincrypt.CTL_CONTEXT));
-                var ctlBytes = new Byte[ctl.cbCtlEncoded];
-                Marshal.Copy(ctl.pbCtlEncoded, ctlBytes, 0, ctlBytes.Length);
-                return ctlBytes;
-            }
-            finally {
-                Crypt32.CertFreeCTLContext(ctlContext);
-            }
+            return new DefaultSignedPkcs7(pvData);
         }
     }
 }

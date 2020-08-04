@@ -84,11 +84,6 @@ namespace SysadminsLV.PKI.Win32 {
             [In] IntPtr pCertContext
         );
         [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern Boolean CertCloseStore(
-            [In] IntPtr hCertStore,
-            [In] UInt32 dwFlags
-        );
-        [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr CertCreateSelfSignCertificate(
             [In, Optional]  IntPtr phProv,
             [In]            Wincrypt.CRYPTOAPI_BLOB pSubjectIssuerBlob,
