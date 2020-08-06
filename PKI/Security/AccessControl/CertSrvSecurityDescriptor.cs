@@ -149,7 +149,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         public Boolean RemoveAccessRule(IdentityReference identity, AccessControlType accessType) {
             AuthorizationRuleCollection rules = GetAccessRules(true, false, typeof(NTAccount));
             var existingRule = rules
-                .Cast<CertTemplateAccessRule>()
+                .Cast<CertSrvAccessRule>()
                 .FirstOrDefault(x => x.IdentityReference.Value == identity.Value && x.AccessControlType == accessType);
             return existingRule != null && RemoveAccessRule(existingRule);
         }
