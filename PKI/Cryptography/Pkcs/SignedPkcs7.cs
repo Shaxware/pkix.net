@@ -156,7 +156,10 @@ namespace SysadminsLV.PKI.Cryptography.Pkcs {
             Int32 offset = asn.Offset;
             asn.MoveNext();
             do {
-                _certificates.Add(new X509Certificate2(asn.GetTagRawData()));
+                // sometimes we can get thing called ExtendedCertificate. I have no idea what it is.
+                try {
+                    _certificates.Add(new X509Certificate2(asn.GetTagRawData()));
+                } catch { }
             } while (asn.MoveNextCurrentLevel());
             asn.MoveToPosition(offset);
         }
