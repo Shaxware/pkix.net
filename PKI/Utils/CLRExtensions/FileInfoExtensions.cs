@@ -5,6 +5,9 @@ using SysadminsLV.PKI.Cryptography.Pkcs;
 using SysadminsLV.PKI.Win32;
 
 namespace SysadminsLV.PKI.Utils.CLRExtensions {
+    /// <summary>
+    /// Contains extension methods for <see cref="FileInfo"/> class.
+    /// </summary>
     public static class FileInfoExtensions {
         /// <summary>
         /// Gets PKCS#7 signature object of signed file. If file is not signed using authenticode signature, the method return null.
