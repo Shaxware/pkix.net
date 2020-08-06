@@ -334,11 +334,11 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 return;
             }
 
-            var ocspAdmin = new OCSPAdminClass();
-            try {
-                writeValue(MSFT_ARRAY_CONTROLLER, ComputerName);
-            } finally {
-                CryptographyUtils.ReleaseCom(ocspAdmin);
+            foreach (OcspResponderMemberInfo arrayMember in ArrayMembers) {
+                try {
+                    var ocsp = Connect(arrayMember.ComputerName);
+                    ocsp.writeValue(MSFT_ARRAY_CONTROLLER, ComputerName);
+                } catch {}
             }
         }
         /// <summary>
@@ -540,7 +540,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 arrayMembers.Add(responder.ComputerName);
                 writeValue(MSFT_ARRAY_MEMBERS, arrayMembers.ToArray());
                 responder.writeValue(MSFT_ARRAY_MEMBERS, arrayMembers.ToArray());
-
+                responder.Restart();
             } finally {
                 CryptographyUtils.ReleaseCom(ocspAdmin);
             }
@@ -595,6 +595,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                     remote.writeValue(MSFT_ARRAY_MEMBERS, new[] { remote.ComputerName });
                     // 3.
                     remote.MakeArrayController();
+                    remote.Restart();
                 } catch { }
 
                 // 4.
@@ -602,7 +603,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                     MSFT_ARRAY_MEMBERS,
                     ArrayMembers
                         .Select(x => x.ComputerName)
-                        .Except(new[] { computerName })
+                        .Except(new[] { remoteOcspInfo.ComputerName })
                         .ToArray());
             } finally {
                 CryptographyUtils.ReleaseCom(ocspAdmin);
