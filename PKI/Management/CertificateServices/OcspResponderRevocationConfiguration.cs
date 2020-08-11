@@ -116,7 +116,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 if (String.IsNullOrEmpty(value)) {
                     throw new ArgumentException("Value cannot be empty string.");
                 }
-                if (value.Equals(certTemplate, StringComparison.OrdinalIgnoreCase)) {
+                if (!value.Equals(certTemplate, StringComparison.OrdinalIgnoreCase)) {
                     certTemplate = value;
                     _updateList.Add(MSFT_CONF_SIGNINGCERTIFICATETEMPLATE);
                 }
@@ -295,7 +295,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
             } catch { }
             try { reminderDuration = unchecked((Int32)config.ReminderDuration); } catch { }
             try { ConfigurationStatusCode = unchecked((Int32)config.ErrorCode); } catch { }
-            try { SigningCertificateTemplate = config.SigningCertificateTemplate; } catch { }
+            try { certTemplate = config.SigningCertificateTemplate; } catch { }
 
             try {
                 _crlEntries.Clear();
