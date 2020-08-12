@@ -44,7 +44,7 @@ namespace PKI.OCSP {
         /// <param name="certs">Certificate collection to include in request.</param>
         public OCSPRequest(X509Certificate2Collection certs) {
             if (certs == null || certs.Count <= 0) { throw new ArgumentNullException(nameof(certs)); }
-            if (!verifycerts(certs)) {
+            if (!verifyCerts(certs)) {
                 throw new Exception("One or more certificate in collection has distinct issuer");
             }
             initializeFromCerts(certs);
@@ -144,7 +144,7 @@ namespace PKI.OCSP {
         /// </summary>
         /// <remarks>OCSP server may return an error </remarks>
         public Oid2[] AcceptedSignatureAlgorithms {
-            get { return responseAlgIDs; }
+            get => responseAlgIDs;
             set {
                 if (value.Any(oid => oid.OidGroup != OidGroupEnum.SignatureAlgorithm)) {
                     throw new InvalidDataException("One or more object identifiers are invalid.");
@@ -182,8 +182,8 @@ namespace PKI.OCSP {
             tbsRequest.AddRange(RequestList.Encode());
             if (Nonce) {
                 _listExtensions.Add(new X509NonceExtension());
-                Byte[] extensionsbytes = Asn1Utils.Encode(Extensions.Encode(), 162);
-                tbsRequest.AddRange(extensionsbytes);
+                Byte[] extensionsBytes = Asn1Utils.Encode(Extensions.Encode(), 162);
+                tbsRequest.AddRange(extensionsBytes);
                 NonceValue = _listExtensions[_listExtensions.Count - 1].Format(false).Trim();
             }
             return Asn1Utils.Encode(tbsRequest.ToArray(), 48).ToList();
@@ -232,7 +232,7 @@ namespace PKI.OCSP {
             Version ver = Assembly.GetExecutingAssembly().GetName().Version;
             wc.Headers.Add("Content-Type", "application/ocsp-request");
             wc.Headers.Add("Accept", "*/*");
-            wc.Headers.Add("User-Agent", $"PowerShell PKI Module/{ver.Major}.{ver.Minor}");
+            wc.Headers.Add("User-Agent", $"PowerShell-PKI-Module/{ver.Major}.{ver.Minor}");
             wc.Headers.Add("Cache-Control", "no-cache");
             wc.Headers.Add("Pragma", "no-cache");
         }
@@ -246,31 +246,49 @@ namespace PKI.OCSP {
                 SignRequest(SignerCertificate, includeFullSigChain, signatureAlgID);
             }
         }
+        OCSPResponse sendGetRequest() {
+            using (var wc = new WebClient { Proxy = Proxy, Credentials = creds }) {
+                prepareWebClient(wc);
+                String target = prepareGetUrl();
+                Byte[] responseBytes = wc.DownloadData(target);
+                return new OCSPResponse(responseBytes, this, wc);
+            }
+        }
+        OCSPResponse sendPostRequest() {
+            using (var wc = new WebClient { Proxy = Proxy, Credentials = creds }) {
+                prepareWebClient(wc);
+                String target = URL.OriginalString.Replace("\0", null);
+                Byte[] responseBytes = wc.UploadData(target, "POST", RawData);
+                return new OCSPResponse(responseBytes, this, wc);
+            }
+        }
         static Uri getOcspUrl(IEnumerable<X509Certificate2> certs) {
-            foreach (X509Certificate2 cert in certs) {
-                if (cert.Handle.Equals(IntPtr.Zero)) { continue; }
+            foreach (X509Certificate2 cert in certs.Where(x => !x.Handle.Equals(IntPtr.Zero))) {
                 X509Extension aiaExtension = cert.Extensions[X509ExtensionOid.X509AuthorityInformationAccess];
-                if (aiaExtension == null) { continue; }
+                if (aiaExtension == null) {
+                    continue;
+                }
                 X509AuthorityInformationAccessExtension aia = new X509AuthorityInformationAccessExtension(aiaExtension.RawData, false);
                 if (aia.OnlineCertificateStatusProtocol == null || aia.OnlineCertificateStatusProtocol.Length == 0) {
                     continue;
                 }
-                return new Uri(aia.OnlineCertificateStatusProtocol[0]);
+                return new Uri(aia.OnlineCertificateStatusProtocol[0].Trim());
             }
             return null;
         }
-        static Boolean verifycerts(X509Certificate2Collection certs) {
-            if (certs.Count > 0) {
-                HashSet<String> issuers = new HashSet<String>();
-                foreach (X509Certificate2 cert in certs) {
-                    if (cert.Handle.Equals(IntPtr.Zero)) {
-                        return false;
-                    }
-                    issuers.Add(cert.Issuer.ToLower());
-                }
-                if (issuers.Count == 1) { return true; }
+        static Boolean verifyCerts(X509Certificate2Collection certs) {
+            if (certs.Count <= 0) {
+                return false;
             }
-            return false;
+
+            HashSet<String> issuers = new HashSet<String>();
+            foreach (X509Certificate2 cert in certs) {
+                if (cert.Handle.Equals(IntPtr.Zero)) {
+                    return false;
+                }
+                issuers.Add(cert.Issuer.ToLower());
+            }
+            return issuers.Count == 1;
         }
 
         ///  <summary>
@@ -353,22 +371,15 @@ namespace PKI.OCSP {
         /// </remarks>
         public OCSPResponse SendRequest() {
             prepareOcspRequest();
-            using (var wc = new WebClient { Proxy = Proxy, Credentials = creds }) {
-                prepareWebClient(wc);
-                String target = prepareGetUrl();
-                Byte[] responseBytes;
-                try {
-                    responseBytes = wc.DownloadData(target);
-                } catch (WebException e) {
-                    var statusCode = ((HttpWebResponse)e.Response).StatusCode;
-                    if (statusCode == HttpStatusCode.MethodNotAllowed || statusCode == HttpStatusCode.NotFound) {
-                        target = URL.OriginalString.Replace("\0", null);
-                        responseBytes = wc.UploadData(target, "POST", RawData);
-                    } else {
-                        throw;
-                    }
+            try {
+                return sendGetRequest();
+            } catch (WebException e) {
+                var statusCode = ((HttpWebResponse)e.Response).StatusCode;
+                if (statusCode == HttpStatusCode.MethodNotAllowed || statusCode == HttpStatusCode.NotFound) {
+                    return sendPostRequest();
                 }
-                return new OCSPResponse(responseBytes, this, wc);
+
+                throw;
             }
         }
         /// <summary>
@@ -385,24 +396,14 @@ namespace PKI.OCSP {
         /// </returns>
         public OCSPResponse SendRequest(String networkMethod) {
             prepareOcspRequest();
-            using (var wc = new WebClient { Proxy = Proxy, Credentials = creds }) {
-                prepareWebClient(wc);
-                String target;
-                Byte[] responseBytes;
-                switch (networkMethod.ToUpper()) {
-                    case "GET":
-                        target = prepareGetUrl();
-                        responseBytes = wc.DownloadData(target);
-                        break;
-                    case "POST":
-                        target = URL.OriginalString.Replace("\0", null);
-                        responseBytes = wc.UploadData(target, "POST", RawData);
-                        break;
-                    default:
-                        throw new ArgumentException("The network method is invalid. Must be either, NULL, GET or POST.");
+            switch (networkMethod.ToUpper()) {
+                case "GET":
+                    return sendGetRequest();
+                case "POST":
+                    return sendPostRequest();
+                default:
+                    throw new ArgumentException("The network method is invalid. Must be either, NULL, GET or POST.");
 
-                }
-                return new OCSPResponse(responseBytes, this, wc);
             }
         }
         /// <summary>
