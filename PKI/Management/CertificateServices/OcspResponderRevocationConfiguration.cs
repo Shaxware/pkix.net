@@ -84,7 +84,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
                 if (String.IsNullOrEmpty(value)) {
                     throw new ArgumentException("Value cannot be empty string.");
                 }
-                if (value.Equals(caConfigString, StringComparison.OrdinalIgnoreCase)) {
+                if (!value.Equals(caConfigString, StringComparison.OrdinalIgnoreCase)) {
                     caConfigString = value;
                     _updateList.Add(MSFT_CONF_CACONFIG);
                 }
