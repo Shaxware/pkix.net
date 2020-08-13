@@ -20,7 +20,7 @@ namespace PKI.Utils {
 
             const Int32 startBase = 12000;
             const Int32 endBase = 12176;
-            String errorHex = errorCode.ToString("x8");
+            String errorHex = $"{errorCode:x8}";
             Int32 lowBytes = Convert.ToInt32(errorHex.Substring(4, 4), 16);
             IntPtr lpMsgBuf = IntPtr.Zero;
             if (lowBytes > startBase & lowBytes < endBase) {
@@ -39,7 +39,7 @@ namespace PKI.Utils {
                 Kernel32.LocalFree(lpMsgBuf);
                 return message;
             }
-            return $"Error: 0x{errorCode:x2}";
+            return $"Unknown error: 0x{errorHex} (Win32: {errorCode})";
         }
 
         internal static Exception ComExceptionHandler(Exception e) {
