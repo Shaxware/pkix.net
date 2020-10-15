@@ -244,11 +244,11 @@ namespace SysadminsLV.PKI.Dcom.Implementations {
                 return new String[0, 0];
             }
 
-            String[] tempArray = templates.Split('\n');
+            String[] tempArray = templates.TrimEnd().Split('\n');
             var retValue = new String[tempArray.Length / 2, 2];
             for (Int32 index = 0; index < tempArray.Length; index += 2) {
-                retValue[index, 0] = tempArray[index].TrimEnd();
-                retValue[index, 1] = tempArray[index + 1].TrimEnd();
+                retValue[index / 2, 0] = tempArray[index].TrimEnd();
+                retValue[index / 2, 1] = tempArray[index + 1].TrimEnd();
             }
 
             return retValue;
