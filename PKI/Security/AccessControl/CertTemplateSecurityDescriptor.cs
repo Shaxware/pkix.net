@@ -152,15 +152,8 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         /// <inheritdoc />
         public override Type AuditRuleType => typeof(CertTemplateAuditRule);
 
-        /// <summary>
-        /// Translates this object to Active Directory compatible security descriptor.
-        /// </summary>
-        /// <returns></returns>
-        public ActiveDirectorySecurity ToActiveDirectorySecurity() {
-            ActiveDirectorySecurity dsSecurity;
-            using (var entry = new DirectoryEntry("LDAP://" + _x500Name)) {
-                dsSecurity = entry.ObjectSecurity;
-            }
+        ActiveDirectorySecurity toAdSecurity(DirectoryEntry entry) {
+            ActiveDirectorySecurity dsSecurity = entry.ObjectSecurity;
             // clear all existing ACEs
             dsSecurity
                 .GetAccessRules(true, true, typeof(NTAccount))
@@ -225,12 +218,22 @@ namespace SysadminsLV.PKI.Security.AccessControl {
             }
             return dsSecurity;
         }
+
+        /// <summary>
+        /// Translates this object to Active Directory compatible security descriptor.
+        /// </summary>
+        /// <returns></returns>
+        public ActiveDirectorySecurity ToActiveDirectorySecurity() {
+            using (var entry = new DirectoryEntry("LDAP://" + _x500Name)) {
+                return toAdSecurity(entry);
+            }
+        }
         /// <summary>
         /// Writes this object to a securable object's Access Control List.
         /// </summary>
         public void SetObjectSecurity() {
             using (var entry = new DirectoryEntry("LDAP://" + _x500Name)) {
-                entry.ObjectSecurity = ToActiveDirectorySecurity();
+                toAdSecurity(entry);
                 entry.CommitChanges();
             }
         }
