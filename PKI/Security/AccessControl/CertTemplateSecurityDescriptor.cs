@@ -209,7 +209,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                 if ((localRights & CertTemplateRights.Enroll) > 0) {
                     var ace = new ActiveDirectoryAccessRule(
                         localAce.IdentityReference,
-                        ActiveDirectoryRights.ExtendedRight,
+                        ActiveDirectoryRights.ReadProperty | ActiveDirectoryRights.WriteProperty | ActiveDirectoryRights.ExtendedRight,
                         localAce.AccessControlType,
                         new Guid(GUID_ENROLL));
                     dsSecurity.AddAccessRule(ace);
