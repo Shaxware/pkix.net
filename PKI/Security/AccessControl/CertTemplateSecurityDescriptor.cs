@@ -171,7 +171,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                 .ForEach(x => dsSecurity.PurgeAccessRules(x));
             // iterate over local ACEs and translate to DS ACL
             foreach (CertTemplateAccessRule localAce in GetAccessRules(true, false, typeof(NTAccount))) {
-                var localRights = localAce.Rights;
+                CertTemplateRights localRights = localAce.Rights;
                 if ((localRights & CertTemplateRights.FullControl) > 0) {
                     var ace = new ActiveDirectoryAccessRule(
                         localAce.IdentityReference,
@@ -183,7 +183,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                 CertTemplateRights rw = localRights & (CertTemplateRights.Read | CertTemplateRights.Write);
                 if (rw > 0) {
                     ActiveDirectoryRights tempRights;
-                    if (localRights == rw) {
+                    if (rw == (CertTemplateRights.Read | CertTemplateRights.Write)) {
                         tempRights = ActiveDirectoryRights.CreateChild
                                      | ActiveDirectoryRights.DeleteChild
                                      | ActiveDirectoryRights.Self
