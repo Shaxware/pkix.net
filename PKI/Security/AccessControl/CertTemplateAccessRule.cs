@@ -12,11 +12,5 @@ namespace SysadminsLV.PKI.Security.AccessControl {
             IdentityReference identity,
             CertTemplateRights accessMask,
             AccessControlType type) : base(identity, accessMask, InheritanceFlags.None, PropagationFlags.None, type) { }
-
-        /// <summary>
-        /// Gets the <see cref="CertTemplateRights"/> flags associated with the current
-        /// <see cref="CertTemplateAccessRule"/> object.
-        /// </summary>
-        public CertTemplateRights CertificateTemplateRights => (CertTemplateRights)AccessMask;
     }
 }

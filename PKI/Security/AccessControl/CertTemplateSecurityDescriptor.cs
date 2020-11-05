@@ -116,7 +116,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                 RemoveAccessRule(existingRule);
                 var ace = new CertTemplateAccessRule(
                     rule.IdentityReference,
-                    effectiveRuleRights | existingRule.CertificateTemplateRights,
+                    effectiveRuleRights | existingRule.Rights,
                     rule.AccessControlType);
                 base.AddAccessRule(ace);
                 return true;
@@ -171,7 +171,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                 .ForEach(x => dsSecurity.PurgeAccessRules(x));
             // iterate over local ACEs and translate to DS ACL
             foreach (CertTemplateAccessRule localAce in GetAccessRules(true, false, typeof(NTAccount))) {
-                var localRights = localAce.CertificateTemplateRights;
+                var localRights = localAce.Rights;
                 if ((localRights & CertTemplateRights.FullControl) > 0) {
                     var ace = new ActiveDirectoryAccessRule(
                         localAce.IdentityReference,

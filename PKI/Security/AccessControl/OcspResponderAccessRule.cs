@@ -12,7 +12,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         ///		An IdentityReference object that encapsulates a reference to a user account.
         /// </param>
         /// <param name="accessMask">
-        ///		One of the <see cref="OnlineResponderRights"/> values that specifies the type of operation
+        ///		One of the <see cref="OcspResponderRights"/> values that specifies the type of operation
         ///		associated with the access rule.
         /// </param>
         /// <param name="type">
@@ -23,11 +23,5 @@ namespace SysadminsLV.PKI.Security.AccessControl {
             OcspResponderRights accessMask,
             AccessControlType type)
             : base(identity, accessMask, InheritanceFlags.None, PropagationFlags.None, type) { }
-
-        /// <summary>
-        /// Gets the <see cref="OnlineResponderRights"/> flags associated with the current
-        /// <see cref="OcspResponderAccessRule"/> object.
-        /// </summary>
-        public OcspResponderRights OnlineResponderRights => (OcspResponderRights) AccessMask;
     }
 }
