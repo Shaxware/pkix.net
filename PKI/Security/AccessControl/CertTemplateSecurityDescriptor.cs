@@ -214,7 +214,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                         new Guid(GUID_ENROLL));
                     dsSecurity.AddAccessRule(ace);
                 }
-                if ((localRights & CertTemplateRights.Enroll) > 0) {
+                if ((localRights & CertTemplateRights.Autoenroll) > 0) {
                     var ace = new ActiveDirectoryAccessRule(
                         localAce.IdentityReference,
                         ActiveDirectoryRights.ExtendedRight,
