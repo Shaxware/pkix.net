@@ -15,9 +15,11 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         const String GUID_ENROLL     = "0e10c968-78fb-11d2-90d4-00c04f79dc55";
         const String GUID_AUTOENROLL = "a05b8cc2-17bc-4802-a710-e7c15ab866a2";
         readonly String _x500Name;
+        readonly Int32 _schemaVersion;
 
         internal CertTemplateSecurityDescriptor(CertificateTemplate template) : base(false) {
             DisplayName = template.DisplayName;
+            _schemaVersion = template.SchemaVersion;
             _x500Name = template.DistinguishedName;
             fromActiveDirectorySecurity();
         }
@@ -102,6 +104,11 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         /// </remarks>
         public Boolean AddAccessRule(CertTemplateAccessRule rule) {
             AuthorizationRuleCollection rules = GetAccessRules(true, false, typeof(NTAccount));
+            CertTemplateRights effectiveRuleRights = rule.Rights;
+            if (_schemaVersion == 1 && (rule.Rights & CertTemplateRights.Autoenroll) > 0) {
+                effectiveRuleRights &= ~CertTemplateRights.Autoenroll;
+            }
+
             var existingRule = rules
                 .Cast<CertTemplateAccessRule>()
                 .FirstOrDefault(x => x.IdentityReference.Value == rule.IdentityReference.Value && x.AccessControlType == rule.AccessControlType);
@@ -109,7 +116,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                 RemoveAccessRule(existingRule);
                 var ace = new CertTemplateAccessRule(
                     rule.IdentityReference,
-                    rule.CertificateTemplateRights | existingRule.CertificateTemplateRights,
+                    effectiveRuleRights | existingRule.CertificateTemplateRights,
                     rule.AccessControlType);
                 base.AddAccessRule(ace);
                 return true;
