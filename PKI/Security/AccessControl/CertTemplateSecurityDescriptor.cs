@@ -196,7 +196,8 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                     } else if (rw == CertTemplateRights.Read) {
                         tempRights = ActiveDirectoryRights.GenericRead;
                     } else {
-                        tempRights = ActiveDirectoryRights.WriteProperty
+                        tempRights = ActiveDirectoryRights.Self
+                            | ActiveDirectoryRights.WriteProperty
                             | ActiveDirectoryRights.WriteDacl
                             | ActiveDirectoryRights.WriteOwner;
                     }
@@ -248,7 +249,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         void fromActiveDirectorySecurity() {
             ActiveDirectorySecurity dsSecurity;
             using (var entry = new DirectoryEntry("LDAP://" + _x500Name)) {
-               dsSecurity = entry.ObjectSecurity;
+                dsSecurity = entry.ObjectSecurity;
             }
 
             SetOwner(dsSecurity.GetOwner(typeof(NTAccount)));
