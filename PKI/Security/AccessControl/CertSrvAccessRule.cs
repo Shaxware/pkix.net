@@ -12,7 +12,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
         ///		An IdentityReference object that encapsulates a reference to a user account.
         /// </param>
         /// <param name="accessMask">
-        ///		One of the <see cref="CertificationAuthorityRights"/> values that specifies the type of operation
+        ///		One of the <see cref="CertSrvRights"/> values that specifies the type of operation
         ///		associated with the access rule.
         /// </param>
         /// <param name="type">
@@ -23,11 +23,5 @@ namespace SysadminsLV.PKI.Security.AccessControl {
             CertSrvRights accessMask,
             AccessControlType type)
             : base(identity, accessMask, InheritanceFlags.None, PropagationFlags.None, type) { }
-
-        /// <summary>
-        /// Gets the <see cref="CertificationAuthorityRights"/> flags associated with the current
-        /// <see cref="CertSrvAccessRule"/> object.
-        /// </summary>
-        public CertSrvRights CertificationAuthorityRights => (CertSrvRights)AccessMask;
     }
 }

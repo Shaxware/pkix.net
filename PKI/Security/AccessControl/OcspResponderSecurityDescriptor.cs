@@ -104,7 +104,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                 RemoveAccessRule(existingRule);
                 var ace = new OcspResponderAccessRule(
                     rule.IdentityReference,
-                    rule.OnlineResponderRights | existingRule.OnlineResponderRights,
+                    rule.Rights | existingRule.Rights,
                     rule.AccessControlType);
                 base.AddAccessRule(ace);
                 return true;

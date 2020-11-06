@@ -12,10 +12,5 @@ namespace SysadminsLV.PKI.Security.AccessControl {
             OcspResponderRights accessMask,
             AuditFlags flags)
             : base(identity, accessMask, InheritanceFlags.None, PropagationFlags.None, flags) { }
-
-        /// <summary>
-        /// Gets a combination of access types audited by this audit rule.
-        /// </summary>
-        public OcspResponderRights OnlineResponderRights => (OcspResponderRights)AccessMask;
     }
 }

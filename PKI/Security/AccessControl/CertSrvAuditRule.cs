@@ -12,10 +12,5 @@ namespace SysadminsLV.PKI.Security.AccessControl {
             CertSrvRights accessMask,
             AuditFlags flags)
             : base(identity, accessMask, InheritanceFlags.None, PropagationFlags.None, flags) { }
-
-        /// <summary>
-        /// Gets the access mask enabled for audit in the current audit control entry.
-        /// </summary>
-        public CertSrvRights CertificationAuthorityRights => (CertSrvRights)AccessMask;
     }
 }

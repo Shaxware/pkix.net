@@ -113,7 +113,7 @@ namespace SysadminsLV.PKI.Security.AccessControl {
                 RemoveAccessRule(existingRule);
                 var ace = new CertSrvAccessRule(
                     rule.IdentityReference,
-                    rule.CertificationAuthorityRights | existingRule.CertificationAuthorityRights,
+                    rule.Rights | existingRule.Rights,
                     rule.AccessControlType);
                 base.AddAccessRule(ace);
                 return true;
