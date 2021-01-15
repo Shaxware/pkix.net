@@ -111,12 +111,15 @@ namespace SysadminsLV.PKI.Cryptography {
             if (param == null) {
                 algParamString.Append(" NULL");
             } else {
-                algParamString.AppendLine("    ");
+                algParamString.Append(Environment.NewLine + "    ");
                 EncodingType format = EncodingType.Hex;
                 if (param.Length > 16) {
                     format = EncodingType.HexAddress;
                 }
-                algParamString.Append(AsnFormatter.BinaryToString(param, format).TrimEnd());
+                algParamString.Append(
+                    AsnFormatter.BinaryToString(param, format)
+                        .Replace(Environment.NewLine, Environment.NewLine + "    ")
+                        .TrimEnd());
             }
             sb.Append(
                 // TODO: algorithm identifier is more than signature algorithm identifier, it is commonly used

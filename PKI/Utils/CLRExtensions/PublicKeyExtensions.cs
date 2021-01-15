@@ -79,7 +79,7 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
 $@"Public Key Algorithm:
     Algorithm ObjectId: {publicKey.Oid.FriendlyName} ({publicKey.Oid.Value})
     Algorithm Parameters:
-    {keyParamsString}
+    {keyParamsString.TrimEnd()}
 Public Key Length: {publicKey.GetKeyLength()} bits
 Public Key: UnusedBits = 0
     {keyValueString}

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Utils.CLRExtensions;
 
 namespace System.Security.Cryptography.X509Certificates {
     /// <summary>
@@ -86,14 +87,8 @@ namespace System.Security.Cryptography.X509Certificates {
             if (RawData == null || RawData.Length == 0) {
                 return base.Format(multiLine);
             }
-            String retValue = String.IsNullOrEmpty(Oid.FriendlyName)
-                ? Oid.Value
-                : Oid.FriendlyName;
-            retValue += " = " + Value;
-            retValue += multiLine
-                ? Environment.NewLine
-                : ";";
-            return retValue;
+            String ending = multiLine ? Environment.NewLine : String.Empty;
+            return $"{Oid.Format(false)} = {Value}{ending}";
         }
     }
 }

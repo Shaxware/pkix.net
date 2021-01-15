@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using Microsoft.Win32.SafeHandles;
 using PKI.Exceptions;
 using PKI.Structs;
 using PKI.Utils;
+using SysadminsLV.Asn1Parser;
+using SysadminsLV.PKI.Cryptography;
 using SysadminsLV.PKI.Win32;
 
 namespace SysadminsLV.PKI.Utils.CLRExtensions {
@@ -211,6 +214,51 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             var hresult = NCrypt.NCryptDeleteKey(phKey, 0);
             phKey.Dispose();
             return hresult == 0;
+        }
+
+        /// <summary>
+        /// Displays an X.509 certificate dump.
+        /// </summary>
+        /// <returns>Formatted string.</returns>
+        public static String Format(this X509Certificate2 cert) {
+            if (cert == null) {
+                return String.Empty;
+            }
+
+            var blob = new SignedContentBlob(cert.RawData, ContentBlobType.SignedBlob);
+            String sigValue = AsnFormatter.BinaryToString(blob.Signature.Value, EncodingType.HexAddress)
+                .Replace(Environment.NewLine, Environment.NewLine + "    ");
+            var sb = new StringBuilder();
+
+
+            sb.Append($@"X509 Certificate:
+Version: {cert.Version} (0x{cert.Version - 1:x})
+Serial Number: {cert.SerialNumber}
+
+{blob.SignatureAlgorithm}
+Issuer:
+    {cert.IssuerName.FormatReverse(true).Replace(Environment.NewLine, Environment.NewLine + "    ")}
+
+Valid From: {cert.NotBefore}
+Valid To  : {cert.NotAfter}
+
+Subject:
+    {cert.SubjectName.FormatReverse(true).Replace(Environment.NewLine, Environment.NewLine + "    ")}
+
+{cert.PublicKey.Format().TrimEnd()}
+
+Certificate Extensions: {cert.Extensions.Count}
+{cert.Extensions.Format()}
+
+{blob.SignatureAlgorithm.ToString().TrimEnd()}
+Signature: UnusedBits={blob.Signature.UnusedBits}
+    {sigValue}
+");
+            sb.AppendLine(cert.Issuer.Equals(cert.Subject, StringComparison.InvariantCultureIgnoreCase)
+                ? "Root Certificate: Subject matches Issuer"
+                : "Non-root Certificate");
+            sb.Append($"Cert Hash(sha1): {cert.Thumbprint?.ToLower()}");
+            return sb.ToString();
         }
     }
 }

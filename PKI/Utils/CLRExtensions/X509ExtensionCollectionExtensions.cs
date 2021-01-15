@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using SysadminsLV.Asn1Parser;
 
 namespace SysadminsLV.PKI.Utils.CLRExtensions {
@@ -82,6 +83,22 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             foreach (X509Extension ext in e) {
                 exts.Add(ext);
             }
+        }
+
+
+        public static String Format(this X509ExtensionCollection exts) {
+            if (exts == null || exts.Count == 0) {
+                return String.Empty;
+            }
+
+            var sb = new StringBuilder();
+
+            foreach (X509Extension extension in exts) {
+                sb.AppendLine($@"    {extension.Oid.Format(true)}, Critial={extension.Critical}, Length={extension.RawData.Length} (0x{extension.RawData.Length:x}):
+        {extension.Format(true).Replace("\r\n", "\r\n        ")}");
+            }
+
+            return sb.ToString().TrimEnd();
         }
     }
 }

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace SysadminsLV.PKI.Utils.CLRExtensions {
     /// <summary>
@@ -18,6 +21,25 @@ namespace SysadminsLV.PKI.Utils.CLRExtensions {
             var retValue = new X500RdnAttributeCollection();
             retValue.Decode(name.RawData);
             return retValue;
+        }
+
+        /// <inheritdoc cref="AsnEncodedData.Format(Boolean)"/>
+        public static String FormatReverse(this X500DistinguishedName name, Boolean multiLine) {
+            if (name == null) {
+                return String.Empty;
+            }
+
+            var sb = new StringBuilder();
+            var rdnAttributes = name.GetRdnAttributes();
+            if (multiLine) {
+                foreach (X500RdnAttribute rdn in rdnAttributes) {
+                    sb.AppendLine(rdn.Format(false));
+                }
+            } else {
+                sb.Append(String.Join(", ", rdnAttributes.Select(x => x.Format(false))));
+            }
+
+            return sb.ToString().TrimEnd();
         }
     }
 }
