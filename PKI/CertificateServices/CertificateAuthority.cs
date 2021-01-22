@@ -375,12 +375,55 @@ namespace PKI.CertificateServices {
         /// The caller must have at least <strong>Read</strong> permissions on the CA server to ping management interfaces.
         /// Otherwise the method always returns <strong>False</strong>, regardless of actual interface state.
         /// </remarks>
+        [Obsolete("Use 'PingAdmin()' or 'PingRequest()' method instead.")]
         public Boolean Ping() {
             if (String.IsNullOrEmpty(ComputerName)) {
                 throw new UninitializedObjectException();
             }
 
             return Ping(ComputerName);
+        }
+        /// <summary>
+        /// Gets the availability and accessibility of ADCS Certification Authority administration and management RPC/DCOM interface.
+        /// </summary>
+        /// <exception cref="UninitializedObjectException">The <see cref="CertificateAuthority"/> object is not
+        /// initialized through a class constructor.</exception>
+        /// <returns>
+        /// <strong>True</strong> if management interfaces are available and caller has permissions to access it, otherwise <strong>False</strong>.
+        /// </returns>
+        public Boolean PingAdmin() {
+            if (String.IsNullOrEmpty(ComputerName)) {
+                throw new UninitializedObjectException();
+            }
+
+            try {
+                var propReader = new CertPropReaderD(ConfigString, true);
+                propReader.GetProductVersionProperty();
+                return true;
+            } catch {
+                return false;
+            }
+        }
+        /// <summary>
+        /// Gets the availability and accessibility of ADCS Certification Authority request RPC/DCOM interface.
+        /// </summary>
+        /// <exception cref="UninitializedObjectException">The <see cref="CertificateAuthority"/> object is not
+        /// initialized through a class constructor.</exception>
+        /// <returns>
+        /// <strong>True</strong> if request interfaces are available and caller has permissions to access it, otherwise <strong>False</strong>.
+        /// </returns>
+        public Boolean PingRequest() {
+            if (String.IsNullOrEmpty(ComputerName)) {
+                throw new UninitializedObjectException();
+            }
+
+            try {
+                var propReader = new CertPropReaderD(ConfigString, false);
+                propReader.GetProductVersionProperty();
+                return true;
+            } catch {
+                return false;
+            }
         }
         /// <summary>
         /// Returns an instance of ADCS database reader.
