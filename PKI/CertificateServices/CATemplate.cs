@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using CERTADMINLib;
 using PKI.CertificateTemplates;
 using PKI.Exceptions;
-using PKI.Structs;
 using PKI.Utils;
 using SysadminsLV.PKI.Dcom;
 using SysadminsLV.PKI.Dcom.Implementations;
@@ -98,7 +95,7 @@ namespace PKI.CertificateServices {
                             return sku == "Enterprise" || sku == "Datacenter";
                         default: return false;
                     }
-                case CertSrvPlatformVersion.Win2008R2 :
+                case CertSrvPlatformVersion.Win2008R2:
                     return schemaVersion < 4;
                 default: return true;
             }
@@ -227,27 +224,25 @@ namespace PKI.CertificateServices {
         /// </returns>
         /// <remarks>The caller must have <strong>Administrator</strong> permissions on the target CA server.</remarks>
         public Boolean SetInfo() {
-            if (!IsModified) { return false; }
+            if (!IsModified) {
+                return false;
+            }
+
             if (!CertificateAuthority.Ping(ComputerName)) {
                 var e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
             }
-            var CertAdmin = new CCertAdmin();
-            var SB = new StringBuilder();
-            if (Templates.Length > 0) {
-                foreach (CertificateTemplate item in Templates) {
-                    SB.Append(item.Name + "\n");
-                    SB.Append(item.OID.Value + "\n");
-                }
-            }
+
+            var writer = new CertPropWriterD(configString);
+
             try {
-                CertAdmin.SetCAProperty(configString, CertAdmConstants.CrPropTemplates, 0, CertAdmConstants.ProptypeString, SB.ToString());
-            } catch (Exception e) {
-                throw Error.ComExceptionHandler(e);
+                writer.SetTemplates(_templates.ToArray());
+                IsModified = false;
+                return true;
+            } catch (Exception ex) {
+                throw Error.ComExceptionHandler(ex);
             }
-            IsModified = false;
-            return true;
         }
     }
 }
