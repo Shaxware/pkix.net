@@ -135,11 +135,11 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <summary>
         /// Gets or sets request handling configuration on Online Responder server.
         /// </summary>
-        public OcspResponderRequestFlag RequestFlags {
-            get => readScalarValue<OcspResponderRequestFlag>(MSFT_REQUEST_FLAGS);
+        public OcspResponderRequestFlags RequestFlags {
+            get => readScalarValue<OcspResponderRequestFlags>(MSFT_REQUEST_FLAGS);
             set {
                 if (value != RequestFlags) {
-                    if (value == OcspResponderRequestFlag.None) {
+                    if (value == OcspResponderRequestFlags.None) {
                         deleteValue(MSFT_REQUEST_FLAGS);
                     } else {
                         writeValue(MSFT_REQUEST_FLAGS, value);

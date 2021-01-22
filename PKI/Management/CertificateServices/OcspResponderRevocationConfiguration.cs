@@ -46,7 +46,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         String certTemplate, caConfigString;
         String[] baseCrlUrls, deltaCrlUrls, serialDirs;
         Oid2 hashAlgorithm;
-        OcspSigningFlag signingFlags;
+        OcspSigningFlags signingFlags;
         X509Certificate2 signingCertificate;
 
         internal OcspResponderRevocationConfiguration(String computerName, IOCSPCAConfiguration config) {
@@ -148,7 +148,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <summary>
         /// Gets or sets the signing certificate handling options.
         /// </summary>
-        public OcspSigningFlag SigningFlags {
+        public OcspSigningFlags SigningFlags {
             get => signingFlags;
             set {
                 if (value != signingFlags) {
@@ -264,7 +264,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         internal static void InitializeDefaults(IOCSPCAConfiguration comConfig) {
             comConfig.ProviderCLSID = "{4956d17f-88fd-4198-b287-1e6e65883b19}";
             comConfig.HashAlgorithm = "sha1";
-            comConfig.SigningFlags = (UInt32)(OcspSigningFlag.Silent | OcspSigningFlag.ManualSigningCert | OcspSigningFlag.ResponderIdKeyHash);
+            comConfig.SigningFlags = (UInt32)(OcspSigningFlags.Silent | OcspSigningFlags.ManualSigningCert | OcspSigningFlags.ResponderIdKeyHash);
             comConfig.ReminderDuration = 90;
             var props = new OCSPPropertyCollectionClass();
             props.InitializeFromProperties(null);
@@ -287,7 +287,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
 
         void readProperties(IOCSPCAConfiguration config) {
             try { hashAlgorithm = new Oid2(config.HashAlgorithm, OidGroupEnum.HashAlgorithm, false); } catch { }
-            try { signingFlags = (OcspSigningFlag)config.SigningFlags; } catch { }
+            try { signingFlags = (OcspSigningFlags)config.SigningFlags; } catch { }
             try {
                 signingCertificate = config.SigningCertificate == null
                     ? null

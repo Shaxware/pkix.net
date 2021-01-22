@@ -4,11 +4,11 @@ using PKI.CertificateServices;
 
 namespace SysadminsLV.PKI.Management.CertificateServices {
     /// <summary>
-    /// Represents CRLDistributionPoint URL object. An object contains URL information and URL publication settings.
+    /// Represents a CRL Distribution Point URL object. An object contains URL information and URL publication settings.
     /// </summary>
     /// <threadsafety static="true" instance="false"/>
-    public class AdcsCdpUrlEntry {
-        /// <summary>Initializes a new instance of the <strong>CDP</strong> class using URL string.</summary>
+    public class CertSrvCdpUrlEntry {
+        /// <summary>Initializes a new instance of the <strong>CertSrvCdpUrlEntry</strong> class using URL string.</summary>
         /// <param name="regUri">An URL that is formatted as follows: Flags:protocol/ActualURL/options.
         /// See <see cref="RegURI">RegURI</see> property for variable replacement tokens
         /// and <see cref="Flags">Flags</see> property for detailed information about publication Flags.</param>
@@ -18,7 +18,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <p>Only absolute (local), UNC paths and LDAP:// URLs are supported for CRL file publishing.</p>
         /// <p>Only LDAP:// and HTTP:// URLs are supported for CRL file retrieval.</p>
         /// </remarks>
-        public AdcsCdpUrlEntry(String regUri) {
+        public CertSrvCdpUrlEntry(String regUri) {
             if (String.IsNullOrEmpty(regUri)) { throw new ArgumentNullException(nameof(regUri)); }
             RegURI = regUri;
             m_initialize();
@@ -58,45 +58,45 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <summary>
         /// Gets URL publication Flags.
         /// </summary>
-        public AdcsCdpUrlFlag Flags { get; private set; }
+        public CertSrvCdpUrlFlags Flags { get; private set; }
         /// <summary>
         /// Gets True if provided URL is configured to publish CRLs to this location.
         /// </summary>
         /// <remarks>Only absolute (local), UNC and LDAP:// paths are supported.</remarks>
-        public Boolean CrlPublish => (Flags & AdcsCdpUrlFlag.CrlPublish) > 0;
+        public Boolean CrlPublish => (Flags & CertSrvCdpUrlFlags.CrlPublish) > 0;
         /// <summary>
         /// Gets True if provided URL is configured to publish Delta CRLs to this location.
         /// </summary>
         /// <remarks>Only absolute (local), UNC and LDAP:// paths are supported.</remarks>
-        public Boolean DeltaCrlPublish => (Flags & AdcsCdpUrlFlag.DeltaCrlPublish) > 0;
+        public Boolean DeltaCrlPublish => (Flags & CertSrvCdpUrlFlags.DeltaCrlPublish) > 0;
         /// <summary>
         /// Gets True if provided URL is configured to publish specified URL to all issued certificates' CDP extension.
         /// </summary>
         /// <remarks>Only HTTP:// and LDAP:// paths are supported.</remarks>
-        public Boolean AddToCertCdp => (Flags & AdcsCdpUrlFlag.AddToCertCdp) > 0;
+        public Boolean AddToCertCdp => (Flags & CertSrvCdpUrlFlags.AddToCertCdp) > 0;
         /// <summary>
         /// Gets True if provided URL is configured to publish specified URL Base CRL CDP extension.
         /// This extension is used to locate Delta CRL locations.
         /// </summary>
         /// <remarks>Only HTTP:// and LDAP:// paths are supported.</remarks>
-        public Boolean AddToFreshestCrl => (Flags & AdcsCdpUrlFlag.AddToFreshestCrl) > 0;
+        public Boolean AddToFreshestCrl => (Flags & CertSrvCdpUrlFlags.AddToFreshestCrl) > 0;
         /// <summary>
         /// Gets True if provided URL is configured to publish provided URL to CRLs.
         /// </summary>
         /// <remarks>Only LDAP:// paths are supported.</remarks>
-        public Boolean AddToCrlCdp => (Flags & AdcsCdpUrlFlag.AddToCrlCdp) > 0;
+        public Boolean AddToCrlCdp => (Flags & CertSrvCdpUrlFlags.AddToCrlCdp) > 0;
         /// <summary>
         /// Gets True if provided URL is configured to publish CRLs to CRLs' IDP (Issuing Distribution Point) extension.
         /// </summary>
         /// <remarks>Only HTTP:// and LDAP:// paths are supported.</remarks>
-        public Boolean IDP => (Flags & AdcsCdpUrlFlag.IDP) > 0;
+        public Boolean IDP => (Flags & CertSrvCdpUrlFlags.IDP) > 0;
 
         void m_initialize() {
             var regex = new Regex(@"^\d+");
             Match match = regex.Match(RegURI);
             if (match.Success) {
                 Int16 matches = Convert.ToInt16(match.Value);
-                Flags = (AdcsCdpUrlFlag)matches;
+                Flags = (CertSrvCdpUrlFlags)matches;
             } else { throw new FormatException(); }
             ConfigURI = RegURI
                 .Replace("%11", "<CAObjectClass>")

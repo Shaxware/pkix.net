@@ -5,7 +5,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
     /// Contains flags used by Active Directory Certificate Services to configure certificate revocation list (<strong>CRL</strong>) publication settings.
     /// </summary>
     [Flags]
-    public enum AdcsCdpUrlFlag {
+    public enum CertSrvCdpUrlFlags {
         /// <summary>
         /// No publication flags associated with particular entry. This entry will not be used by certification authority.
         /// </summary>

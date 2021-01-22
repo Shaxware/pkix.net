@@ -6,7 +6,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
     /// <para>This enumeration has a <see cref="FlagsAttribute"/> attribute that allows a bitwise combination of its member values.</para>
     /// </summary>
     [Flags]
-    public enum AdcsCertSrvAudits {
+    public enum CertSrvAuditFlags {
         /// <summary>
         /// No audit is performed on CA server.
         /// </summary>

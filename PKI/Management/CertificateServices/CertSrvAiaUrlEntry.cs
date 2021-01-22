@@ -3,12 +3,12 @@ using System.Text.RegularExpressions;
 
 namespace SysadminsLV.PKI.Management.CertificateServices {
     /// <summary>
-    /// Represents an AuthorityInformationAccess URL object. An object contains URL information and URL publication settings.
+    /// Represents an Authority Information Access URL object. An object contains URL information and URL publication settings.
     /// An URL indicates how clients can obtain presented certificate's issuer certificate, or how to locate authoritative OCSP responder. These URLs
     /// are generally used for certificate chain building purposes to determine whether the presented certificate came from trusted CA.
     /// </summary>
-    public class AdcsAiaUrlEntry {
-        /// <summary>Initializes a new instance of the <strong>AIA</strong> class using URL string.</summary>
+    public class CertSrvAiaUrlEntry {
+        /// <summary>Initializes a new instance of the <strong>CertSrvAiaUrlEntry</strong> class using URL string.</summary>
         /// <param name="regUri">An URL that is formatted as follows: Flags:protocol/ActualURL/options.
         /// See <see cref="RegURI">RegURI</see> property for variable replacement tokens
         /// and <see cref="Flags">Flags</see> property for detailed information about publication Flags.</param>
@@ -18,7 +18,7 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// <p>Only absolute (local), UNC paths and LDAP:// URLs are supported for CRT file publishing.</p>
         /// <p>Only LDAP:// and HTTP:// URLs are supported for CRT file retrieval.</p>
         /// </remarks>
-        public AdcsAiaUrlEntry(String regUri) {
+        public CertSrvAiaUrlEntry(String regUri) {
             if (String.IsNullOrEmpty(regUri)) { throw new ArgumentNullException(nameof(regUri)); }
             RegURI = regUri;
             m_initialize();
@@ -52,29 +52,29 @@ namespace SysadminsLV.PKI.Management.CertificateServices {
         /// Gets URL publication Flags.
         /// </summary>
         /// <remarks>Windows Server 2003 and higher: you cannot define custom CRT file publication local path.</remarks>
-        public AdcsAiaUrlFlag Flags { get; private set; }
+        public CertSrvAiaUrlFlags Flags { get; private set; }
         /// <summary>
         /// Gets True if specified URL is configured to publish the CRT file to the specified location.
         /// </summary>
         /// <remarks>Only absolute (local), UNC and LDAP:// paths are supported.</remarks>
-        public Boolean ServerPublish => (Flags & AdcsAiaUrlFlag.CertPublish) > 0;
+        public Boolean ServerPublish => (Flags & CertSrvAiaUrlFlags.CertPublish) > 0;
         /// <summary>
         /// Gets True if specified URL is configured to include specified URL to all issued certificate's Authority Information Access extension.
         /// </summary>
         /// <remarks>Only HTTP:// and LDAP:// paths are supported.</remarks>
-        public Boolean AddToCertAia => (Flags & AdcsAiaUrlFlag.AddToCertAiaIssuer) > 0;
+        public Boolean AddToCertAia => (Flags & CertSrvAiaUrlFlags.AddToCertAiaIssuer) > 0;
         /// <summary>
         /// Gets True if specified URL is configured to include specified URL to all issued certificate's Authority Information Access extension as a OCSP Locator.
         /// </summary>
         /// <remarks>HTTP:// paths are supported.</remarks>
-        public Boolean OCSP => (Flags & AdcsAiaUrlFlag.AddToCertAiaOcsp) > 0;
+        public Boolean OCSP => (Flags & CertSrvAiaUrlFlags.AddToCertAiaOcsp) > 0;
 
         void m_initialize() {
             var regex = new Regex(@"^\d+");
             Match match = regex.Match(RegURI);
             if (match.Success) {
                 Int16 matches = Convert.ToInt16(match.Value);
-                Flags = (AdcsAiaUrlFlag)matches;
+                Flags = (CertSrvAiaUrlFlags)matches;
             } else { throw new FormatException(); }
             ConfigURI = RegURI
                 .Replace("%11", "<CAObjectClass>")
