@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PKI.Management.CertificateServices {
+namespace SysadminsLV.PKI.Management.CertificateServices {
     /// <summary>
     /// Defines client roles on Online Responder.
     /// <para>This enumeration has a <see cref="FlagsAttribute"/> attribute that allows a bitwise combination of its member values.</para>

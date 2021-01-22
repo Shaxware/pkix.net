@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using SysadminsLV.PKI;
-using SysadminsLV.PKI.Management.CertificateServices;
 
-namespace PKI.Management.CertificateServices {
+namespace SysadminsLV.PKI.Management.CertificateServices {
     /// <summary>
     /// Represents a collection of Online Responder Array members.
     /// </summary>

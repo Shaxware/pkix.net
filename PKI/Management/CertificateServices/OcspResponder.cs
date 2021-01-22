@@ -7,7 +7,6 @@ using System.ServiceProcess;
 using CERTADMINLib;
 using PKI.CertificateServices;
 using PKI.Exceptions;
-using PKI.Management.CertificateServices;
 using PKI.Utils;
 using SysadminsLV.PKI.Security.AccessControl;
 
