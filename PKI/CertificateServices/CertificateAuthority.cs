@@ -449,7 +449,7 @@ namespace PKI.CertificateServices {
             if (String.IsNullOrEmpty(Name)) {
                 throw new UninitializedObjectException();
             }
-            if (!Ping()) {
+            if (!PingAdmin() && !PingRequest()) {
                 var e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
@@ -472,7 +472,7 @@ namespace PKI.CertificateServices {
         /// <returns>CA Exchange certificate.</returns>
         public X509Certificate2 GetCAExchangeCertificate() {
             if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
-            if (!Ping()) {
+            if (!PingAdmin() && !PingRequest()) {
                 ServerUnavailableException e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
@@ -589,7 +589,7 @@ namespace PKI.CertificateServices {
         /// <exception cref="ServerUnavailableException">CA server is not accessible via RPC/DCOM.</exception>
         public void PublishCRL(Boolean deltaOnly = false, Boolean updateFilesOnly = false) {
             if (String.IsNullOrEmpty(Name)) { throw new UninitializedObjectException(); }
-            if (!Ping()) {
+            if (!PingAdmin()) {
                 ServerUnavailableException e = new ServerUnavailableException(DisplayName);
                 e.Data.Add(nameof(e.Source), OfflineSource.DCOM);
                 throw e;
