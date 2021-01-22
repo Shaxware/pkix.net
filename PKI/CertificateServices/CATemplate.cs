@@ -236,13 +236,9 @@ namespace PKI.CertificateServices {
 
             var writer = new CertPropWriterD(configString);
 
-            try {
-                writer.SetTemplates(_templates.ToArray());
-                IsModified = false;
-                return true;
-            } catch (Exception ex) {
-                throw Error.ComExceptionHandler(ex);
-            }
+            writer.SetTemplates(_templates.ToArray());
+            IsModified = false;
+            return true;
         }
     }
 }
